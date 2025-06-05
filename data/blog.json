@@ -1,0 +1,85 @@
+{
+    "mainBlogPosts": [
+        {
+            "image": "/assets/img/all-images/blog/blog-img1.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "5 Tips For First-Time Homebuyers Housa",
+            "link": "/blog-detail",
+            "date": "12",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img2.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "Understanding the Latest Real Estate Market Trends",
+            "link": "/blog-detail",
+            "date": "14",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img3.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "How to Stage Your Home for a Quick Sale",
+            "link": "/blog-detail",
+            "date": "17",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img7.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "5 Things to Consider Before Buying a Home",
+            "link": "/blog-detail",
+            "date": "19",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img8.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "Top Real Estate Investment Strategies for 2025",
+            "link": "/blog-detail",
+            "date": "22",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img9.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "How to Sell Your Property Fast & Get the Best Price",
+            "link": "/blog-detail",
+            "date": "24",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img10.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "Apartment vs. House: Which is Right for You?",
+            "link": "/blog-detail",
+            "date": "14",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img11.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "The Ultimate Guide to First-Time Home Buying",
+            "link": "/blog-detail",
+            "date": "19",
+            "month": "AUG"
+        },
+        {
+            "image": "/assets/img/all-images/blog/blog-img12.png",
+            "author": "Leigh Harris",
+            "label": "Deluxe",
+            "title": "10 Must-Know Tips for First-Time Home Buyers",
+            "link": "/blog-detail",
+            "date": "20",
+            "month": "AUG"
+        }
+    ]
+}

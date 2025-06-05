@@ -1,0 +1,704 @@
+[
+  {
+    "id": 1,
+    "keyword": "Luxury Villa",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-20.png",
+      "img2": "/assets/img/all-images/properties/property-25.png",
+      "img3": "/assets/img/all-images/properties/property-2.png"
+    },
+    "address": "123 Beverly Hills, CA",
+    "city": "Los Angeles",
+    "state": "California",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Villa",
+    "bedrooms": 5,
+    "bathrooms": 4,
+    "garages": 3,
+    "rooms": 8,
+    "minPrice": 1500000,
+    "maxPrice": 2000000,
+    "minSize": 350,
+    "maxSize": 448,
+    "agent": {
+      "name": "John Doe",
+      "image": "/assets/img/all-images/agents/agent-1.png"
+    },
+    "amenities": [
+      "Air Conditioning",
+      "Parking",
+      "Swimming Pool",
+      "Garden",
+      "Wifi",
+      "Fireplace",
+      "Gym"
+    ]
+  },
+  {
+    "id": 2,
+    "keyword": "Modern Apartment sale",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-12.png",
+      "img2": "/assets/img/all-images/properties/property-30.png",
+      "img3": "/assets/img/all-images/properties/property-26.png"
+    },
+    "address": "45 Downtown St, NY",
+    "city": "New York",
+    "state": "New York",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "Apartment",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 5,
+    "minPrice": 4500,
+    "maxPrice": 5000,
+    "minSize": 200,
+    "maxSize": 300,
+    "agent": {
+      "name": "Sarah Johnson",
+      "image": "/assets/img/all-images/agents/agent-2.png"
+    },
+    "amenities": [
+      "Elevator",
+      "Intercom",
+      "Laundry",
+      "Cable TV",
+      "Wifi",
+      "Air Conditioning"
+    ]
+  },
+  {
+    "id": 3,
+    "keyword": "Beachfront Condo",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-16.png",
+      "img2": "/assets/img/all-images/properties/property-9.png",
+      "img3": "/assets/img/all-images/properties/property-26.png"
+    },
+    "address": "78 Ocean Drive, FL",
+    "city": "Miami",
+    "state": "Florida",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Apartment",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 4,
+    "minPrice": 600000,
+    "maxPrice": 900000,
+    "minSize": 180,
+    "maxSize": 250,
+    "agent": {
+      "name": "Michael Brown",
+      "image": "/assets/img/all-images/agents/agent-3.png"
+    },
+    "amenities": [
+      "Balcony",
+      "Air Conditioning",
+      "Pet Friendly",
+      "Swimming Pool",
+      "Wifi",
+      "Outdoor Shower"
+    ]
+  },
+  {
+    "id": 4,
+    "keyword": "Cozy Cottage",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-12.png",
+      "img2": "/assets/img/all-images/properties/property-19.png",
+      "img3": "/assets/img/all-images/properties/property-6.png"
+    },
+    "address": "234 Greenway Ave, TX",
+    "city": "Dallas",
+    "state": "Texas",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "House",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "garages": 1,
+    "rooms": 4,
+    "minPrice": 2200,
+    "maxPrice": 2500,
+    "minSize": 146,
+    "maxSize": 200,
+    "agent": {
+      "name": "Emily Davis",
+      "image": "/assets/img/all-images/agents/agent-4.png"
+    },
+    "amenities": [
+      "Garden",
+      "Fireplace",
+      "Wifi",
+      "Parking",
+      "Pet Friendly",
+      "Lawn"
+    ]
+  },
+  {
+    "id": 5,
+    "keyword": "Luxury Penthouse",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-12.png",
+      "img2": "/assets/img/all-images/properties/property-26.png",
+      "img3": "/assets/img/all-images/properties/property-10.png"
+    },
+    "address": "10 Skyline Ave, IL",
+    "city": "Chicago",
+    "state": "Illinois",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Luxury Homes",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "garages": 2,
+    "rooms": 7,
+    "minPrice": 1200000,
+    "maxPrice": 1800000,
+    "minSize": 300,
+    "maxSize": 400,
+    "agent": {
+      "name": "David Wilson",
+      "image": "/assets/img/all-images/agents/agent-5.png"
+    },
+    "amenities": [
+      "Air Conditioning",
+      "Elevator",
+      "Intercom",
+      "Wifi",
+      "Gym",
+      "Sauna",
+      "TV Cable"
+    ]
+  },
+  {
+    "id": 6,
+    "keyword": "Family Home",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-26.png",
+      "img2": "/assets/img/all-images/properties/property-1.png",
+      "img3": "/assets/img/all-images/properties/property-22.png"
+    },
+    "address": "567 Maple Rd, GA",
+    "city": "Atlanta",
+    "state": "Georgia",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "Single Family",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 2,
+    "rooms": 6,
+    "minPrice": 3200,
+    "maxPrice": 3500,
+    "minSize": 220,
+    "maxSize": 300,
+    "agent": {
+      "name": "Jessica Taylor",
+      "image": "/assets/img/all-images/agents/agent-6.png"
+    },
+    "amenities": [
+      "Heating",
+      "Fireplace",
+      "Parking",
+      "Garden",
+      "Wifi",
+      "Refrigerator",
+      "Washer",
+      "Dryer"
+    ]
+  },
+  {
+    "id": 7,
+    "keyword": "Lake House",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-7.png",
+      "img2": "/assets/img/all-images/properties/property-19.png",
+      "img3": "/assets/img/all-images/properties/property-4.png"
+    },
+    "address": "890 Lakeview Dr, CO",
+    "city": "Denver",
+    "state": "Colorado",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "House",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "garages": 2,
+    "rooms": 7,
+    "minPrice": 900000,
+    "maxPrice": 1400000,
+    "minSize": 280,
+    "maxSize": 350,
+    "agent": {
+      "name": "Robert Martinez",
+      "image": "/assets/img/all-images/agents/agent-7.png"
+    },
+    "amenities": [
+      "Air Conditioning",
+      "Heating",
+      "Balcony",
+      "Fireplace",
+      "Garden",
+      "Outdoor Shower",
+      "Barbeque"
+    ]
+  },
+  {
+    "id": 8,
+    "keyword": "Downtown Loft",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-13.png",
+      "img2": "/assets/img/all-images/properties/property-1.png",
+      "img3": "/assets/img/all-images/properties/property-15.png"
+    },
+    "address": "321 Urban St, WA",
+    "city": "Seattle",
+    "state": "Washington",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "Apartment",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "garages": 1,
+    "rooms": 3,
+    "minPrice": 2800,
+    "maxPrice": 3200,
+    "minSize": 150,
+    "maxSize": 200,
+    "agent": {
+      "name": "Lisa Anderson",
+      "image": "/assets/img/all-images/agents/agent-8.png"
+    },
+    "amenities": [
+      "Elevator",
+      "Intercom",
+      "Laundry",
+      "Cable TV",
+      "Wifi",
+      "Microwave"
+    ]
+  },
+  {
+    "id": 9,
+    "keyword": "Farmhouse",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-17.png",
+      "img2": "/assets/img/all-images/properties/property-14.png",
+      "img3": "/assets/img/all-images/properties/property-19.png"
+    },
+    "address": "67 Country Rd, TN",
+    "city": "Nashville",
+    "state": "Tennessee",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Farm",
+    "bedrooms": 5,
+    "bathrooms": 4,
+    "garages": 3,
+    "rooms": 9,
+    "minPrice": 800000,
+    "maxPrice": 1300000,
+    "minSize": 350,
+    "maxSize": 448,
+    "agent": {
+      "name": "James Thomas",
+      "image": "/assets/img/all-images/agents/agent-9.png"
+    },
+    "amenities": [
+      "Garden",
+      "Fireplace",
+      "Pet Friendly",
+      "Parking",
+      "Wifi",
+      "Barbeque",
+      "Lawn"
+    ]
+  },
+  {
+    "id": 10,
+    "keyword": "Suburban House",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-10.png",
+      "img2": "/assets/img/all-images/properties/property-2.png",
+      "img3": "/assets/img/all-images/properties/property-26.png"
+    },
+    "address": "123 Suburb Lane, NJ",
+    "city": "Bridgaport",
+    "state": "New Jersey",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "House",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 2,
+    "rooms": 6,
+    "minPrice": 3000,
+    "maxPrice": 3500,
+    "minSize": 200,
+    "maxSize": 280,
+    "agent": {
+      "name": "Jennifer White",
+      "image": "/assets/img/all-images/agents/agent-10.png"
+    },
+    "amenities": [
+      "Heating",
+      "Fireplace",
+      "Parking",
+      "Wifi",
+      "Refrigerator",
+      "Washer",
+      "Dryer"
+    ]
+  },
+  {
+    "id": 11,
+    "keyword": "Mountain Retreat",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-6.png",
+      "img2": "/assets/img/all-images/properties/property-25.png",
+      "img3": "/assets/img/all-images/properties/property-15.png"
+    },
+    "address": "456 Mountain View, CO",
+    "city": "Aspen",
+    "state": "Colorado",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Luxury Homes",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "garages": 2,
+    "rooms": 8,
+    "minPrice": 1800000,
+    "maxPrice": 2500000,
+    "minSize": 320,
+    "maxSize": 400,
+    "agent": {
+      "name": "Christopher Lee",
+      "image": "/assets/img/all-images/agents/agent-11.png"
+    },
+    "amenities": [
+      "Fireplace",
+      "Sauna",
+      "Wifi",
+      "Heating",
+      "Air Conditioning",
+      "Barbeque"
+    ]
+  },
+  {
+    "id": 12,
+    "keyword": "Urban Townhouse",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-30.png",
+      "img2": "/assets/img/all-images/properties/property-28.png",
+      "img3": "/assets/img/all-images/properties/property-15.png"
+    },
+    "address": "789 City Center, MA",
+    "city": "Boston",
+    "state": "Massachusetts",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "Single Family",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 5,
+    "minPrice": 4200,
+    "maxPrice": 4800,
+    "minSize": 220,
+    "maxSize": 300,
+    "agent": {
+      "name": "Amanda Garcia",
+      "image": "/assets/img/all-images/agents/agent-1.png"
+    },
+    "amenities": [
+      "Air Conditioning",
+      "Wifi",
+      "TV Cable",
+      "Microwave",
+      "Refrigerator"
+    ]
+  },
+  {
+    "id": 13,
+    "keyword": "Waterfront Estate",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-30.png",
+      "img2": "/assets/img/all-images/properties/property-22.png",
+      "img3": "/assets/img/all-images/properties/property-25.png"
+    },
+    "address": "123 Lakeside Dr, WA",
+    "city": "Seattle",
+    "state": "Washington",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Luxury Homes",
+    "bedrooms": 6,
+    "bathrooms": 5,
+    "garages": 3,
+    "rooms": 10,
+    "minPrice": 3500000,
+    "maxPrice": 4500000,
+    "minSize": 400,
+    "maxSize": 448,
+    "agent": {
+      "name": "Daniel Rodriguez",
+      "image": "/assets/img/all-images/agents/agent-2.png"
+    },
+    "amenities": [
+      "Swimming Pool",
+      "Home Theater",
+      "Wine Cellar",
+      "Gym",
+      "Wifi",
+      "Air Conditioning",
+      "Outdoor Shower"
+    ]
+  },
+  {
+    "id": 14,
+    "keyword": "Desert Oasis",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-3.png",
+      "img2": "/assets/img/all-images/properties/property-9.png",
+      "img3": "/assets/img/all-images/properties/property-11.png"
+    },
+    "address": "567 Palm Springs Rd, AZ",
+    "city": "Phoenix",
+    "state": "Arizona",
+    "status": "sale",
+    "label": "New Offer",
+    "type": "House",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "garages": 2,
+    "rooms": 7,
+    "minPrice": 1100000,
+    "maxPrice": 1600000,
+    "minSize": 280,
+    "maxSize": 350,
+    "agent": {
+      "name": "Michelle Lopez",
+      "image": "/assets/img/all-images/agents/agent-3.png"
+    },
+    "amenities": [
+      "Swimming Pool",
+      "Air Conditioning",
+      "Wifi",
+      "Barbeque"
+    ]
+  },
+  {
+    "id": 15,
+    "keyword": "Historic Brownstone",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-28.png",
+      "img2": "/assets/img/all-images/properties/property-3.png",
+      "img3": "/assets/img/all-images/properties/property-4.png"
+    },
+    "address": "890 Heritage St, NY",
+    "city": "New York",
+    "state": "New York",
+    "status": "sale",
+    "label": "Hot Offer",
+    "type": "Single Family",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 0,
+    "rooms": 6,
+    "minPrice": 2200000,
+    "maxPrice": 2800000,
+    "minSize": 200,
+    "maxSize": 250,
+    "agent": {
+      "name": "Kevin Martin",
+      "image": "/assets/img/all-images/agents/agent-4.png"
+    },
+    "amenities": [
+      "Fireplace",
+      "Garden",
+      "Wifi",
+      "Laundry",
+      "Refrigerator"
+    ]
+  },
+  {
+    "id": 16,
+    "keyword": "Eco-Friendly Home",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-17.png",
+      "img2": "/assets/img/all-images/properties/property-21.png",
+      "img3": "/assets/img/all-images/properties/property-8.png"
+    },
+    "address": "123 Green Living Way, OR",
+    "city": "Portland",
+    "state": "Oregon",
+    "status": "rent",
+    "label": "New Offer",
+    "type": "House",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 5,
+    "minPrice": 3800,
+    "maxPrice": 4200,
+    "minSize": 180,
+    "maxSize": 220,
+    "agent": {
+      "name": "Rachel Thompson",
+      "image": "/assets/img/all-images/agents/agent-5.png"
+    },
+    "amenities": [
+      "Garden",
+      "Wifi",
+      "Air Conditioning",
+      "Refrigerator",
+      "Washer",
+      "Dryer"
+    ]
+  },
+  {
+    "id": 17,
+    "keyword": "Coastal Bungalow",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-9.png",
+      "img2": "/assets/img/all-images/properties/property-6.png",
+      "img3": "/assets/img/all-images/properties/property-18.png"
+    },
+    "address": "456 Shoreline Dr, CA",
+    "city": "San Diego",
+    "state": "California",
+    "status": "sale",
+    "label": "New Offer",
+    "type": "House",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 4,
+    "minPrice": 950000,
+    "maxPrice": 1200000,
+    "minSize": 160,
+    "maxSize": 200,
+    "agent": {
+      "name": "Steven Clark",
+      "image": "/assets/img/all-images/agents/agent-6.png"
+    },
+    "amenities": [
+      "Balcony",
+      "Wifi",
+      "Air Conditioning",
+      "Outdoor Shower",
+      "Barbeque"
+    ]
+  },
+  {
+    "id": 18,
+    "keyword": "City View Apartment",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-7.png",
+      "img2": "/assets/img/all-images/properties/property-22.png",
+      "img3": "/assets/img/all-images/properties/property-18.png"
+    },
+    "address": "789 Downtown Blvd, IL",
+    "city": "Chicago",
+    "state": "Illinois",
+    "status": "rent",
+    "label": "Hot Offer",
+    "type": "Apartment",
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "garages": 1,
+    "rooms": 3,
+    "minPrice": 2500,
+    "maxPrice": 2800,
+    "minSize": 146,
+    "maxSize": 180,
+    "agent": {
+      "name": "Laura Scott",
+      "image": "/assets/img/all-images/agents/agent-7.png"
+    },
+    "amenities": [
+      "Elevator",
+      "Intercom",
+      "Wifi",
+      "Air Conditioning",
+      "Laundry"
+    ]
+  },
+  {
+    "id": 19,
+    "keyword": "Rustic Cabin",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-4.png",
+      "img2": "/assets/img/all-images/properties/property-2.png",
+      "img3": "/assets/img/all-images/properties/property-28.png"
+    },
+    "address": "321 Forest Rd, MT",
+    "city": "Bozeman",
+    "state": "Montana",
+    "status": "sale",
+    "label": "New Offer",
+    "type": "House",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 5,
+    "minPrice": 750000,
+    "maxPrice": 950000,
+    "minSize": 200,
+    "maxSize": 250,
+    "agent": {
+      "name": "William Green",
+      "image": "/assets/img/all-images/agents/agent-8.png"
+    },
+    "amenities": [
+      "Fireplace",
+      "Wifi",
+      "Heating",
+      "Lawn",
+      "Barbeque"
+    ]
+  },
+  {
+    "id": 20,
+    "keyword": "Luxury Condo",
+    "images": {
+      "img1": "/assets/img/all-images/properties/property-25.png",
+      "img2": "/assets/img/all-images/properties/property-23.png",
+      "img3": "/assets/img/all-images/properties/property-9.png"
+    },
+    "address": "567 Highrise Ave, FL",
+    "city": "Miami",
+    "state": "Florida",
+    "status": "rent",
+    "label": "Hot Offer",
+    "type": "Apartment",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "garages": 1,
+    "rooms": 4,
+    "minPrice": 5000,
+    "maxPrice": 5500,
+    "minSize": 180,
+    "maxSize": 220,
+    "agent": {
+      "name": "Patricia Baker",
+      "image": "/assets/img/all-images/agents/agent-9.png"
+    },
+    "amenities": [
+      "Swimming Pool",
+      "Gym",
+      "Sauna",
+      "Elevator",
+      "Wifi",
+      "Air Conditioning",
+      "TV Cable"
+    ]
+  }
+]
