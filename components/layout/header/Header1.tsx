@@ -19,6 +19,7 @@ export default function Header1({
               <div className="vl-logo">
                 <Link href="/">
                   <img src="/assets/img/logo/logo1.png" alt="housa" />
+                  {/* <p className="fw-bold" style={{color:"#000"}}>Ungarn-Immo-Kompass</p> */}
                 </Link>
               </div>
             </div>
@@ -284,7 +285,7 @@ export default function Header1({
               <div className="vl-hero-btn d-none d-lg-block text-end">
                 <div className="btn-area1 mt-0">
                   <Link href="/add-property" className="vl-btn1 mt-0">
-                    Add Listing
+                    Get Started
                     <span className="arrow1 ms-2">
                       <i className="fa-solid fa-arrow-right" />
                     </span>

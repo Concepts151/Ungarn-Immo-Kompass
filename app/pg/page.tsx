@@ -1,34 +1,71 @@
-'use client';
-import React, { useState } from 'react'
+import { readUserSession, readUser } from "@/utils/action";
+import { login, signup } from "./action/index";
+import { createClient } from "@/utils/supabase/server";
+import Signout from "./components/Signout";
+import ModalExample from "./components/LoginModal";
+import LoginModal from "./components/LoginModal";
+import Login from "./components/Login";
 
-const page = () => {
-    const [error, setError] = useState()
+export default async function LoginPage() {
+  const { data } = await readUserSession();
+
+  if (data.session) {
+    console.log("session availabel:", data.session);
+  }
+
+  const userProfile = await readUser();
+
+  console.log(userProfile!);
+
+  
+
   return (
-    <div className='p-5'>
-        <div className="container-sm" style={{width:"500px"}}>
-            <div className="mb-3">
-                <h3>
-                    Sign up test form
-                </h3>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="exampleFormControlInput1" className="form-label">Email address</label>
-                <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="name@example.com"/>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="exampleFormControlInput1" className="form-label">Password</label>
-                <input type="text" className="form-control" id="exampleFormControlInput1" placeholder="comfim password"/>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="exampleFormControlInput1" className="form-label">Confirm Password</label>
-                <input type="text" className="form-control" id="exampleFormControlInput1" placeholder="Password"/>
-            </div>
-            <div className="mb-3">
-                <button className='btn btn-dark container'>Submit</button>
-            </div>
-        </div>
-    </div>
-  )
-}
+    <>
+      {/* <form className="m-5 container mx-auto" style={{ width: "500px" }}>
+        <label htmlFor="email">Email:</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          className="form-control mb-3"
+        />
+        <label htmlFor="password">Password:</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          className="form-control mb-3"
+        />
+        <button
+          formAction={login}
+          className="btn btn-primary container-sm mb-3"
+        >
+          Log in
+        </button>
+        <button formAction={signup} className="btn btn-secondary container">
+          Sign up
+        </button>
+      </form> */}
 
-export default page
+      <div className="mx-auto mb-5" style={{ width: "500px" }}>
+        {data.session && (
+          <>
+            <div className="mx-auto container-sm mb-2">session active</div>
+            <Signout />
+            {JSON.stringify(userProfile!, null, 2)}
+          </>
+        )}
+      </div>
+
+      <div className="mx-auto" style={{ width: "500px" }}>
+        <div className="">signup-login modal</div>
+
+        <div className="">
+          <Login user={userProfile!}/> 
+        </div>
+      </div>
+    </>
+  );
+}
