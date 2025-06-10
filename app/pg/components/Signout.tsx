@@ -1,10 +1,14 @@
 "use client";
 import { useState } from "react";
-import { logout } from "../action"; // Adjust the import to your actual logout action
+import { logout } from "../action";
+import { useSessionStore } from "../../store";
+// Adjust the import to your actual logout action
 
 export default function LogoutButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const clearSession = useSessionStore((state) => state.clearSession);
 
   const handleLogout = async () => {
     setError(null);
@@ -12,7 +16,8 @@ export default function LogoutButton() {
     try {
       await logout(); // Call your async logout action here
       // Optionally, redirect or update state here
-       window.location.reload();
+      clearSession();
+      window.location.reload();
     } catch (err: any) {
       setError(err.message || "Logout failed. Please try again.");
     } finally {

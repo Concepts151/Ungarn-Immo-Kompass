@@ -1,10 +1,49 @@
+"use client";
+import {
+  setOpenLoginModal,
+  setOpenSignupModal,
+} from "@/app/pg/components/gobalActions";
+import HeaderActionBtn from "@/app/pg/components/HeaderActionBtn";
+import { useSessionStore } from "@/app/store";
+import { readUser, readUserSession } from "@/utils/action";
+import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Header1({
   scroll,
   isMobileMenu,
   handleMobileMenu,
 }: any) {
+  const supabase = createClient();
+  const [sessionUser, setSessisonUser] = useState<any>(null);
+  const setSession = useSessionStore((state) => state.setSession);
+  const userSession = useSessionStore((state) => state.session);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then((response) => {
+      if (!mounted) return;
+      setSession(response.data);
+      setSessisonUser(response.data);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // This runs after sessionUser updates (or on mount if needed)
+    // You can log or use sessionUser here.
+    console.log(sessionUser);
+    if (userSession?.session === null) {
+      setOpenLoginModal(true);
+      setSession(sessionUser);
+    }
+  }, [sessionUser]);
+
   return (
     <header className="homepage1-body">
       <div
@@ -27,6 +66,16 @@ export default function Header1({
               <div className="vl-main-menu text-center">
                 <nav className="vl-mobile-menu-active">
                   <ul>
+                    {/* <li className="">
+                      {sessionUser !== null && (
+                        <Link href={""}>{sessionUser?.user?.id} active</Link>
+                      )}
+                    </li> */}
+                    <li>
+                      {userSession?.session != null && (
+                        <Link href={``}> active</Link>
+                      )}
+                    </li>
                     <li className="">
                       <Link href={"/sidebar-grid"}>Listings</Link>
                     </li>
@@ -283,17 +332,7 @@ export default function Header1({
             </div>
             <div className="col-lg-2 col-md-6 col-6">
               <div className="vl-hero-btn d-none d-lg-block text-end">
-                <div className="btn-area1 mt-0">
-                  <Link href="/add-property" className="vl-btn1 mt-0">
-                    Get Started
-                    <span className="arrow1 ms-2">
-                      <i className="fa-solid fa-arrow-right" />
-                    </span>
-                    <span className="arrow2 ms-2">
-                      <i className="fa-solid fa-arrow-right" />
-                    </span>
-                  </Link>
-                </div>
+                <HeaderActionBtn />
               </div>
               <div className="vl-header-action-item d-block d-lg-none">
                 <button type="button" className="vl-offcanvas-toggle px-1">

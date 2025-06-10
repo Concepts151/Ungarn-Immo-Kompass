@@ -1,37 +1,33 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
+import { setOpenLoginModal } from "./gobalActions";
 
 interface Prop {
   user: any;
 }
 
 const Login = ({ user }: Prop) => {
-  const [isOpen, setIsOpen] = useState(false);
   const openModal = () => {
     if (!user) {
-      setIsOpen(true);
+      setOpenLoginModal(true);
       return;
     }
-    alert("session in session :)");
-
-    closeModal();
+    // alert("session in session :)");
   };
-  const closeModal = () => setIsOpen(false);
 
   useEffect(() => {
     if (!user) {
-      setIsOpen(true);
+      setOpenLoginModal(true);
       return;
     }
   }, []);
   return (
     <div>
-      {JSON.stringify(user, null, 2)}
       <button onClick={openModal} className="login-open-button container">
         Login
       </button>
-      <LoginModal isOpen={isOpen} setIsOpen={setIsOpen} />
+      <LoginModal />
     </div>
   );
 };

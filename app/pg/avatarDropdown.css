@@ -1,0 +1,67 @@
+.avatar-dropdown-btn {
+    background: #fff;
+    border: none;
+    padding: 0;
+    border-radius: 2rem;
+    box-shadow: 0 4px 24px 0 rgba(60, 30, 90, 0.08);
+    display: flex;
+    align-items: center;
+    transition: box-shadow 0.2s;
+  }
+  
+  .avatar-dropdown-btn:hover,
+  .avatar-dropdown-btn:focus {
+    box-shadow: 0 8px 32px 0 rgba(60, 30, 90, 0.16);
+    outline: none;
+  }
+  
+  .avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #857fff;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+    margin-right: 12px;
+    box-shadow: 0 1px 3px 0 rgba(30,20,70,0.07);
+    overflow: hidden;
+  }
+  
+  .avatar-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #332c63;
+    margin-right: 20px;
+  }
+  
+  .avatar-dropdown-menu {
+    min-width: 190px;
+    border-radius: 1rem;
+    border: 1px solid #ecebfa;
+    box-shadow: 0 8px 24px 0 rgba(40,30,90,0.08);
+    padding: 0.5rem 0;
+    margin-top: 10px !important;
+    background: #fff;
+  }
+  .avatar-dropdown-menu .dropdown-item {
+    font-size: 1rem;
+    border-radius: 0.6rem;
+    padding: 0.7rem 1.2rem;
+    transition: background 0.15s;
+  }
+  .avatar-dropdown-menu .dropdown-item:active,
+  .avatar-dropdown-menu .dropdown-item:hover {
+    background: #f6f4fe;
+    color: #857fff;
+  }
+  .avatar-dropdown-menu .dropdown-divider {
+    margin: 0.2rem 0;
+  }
+  .avatar-dropdown-menu .dropdown-item.text-danger {
+    color: #e04a5a;
+  }
+  

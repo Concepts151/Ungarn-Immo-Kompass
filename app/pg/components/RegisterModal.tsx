@@ -1,29 +1,31 @@
 "use client";
 import React, { useState } from "react";
-import "../page.css";
-import { AtSign, Eye, EyeOff, Lock } from "lucide-react";
-import { login } from "../action";
-import { useSessionStore, useToggleModal } from "@/app/store";
-import { switchToSignupModal } from "./gobalActions";
+import { signup } from "../action";
+import { AtSign, Eye, EyeOff, Lock, User } from "lucide-react";
+import { useToggleModal } from "@/app/store";
+import { switchToLoginModal } from "./gobalActions";
 
 const setCloseModal = () => {
-  useToggleModal.setState({ isLoginModalOpen: false });
+  useToggleModal.setState({ isSignupModalOpen: false });
 };
 
-export default function LoginModal() {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+const RegisterModal = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  //   global states
-  const isLoginModalOpen = useToggleModal((state) => state.isLoginModalOpen);
-  const userSession = useSessionStore((state) => state.session);
-  const setSession = useSessionStore((state) => state.setSession);
+  const isRegisterModalOpen = useToggleModal(
+    (state) => state.isSignupModalOpen
+  );
 
   const closeModal = () => {
     setCloseModal();
-    setFormData({ email: "", password: "" });
+    setFormData({ name: "", email: "", password: "" });
     setError(null);
     setShowPassword(false);
   };
@@ -38,15 +40,14 @@ export default function LoginModal() {
     setError(null);
     try {
       const form = new FormData();
+      form.append("name", formData.name);
       form.append("email", formData.email);
       form.append("password", formData.password);
 
       // Simulate error for demo:
       // throw new Error("Invalid credentials");
 
-      const { error, logindata } = await login(form);
-      setSession(logindata);
-      // Replace with your server action
+      await signup(form); // Replace with your server action
       closeModal();
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -57,15 +58,14 @@ export default function LoginModal() {
 
   return (
     <div className="login-modal-container">
-      {/* {JSON.stringify(userSession, null, 2)} */}
-      {isLoginModalOpen && (
+      {isRegisterModalOpen && (
         <div className="login-modal-overlay" onClick={closeModal}>
           <div
             className="login-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <form className="form" onSubmit={handleSubmit}>
-              <h2 className="login-modal-title">Welcome Back</h2>
+            <form className="reg-form" onSubmit={handleSubmit}>
+              <h2 className="login-modal-title">Welcome </h2>
               {error && (
                 <div
                   className="alert-error"
@@ -74,6 +74,22 @@ export default function LoginModal() {
                   {error}
                 </div>
               )}
+              <div className="flex-column">
+                <label>Name</label>
+              </div>
+              <div className="inputForm">
+                <User size={18} />
+                <input
+                  className="input"
+                  type="text"
+                  name="name"
+                  required
+                  placeholder="John Doe"
+                  onChange={handleChange}
+                  value={formData.name}
+                  disabled={loading}
+                />
+              </div>
               <div className="flex-column">
                 <label>Email</label>
               </div>
@@ -126,20 +142,20 @@ export default function LoginModal() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <div className="flex-row">
+              {/* <div className="flex-row">
                 <span className="span">Forgot password?</span>
-              </div>
+              </div> */}
               <button
                 type="submit"
                 className="button-submit"
                 disabled={loading}
               >
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? "Signing up..." : "Sign up"}
               </button>
               <p className="p">
-                Don't have an account?{" "}
-                <span className="span" onClick={switchToSignupModal}>
-                  Sign Up
+                have an account?{" "}
+                <span className="span" onClick={switchToLoginModal}>
+                  Sign in
                 </span>
               </p>
               <p className="p line">Or</p>
@@ -180,4 +196,6 @@ export default function LoginModal() {
       )}
     </div>
   );
-}
+};
+
+export default RegisterModal;

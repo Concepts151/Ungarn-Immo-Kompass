@@ -9,21 +9,23 @@ import Team1 from "@/components/sections/Team1";
 import Testimonial1 from "@/components/sections/Testimonial1";
 import Property1 from "@/components/sections/property1";
 import Blog1 from "@/components/sections/Blog1";
+import LoginModal from "./pg/components/LoginModal";
+import RegisterModal from "./pg/components/RegisterModal";
 export default function Home() {
-    return (
-        <>
-            <Layout>
-                <Hero1 />
-                <SearchBox />
-                <About1 />
-                <Property1 />
-                <Category1 />
-                <Properties1 />
-                <PropertyLocation1 />
-                <Team1 />
-                <Testimonial1 />
-                <Blog1 />
-            </Layout>
-        </>
-    );
+  return (
+    <>
+      <Layout>
+        <Hero1 />
+        <SearchBox />
+        <About1 />
+        <Property1 />
+        <Category1 />
+        <Properties1 />
+        <PropertyLocation1 />
+        <Team1 />
+        <Testimonial1 />
+        <Blog1 />
+      </Layout>
+    </>
+  );
 }
