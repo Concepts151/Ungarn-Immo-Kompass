@@ -57,7 +57,7 @@ export default function Header1({
             <div className="col-lg-2 col-md-6 col-6">
               <div className="vl-logo">
                 <Link href="/">
-                  <img src="/assets/img/logo/logo1.png" alt="housa" />
+                  <img src="/assets/img/logo/Ungarn-Immo-Full.png" alt="housa" />
                   {/* <p className="fw-bold" style={{color:"#000"}}>Ungarn-Immo-Kompass</p> */}
                 </Link>
               </div>

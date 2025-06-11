@@ -56,6 +56,26 @@ const RegisterModal = () => {
     }
   };
 
+  const handleSubmitUserDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("firstName", formData.name);
+      form.append("LastName", formData.email);
+      // form.append("password", formData.password);
+      // Simulate error for demo:
+      // throw new Error("Invalid credentials");
+      // await signup(form); // Replace with your server action
+      closeModal();
+    } catch (err: any) {
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="login-modal-container">
       {isRegisterModalOpen && (
@@ -75,14 +95,14 @@ const RegisterModal = () => {
                 </div>
               )}
               <div className="flex-column">
-                <label>Name</label>
+                <label>First Name</label>
               </div>
               <div className="inputForm">
                 <User size={18} />
                 <input
                   className="input"
                   type="text"
-                  name="name"
+                  name="firstName"
                   required
                   placeholder="John Doe"
                   onChange={handleChange}
@@ -91,14 +111,14 @@ const RegisterModal = () => {
                 />
               </div>
               <div className="flex-column">
-                <label>Email</label>
+                <label>Last Name</label>
               </div>
               <div className="inputForm">
                 <AtSign size={18} />
                 <input
                   className="input"
                   type="email"
-                  name="email"
+                  name="lastName"
                   required
                   placeholder="hiouh@kjjd.com"
                   onChange={handleChange}
@@ -194,6 +214,113 @@ const RegisterModal = () => {
           </div>
         </div>
       )}
+      {
+        // user details modal
+        <div className="login-modal-overlay" onClick={closeModal}>
+          <div
+            className="login-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <form className="reg-form" onSubmit={handleSubmit}>
+              <h2 className="login-modal-title">Hi </h2>
+              <p className="text-secondary text-xs">
+                Let's get to know you better, fill in the details
+              </p>
+              {error && (
+                <div
+                  className="alert-error"
+                  style={{ color: "#e63946", marginBottom: 8 }}
+                >
+                  {error}
+                </div>
+              )}
+              <div className="flex-column">
+                <label>Name</label>
+              </div>
+              <div className="inputForm">
+                <User size={18} />
+                <input
+                  className="input"
+                  type="text"
+                  name="name"
+                  required
+                  placeholder="John Doe"
+                  onChange={handleChange}
+                  value={formData.name}
+                  disabled={loading}
+                />
+              </div>
+              <div className="flex-column">
+                <label>Email</label>
+              </div>
+              <div className="inputForm">
+                <AtSign size={18} />
+                <input
+                  className="input"
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="hiouh@kjjd.com"
+                  onChange={handleChange}
+                  value={formData.email}
+                  disabled={loading}
+                />
+              </div>
+              <div className="flex-column">
+                <label>Password</label>
+              </div>
+              <div className="inputForm" style={{ position: "relative" }}>
+                <Lock size={18} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  className="input"
+                  placeholder="Enter your Password"
+                  required
+                  onChange={handleChange}
+                  value={formData.password}
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                  }}
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {/* <div className="flex-row">
+                <span className="span">Forgot password?</span>
+              </div> */}
+              <button
+                type="submit"
+                className="button-submit"
+                disabled={loading}
+              >
+                {loading ? "Setting up..." : "Done"}
+              </button>
+              {/* <p className="p">
+                <span className="span" onClick={switchToLoginModal}>
+                  Sign in
+                </span>
+              </p> */}
+            </form>
+          </div>
+        </div>
+      }
     </div>
   );
 };
