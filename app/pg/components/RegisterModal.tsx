@@ -1,60 +1,61 @@
-"use client";
-import React, { useState } from "react";
-import { signup } from "../action";
-import { AtSign, Eye, EyeOff, Lock, User } from "lucide-react";
-import { useToggleModal } from "@/app/store";
-import { switchToLoginModal } from "./gobalActions";
+"use client"
+
+import { useSessionStore, useToggleModal } from "@/app/store"
+import { AtSign, Eye, EyeOff, Lock, User } from "lucide-react"
+import { useState } from "react"
+import { signup } from "../action"
+import { switchToLoginModal } from "./gobalActions"
 
 const setCloseModal = () => {
-  useToggleModal.setState({ isSignupModalOpen: false });
-};
+  useToggleModal.setState({ isSignupModalOpen: false })
+}
 
 const RegisterModal = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const isRegisterModalOpen = useToggleModal(
-    (state) => state.isSignupModalOpen
-  );
+  const isRegisterModalOpen = useToggleModal((state) => state.isSignupModalOpen)
+  const setName = useSessionStore((state) => state.setName)
+  const setSession = useSessionStore((state) => state.setSession)
 
   const closeModal = () => {
-    setCloseModal();
-    setFormData({ name: "", email: "", password: "" });
-    setError(null);
-    setShowPassword(false);
-  };
+    setCloseModal()
+    setFormData({ name: "", email: "", password: "" })
+    setError(null)
+    setShowPassword(false)
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
     try {
-      const form = new FormData();
-      form.append("name", formData.name);
-      form.append("email", formData.email);
-      form.append("password", formData.password);
+      const form = new FormData()
+      form.append("name", formData.name)
+      form.append("email", formData.email)
+      form.append("password", formData.password)
 
-      // Simulate error for demo:
-      // throw new Error("Invalid credentials");
+      const { data, error } = await signup(form)
+      setSession(data)
+      setName(data.session?.user?.user_metadata?.name || "User")
 
-      await signup(form); // Replace with your server action
-      closeModal();
+      closeModal()
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Login failed")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="login-modal-container">
@@ -62,15 +63,13 @@ const RegisterModal = () => {
         <div className="login-modal-overlay" onClick={closeModal}>
           <div
             className="login-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
+            onClick={(e) => e.stopPropagation()}>
             <form className="reg-form" onSubmit={handleSubmit}>
               <h2 className="login-modal-title">Welcome </h2>
               {error && (
                 <div
                   className="alert-error"
-                  style={{ color: "#e63946", marginBottom: 8 }}
-                >
+                  style={{ color: "#e63946", marginBottom: 8 }}>
                   {error}
                 </div>
               )}
@@ -137,8 +136,7 @@ const RegisterModal = () => {
                     transform: "translateY(-50%)",
                     cursor: "pointer",
                   }}
-                  disabled={loading}
-                >
+                  disabled={loading}>
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -148,8 +146,7 @@ const RegisterModal = () => {
               <button
                 type="submit"
                 className="button-submit"
-                disabled={loading}
-              >
+                disabled={loading}>
                 {loading ? "Signing up..." : "Sign up"}
               </button>
               <p className="p">
@@ -195,7 +192,7 @@ const RegisterModal = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default RegisterModal;
+export default RegisterModal
