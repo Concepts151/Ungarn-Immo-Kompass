@@ -1,42 +1,29 @@
-"use server";
+"use server"
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server"
 
 export async function login(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
-  const data = {
+  const form = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
-  };
+  }
 
-  const { data: logindata, error } = await supabase.auth.signInWithPassword(
-    data
-  );
+  const { data, error } = await supabase.auth.signInWithPassword(form)
+  if (error) console.error("Error logging in:", error)
 
-  console.log(logindata);
-
-  return { error, logindata };
-  //   if (error) {
-  //     redirect('/error')
-  //   }
-
-  //   revalidatePath('/', 'layout')
-  //   redirect('/')
+  return { data, error }
 }
 
 export async function signup(formData: FormData) {
-  const supabase = await createClient();
-  console.log(formData);
+  const supabase = await createClient()
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
-  const data = {
+  const form = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
     options: {
@@ -44,46 +31,15 @@ export async function signup(formData: FormData) {
         name: formData.get("name") as string,
       },
     },
-  };
-
-  //   const { error } = await supabase.auth.signUp(data);
-  const result = await supabase.auth.signUp(data);
-  const error = result.error;
-  console.log(result.data.user);
-  const user = result.data.user;
-
-  if (error) {
-    console.error("Error signing up:", error);
-
-    return;
   }
-  //   else {
-  //     const { data: userdata, error: profileError } = await supabase
-  //       .from("user")
-  //       .update({ firstName: formData.get("name") as string })
-  //       .eq("id", user?.id)
-  //       .select();
 
-  //     if (profileError) {
-  //       console.error("Error inserting profile:", profileError);
-  //     } else {
-  //       console.log("User signed up and profile created successfully!");
-  //       console.log(userdata);
-  //     }
+  const { data, error } = await supabase.auth.signUp(form)
+  if (error) console.error("Error signing up:", error)
 
-  //     return error;
-  //   }
-
-  //   if (error) {
-  //     redirect('/error')
-  //   }
-
-  //   revalidatePath('/', 'layout')
-  //   redirect('/')
+  return { data, error }
 }
 
 export const logout = async () => {
-  const supabase = await createClient();
-  supabase.auth.signOut();
-  //redirect and all
-};
+  const supabase = await createClient()
+  supabase.auth.signOut()
+}

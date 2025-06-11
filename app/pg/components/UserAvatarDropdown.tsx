@@ -1,35 +1,22 @@
 "use client"
-import React, { useEffect } from "react";
-import { useSessionStore } from "@/app/store"; // or wherever your Zustand store is
-import Link from "next/link";
 
-import "../avatarDropdown.css";
-import { logout } from "../action";
+import { useSessionStore } from "@/app/store"
+import Link from "next/link"
+import { logout } from "../action"
+import "../avatarDropdown.css"
 
 export default function UserAvatarDropdown() {
-  const user = useSessionStore((s) => s.session?.user);
-  const name = useSessionStore((state) => state.name);
-  const setName = useSessionStore((state) => state.setName);
+  const user = useSessionStore((s) => s.session?.user)
+  const name = useSessionStore((state) => state.name)
 
-  // Get initials
-  const initials = user?.user_metadata?.name
-    ? user.user_metadata.name
+  // Get initials from the name
+  const initials = name
+    ? name
         .split(" ")
         .map((n: string) => n[0])
         .join("")
         .toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? "U";
-
-  const nameu = user?.user_metadata?.name ?? user?.email ?? "User";
-
-  useEffect(()=>{
-    if (name !== nameu) {
-      setName(nameu);
-      console.log("name log",user?.user_metadata?.name);
-      
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
+    : user?.email?.[0]?.toUpperCase() ?? "U"
 
   return (
     <div className="dropdown">
@@ -38,8 +25,7 @@ export default function UserAvatarDropdown() {
         type="button"
         id="avatarDropdown"
         data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
+        aria-expanded="false">
         {/* Avatar or profile pic */}
         {user?.user_metadata?.avatar_url ? (
           <img
@@ -60,15 +46,13 @@ export default function UserAvatarDropdown() {
           stroke="currentColor"
           strokeWidth={2.2}
           strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+          strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
       <ul
         className="dropdown-menu avatar-dropdown-menu dropdown-menu-end shadow"
-        aria-labelledby="avatarDropdown"
-      >
+        aria-labelledby="avatarDropdown">
         <li>
           <Link className="dropdown-item" href="/my-profile">
             Profile
@@ -83,11 +67,17 @@ export default function UserAvatarDropdown() {
           <hr className="dropdown-divider" />
         </li>
         <li>
-          <button className="dropdown-item text-danger" type="button" onClick={logout}>
+          <button
+            className="dropdown-item text-danger"
+            type="button"
+            onClick={async () => {
+              await logout()
+              window.location.reload()
+            }}>
             Logout
           </button>
         </li>
       </ul>
     </div>
-  );
+  )
 }

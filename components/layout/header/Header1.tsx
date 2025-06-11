@@ -1,48 +1,42 @@
-"use client";
 import {
   setOpenLoginModal,
   setOpenSignupModal,
-} from "@/app/pg/components/gobalActions";
-import HeaderActionBtn from "@/app/pg/components/HeaderActionBtn";
-import { useSessionStore } from "@/app/store";
-import { readUser, readUserSession } from "@/utils/action";
-import { createClient } from "@/utils/supabase/client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+} from "@/app/pg/components/gobalActions"
+import UserAvatarDropdown from "@/app/pg/components/UserAvatarDropdown"
+import { useSessionStore } from "@/app/store"
+import { createClient } from "@/utils/supabase/client"
+import Link from "next/link"
+import { useEffect } from "react"
 
 export default function Header1({
   scroll,
   isMobileMenu,
   handleMobileMenu,
 }: any) {
-  const supabase = createClient();
-  const [sessionUser, setSessisonUser] = useState<any>(null);
-  const setSession = useSessionStore((state) => state.setSession);
-  const userSession = useSessionStore((state) => state.session);
+  const supabase = createClient()
+  const session = useSessionStore((state) => state.session)
+  const setSession = useSessionStore((state) => state.setSession)
+  const setName = useSessionStore((state) => state.setName)
 
+  // Fetch session on mount
   useEffect(() => {
-    let mounted = true;
-
+    let mounted = true
     supabase.auth.getSession().then((response) => {
-      if (!mounted) return;
-      setSession(response.data);
-      setSessisonUser(response.data);
-    });
-
+      if (!mounted) return
+      setSession(response.data)
+      setName(response.data.session?.user?.user_metadata?.name || "User")
+    })
     return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    // This runs after sessionUser updates (or on mount if needed)
-    // You can log or use sessionUser here.
-    console.log(sessionUser);
-    if (userSession?.session === null) {
-      setOpenLoginModal(true);
-      setSession(sessionUser);
+      mounted = false
     }
-  }, [sessionUser]);
+  }, [])
+
+  // Open login modal if no session
+  useEffect(() => {
+    if (session?.session === null) {
+      setOpenLoginModal(true)
+    }
+  }, [session])
 
   return (
     <header className="homepage1-body">
@@ -50,8 +44,7 @@ export default function Header1({
         id="vl-header-sticky"
         className={`vl-header-area vl-transparent-header  ${
           scroll ? "header-sticky top-0 position-fixed w-100" : ""
-        }`}
-      >
+        }`}>
         <div className="container-fluid">
           <div className="row align-items-center">
             <div className="col-lg-2 col-md-6 col-6">
@@ -66,183 +59,21 @@ export default function Header1({
               <div className="vl-main-menu text-center">
                 <nav className="vl-mobile-menu-active">
                   <ul>
-                    {/* <li className="">
-                      {sessionUser !== null && (
-                        <Link href={""}>{sessionUser?.user?.id} active</Link>
-                      )}
-                    </li> */}
                     <li>
-                      {userSession?.session != null && (
-                        <Link href={``}> active</Link>
-                      )}
+                      {session?.session && <Link href={``}> active</Link>}
                     </li>
-                    <li className="">
-                      <Link href={"/sidebar-grid"}>Listings</Link>
+                    <li>
+                      <Link href="/sidebar-grid">Listings</Link>
                     </li>
-                    <li className="">
-                      <Link href={"/about-us"}>About Us</Link>
+                    <li>
+                      <Link href="/about-us">About Us</Link>
                     </li>
-                    <li className="">
-                      <Link href={"/our-service"}>Our Services</Link>
+                    <li>
+                      <Link href="/our-service">Our Services</Link>
                     </li>
-                    <li className="">
-                      <Link href={"/contact"}>Contact Us</Link>
+                    <li>
+                      <Link href="/contact">Contact Us</Link>
                     </li>
-
-                    {/* <li className="has-dropdown">
-                                            <Link href="#">
-                                                Home
-                                                <span>
-                                                    <i className="fa-solid fa-angle-down d-lg-inline d-none" />
-                                                </span>
-                                            </Link>
-                                            <div className="vl-mega-menu">
-                                                <div className="vl-home-menu">
-                                                    <div className="row gx-3 row-cols-1 row-cols-md-1 row-cols-lg-4">
-                                                        <div className="col">
-                                                            <div className="vl-home-thumb">
-                                                                <div className="img1">
-                                                                    <img src="/assets/img/all-images/demo/demo-img1.png" alt="housa" />
-                                                                </div>
-                                                                <Link href="/">Housa - Homepage 01</Link>
-                                                                <div className="btn-area1">
-                                                                    <Link href="/" className="vl-btn1">
-                                                                        View Demo
-                                                                        <span className="arrow1 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                        <span className="arrow2 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                    </Link>
-                                                                </div>
-                                                                <div className="space20 d-lg-none d-block" />
-                                                            </div>
-                                                        </div>
-                                                        <div className="col">
-                                                            <div className="vl-home-thumb">
-                                                                <div className="img1">
-                                                                    <img src="/assets/img/all-images/demo/demo-img2.png" alt="housa" />
-                                                                </div>
-                                                                <Link href="/index2">Housa - Homepage 02</Link>
-                                                                <div className="btn-area1">
-                                                                    <Link href="/index2" className="vl-btn1">
-                                                                        View Demo
-                                                                        <span className="arrow1 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                        <span className="arrow2 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                    </Link>
-                                                                </div>
-                                                                <div className="space20 d-lg-none d-block" />
-                                                            </div>
-                                                        </div>
-                                                        <div className="col ">
-                                                            <div className="vl-home-thumb">
-                                                                <div className="img1">
-                                                                    <img src="/assets/img/all-images/demo/demo-img3.png" alt="housa" />
-                                                                </div>
-                                                                <Link href="/index3">Housa - Homepage 03</Link>
-                                                                <div className="btn-area1">
-                                                                    <Link href="/index3" className="vl-btn1">
-                                                                        View Demo
-                                                                        <span className="arrow1 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                        <span className="arrow2 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                    </Link>
-                                                                </div>
-                                                                <div className="space20 d-lg-none d-block" />
-                                                            </div>
-                                                        </div>
-                                                        <div className="col ">
-                                                            <div className="vl-home-thumb">
-                                                                <div className="img1">
-                                                                    <img src="/assets/img/all-images/demo/demo-img4.png" alt="housa" />
-                                                                </div>
-                                                                <Link href="/index4">Housa - Homepage 04</Link>
-                                                                <div className="btn-area1">
-                                                                    <Link href="/index4" className="vl-btn1">
-                                                                        View Demo
-                                                                        <span className="arrow1 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                        <span className="arrow2 ms-2">
-                                                                            <i className="fa-solid fa-arrow-right" />
-                                                                        </span>
-                                                                    </Link>
-                                                                </div>
-                                                                <div className="space20 d-lg-none d-block" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li> */}
-                    {/* <li className="has-dropdown">
-                      <Link href="#">
-                        Pages
-                        <span>
-                          <i className="fa-solid fa-angle-down d-lg-inline d-none" />
-                        </span>
-                      </Link>
-                      <ul className="sub-menu">
-                        <li>
-                          <Link href="/about-us">About Us</Link>
-                        </li>
-                        <li>
-                          <Link href="/our-service">Our Services</Link>
-                        </li>
-                        <li>
-                          <Link href="/pricing">Pricing</Link>
-                        </li>
-                        <li>
-                          <Link href="/contact">Contact Us</Link>
-                        </li>
-                        <li>
-                          <Link href="/faq">FAQ's</Link>
-                        </li>
-                        <li>
-                          <Link href="/privacy-policy">Privacy Policy</Link>
-                        </li>
-                      </ul>
-                    </li> */}
-                    {/* <li>
-                      <Link href="#">
-                        Listing
-                        <span>
-                          <i className="fa-solid fa-angle-down d-lg-inline d-none" />
-                        </span>
-                      </Link>
-                      <ul className="sub-menu">
-                        <li>
-                          <Link href="/property-halfmap-grid">
-                            Property Half Grid
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/property-halfmap-list">
-                            Property Half Map List
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/topmap-grid">Property Top Map Grid</Link>
-                        </li>
-                        <li>
-                          <Link href="/topmap-list">Property Top Map List</Link>
-                        </li>
-                        <li>
-                          <Link href="/sidebar-grid">Find Sidebar Grid</Link>
-                        </li>
-                        <li>
-                          <Link href="/sidebar-list">Find Sidebar List</Link>
-                        </li>
-                      </ul>
-                    </li> */}
                     <li>
                       <Link href="#">
                         Properties
@@ -297,42 +128,36 @@ export default function Header1({
                           <Link href="/reviews">Reviews</Link>
                         </li>
                         <li>
-                          <Link href="/my-profile">My Propfile</Link>
+                          <Link href="/my-profile">My Profile</Link>
                         </li>
                         <li>
                           <Link href="/add-property">Add Property</Link>
                         </li>
                       </ul>
                     </li>
-                    {/* <li>
-                      <Link href="#">
-                        Blogs
-                        <span>
-                          <i className="fa-solid fa-angle-down d-lg-inline d-none" />
-                        </span>
-                      </Link>
-                      <ul className="sub-menu">
-                        <li>
-                          <Link href="/blog">Blog Default</Link>
-                        </li>
-                        <li>
-                          <Link href="/blog-grid">Blog Grid</Link>
-                        </li>
-                        <li>
-                          <Link href="/blog-detail">Blog Post Details</Link>
-                        </li>
-                        <li>
-                          <Link href="/blog-detail-2">Blog Post Details 2</Link>
-                        </li>
-                      </ul>
-                    </li> */}
                   </ul>
                 </nav>
               </div>
             </div>
             <div className="col-lg-2 col-md-6 col-6">
               <div className="vl-hero-btn d-none d-lg-block text-end">
-                <HeaderActionBtn />
+                {session?.session != null ? (
+                  <UserAvatarDropdown />
+                ) : (
+                  <div className="btn-area1 mt-0">
+                    <button
+                      onClick={() => setOpenSignupModal(true)}
+                      className="vl-btn1 mt-0">
+                      Get Started
+                      <span className="arrow1 ms-2">
+                        <i className="fa-solid fa-arrow-right" />
+                      </span>
+                      <span className="arrow2 ms-2">
+                        <i className="fa-solid fa-arrow-right" />
+                      </span>
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="vl-header-action-item d-block d-lg-none">
                 <button type="button" className="vl-offcanvas-toggle px-1">
@@ -344,5 +169,5 @@ export default function Header1({
         </div>
       </div>
     </header>
-  );
+  )
 }
