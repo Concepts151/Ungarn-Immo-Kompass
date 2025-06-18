@@ -8,6 +8,8 @@ import "../avatarDropdown.css"
 export default function UserAvatarDropdown() {
   const user = useSessionStore((s) => s.session?.user)
   const name = useSessionStore((state) => state.name)
+  const avatarUrl = useSessionStore((state) => state.avatarUrl)
+
 
   // Get initials from the name
   const initials = name
@@ -27,9 +29,9 @@ export default function UserAvatarDropdown() {
         data-bs-toggle="dropdown"
         aria-expanded="false">
         {/* Avatar or profile pic */}
-        {user?.user_metadata?.avatar_url ? (
+        {avatarUrl ? (
           <img
-            src={user.user_metadata.avatar_url}
+            src={` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
             alt="Avatar"
             className="avatar-circle"
             style={{ objectFit: "cover" }}

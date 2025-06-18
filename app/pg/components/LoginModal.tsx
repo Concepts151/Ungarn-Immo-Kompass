@@ -1,71 +1,94 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import "../page.css"
-import { AtSign, Eye, EyeOff, Lock } from "lucide-react"
-import { login } from "../action"
-import { useSessionStore, useToggleModal } from "@/app/store"
-import { switchToSignupModal } from "./gobalActions"
+import { useState } from "react";
+import "../page.css";
+import { AtSign, Eye, EyeOff, Lock } from "lucide-react";
+import { login } from "../action";
+import { useSessionStore, useToggleModal } from "@/app/store";
+import { switchToSignupModal } from "./gobalActions";
+import { createClient } from "@/utils/supabase/client";
+import toast, { Toaster } from "react-hot-toast";
 
 const setCloseModal = () => {
-  useToggleModal.setState({ isLoginModalOpen: false })
-}
+  useToggleModal.setState({ isLoginModalOpen: false });
+};
 
 export default function LoginModal() {
-  const [formData, setFormData] = useState({ email: "", password: "" })
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const supabase = createClient();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const isLoginModalOpen = useToggleModal((state) => state.isLoginModalOpen)
-  const setName = useSessionStore((state) => state.setName)
-  const setSession = useSessionStore((state) => state.setSession)
+  const isLoginModalOpen = useToggleModal((state) => state.isLoginModalOpen);
+  const setName = useSessionStore((state) => state.setName);
+  const setSession = useSessionStore((state) => state.setSession);
 
   const closeModal = () => {
-    setCloseModal()
-    setFormData({ email: "", password: "" })
-    setError(null)
-    setShowPassword(false)
+    setCloseModal();
+    setFormData({ email: "", password: "" });
+    setError(null);
+    setShowPassword(false);
+  };
+
+  async function getUserDetails() {
+    const { data, error } = await supabase.from("user").select("*").single();
+
+    if (error) {
+      console.error("Error fetching user details:", error);
+      return;
+    }
+    console.log("userDetails", data.iscomplete);
+    setName(data.firstName || "User");
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
     try {
-      const form = new FormData()
-      form.append("email", formData.email)
-      form.append("password", formData.password)
+      const form = new FormData();
+      form.append("email", formData.email);
+      form.append("password", formData.password);
 
-      const { data, error } = await login(form)
-      setSession(data)
-      setName(data.session?.user?.user_metadata?.name || "User")
+      const { data, error } = await login(form);
+      setSession(data);
+      setName(data.session?.user?.user_metadata?.name || "User");
 
-      closeModal()
+      if (error) {
+        setError(error.message || "Login failed");
+        return;
+      }
+      toast.success('Login Successful!')
+      getUserDetails();
+      closeModal();
     } catch (err: any) {
-      setError(err.message || "Login failed")
+      setError(err.message || "Login failed");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="login-modal-container">
+      <Toaster position="top-center" reverseOrder={false} />
       {isLoginModalOpen && (
         <div className="login-modal-overlay" onClick={closeModal}>
           <div
             className="login-modal-content"
-            onClick={(e) => e.stopPropagation()}>
+            onClick={(e) => e.stopPropagation()}
+          >
             <form className="form" onSubmit={handleSubmit}>
               <h2 className="login-modal-title">Welcome Back</h2>
               {error && (
                 <div
                   className="alert-error"
-                  style={{ color: "#e63946", marginBottom: 8 }}>
+                  style={{ color: "#e63946", marginBottom: 8 }}
+                >
                   {error}
                 </div>
               )}
@@ -116,7 +139,8 @@ export default function LoginModal() {
                     transform: "translateY(-50%)",
                     cursor: "pointer",
                   }}
-                  disabled={loading}>
+                  disabled={loading}
+                >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -126,7 +150,8 @@ export default function LoginModal() {
               <button
                 type="submit"
                 className="button-submit"
-                disabled={loading}>
+                disabled={loading}
+              >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
               <p className="p">
@@ -172,5 +197,5 @@ export default function LoginModal() {
         </div>
       )}
     </div>
-  )
+  );
 }

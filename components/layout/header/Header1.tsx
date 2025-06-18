@@ -1,56 +1,97 @@
 import {
   setOpenLoginModal,
+  setOpenSignupDetailModal,
   setOpenSignupModal,
-} from "@/app/pg/components/gobalActions"
-import UserAvatarDropdown from "@/app/pg/components/UserAvatarDropdown"
-import { useSessionStore } from "@/app/store"
-import { createClient } from "@/utils/supabase/client"
-import Link from "next/link"
-import { useEffect } from "react"
+} from "@/app/pg/components/gobalActions";
+import UserAvatarDropdown from "@/app/pg/components/UserAvatarDropdown";
+import { useSessionStore } from "@/app/store";
+import { createClient } from "@/utils/supabase/client";
+import Link from "next/link";
+import { useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Header1({
   scroll,
   isMobileMenu,
   handleMobileMenu,
 }: any) {
-  const supabase = createClient()
-  const session = useSessionStore((state) => state.session)
-  const setSession = useSessionStore((state) => state.setSession)
-  const setName = useSessionStore((state) => state.setName)
+  const supabase = createClient();
+  const session = useSessionStore((state) => state.session);
+  const setSession = useSessionStore((state) => state.setSession);
+  const setName = useSessionStore((state) => state.setName);
+  const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
+  const setUserId = useSessionStore((state) => state.setUserId);
+  const avatarUrl = useSessionStore((state) => state.avatarUrl);
+
+  async function getUserDetails() {
+    const { data, error } = await supabase.from("user").select("*").single();
+
+    if (error) {
+      console.error("Error fetching user details:", error);
+      return;
+    }
+    console.log("userDetails", data);
+    //if data is complete do nothing, else open signup detail modal
+    if (!data.iscomplete) {
+      setOpenSignupDetailModal(true);
+    } else {
+      setName(data.firstName || "User");
+      setAvatarUrl(data.avatarUrl || null);
+      setUserId(data.id || null);
+      console.log("User details fetched successfully:", data);
+    }
+  }
 
   // Fetch session on mount
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
     supabase.auth.getSession().then((response) => {
-      if (!mounted) return
-      setSession(response.data)
-      setName(response.data.session?.user?.user_metadata?.name || "User")
-    })
+      if (!mounted) return;
+      setSession(response.data);
+      setName(response.data.session?.user?.user_metadata?.name || "User");
+
+      if (response.data.session) {
+        console.log("Session data:", response.data.session);
+        console.log("avatarUrl"),avatarUrl;
+        
+        // Fetch user details if session exists
+        getUserDetails();
+        
+      } else {
+        console.log("No active session found.");
+      }
+    });
+
     return () => {
-      mounted = false
-    }
-  }, [])
+      mounted = false;
+    };
+  }, []);
 
   // Open login modal if no session
   useEffect(() => {
     if (session?.session === null) {
-      setOpenLoginModal(true)
+      setOpenLoginModal(true);
     }
-  }, [session])
+  }, [session]);
 
   return (
     <header className="homepage1-body">
+      <Toaster />
       <div
         id="vl-header-sticky"
         className={`vl-header-area vl-transparent-header  ${
           scroll ? "header-sticky top-0 position-fixed w-100" : ""
-        }`}>
+        }`}
+      >
         <div className="container-fluid">
           <div className="row align-items-center">
             <div className="col-lg-2 col-md-6 col-6">
               <div className="vl-logo">
                 <Link href="/">
-                  <img src="/assets/img/logo/Ungarn-Immo-Full.png" alt="housa" />
+                  <img
+                    src="/assets/img/logo/Ungarn-Immo-Full.png"
+                    alt="housa"
+                  />
                   {/* <p className="fw-bold" style={{color:"#000"}}>Ungarn-Immo-Kompass</p> */}
                 </Link>
               </div>
@@ -59,9 +100,9 @@ export default function Header1({
               <div className="vl-main-menu text-center">
                 <nav className="vl-mobile-menu-active">
                   <ul>
-                    <li>
+                    {/* <li>
                       {session?.session && <Link href={``}> active</Link>}
-                    </li>
+                    </li> */}
                     <li>
                       <Link href="/sidebar-grid">Listings</Link>
                     </li>
@@ -147,7 +188,8 @@ export default function Header1({
                   <div className="btn-area1 mt-0">
                     <button
                       onClick={() => setOpenSignupModal(true)}
-                      className="vl-btn1 mt-0">
+                      className="vl-btn1 mt-0"
+                    >
                       Get Started
                       <span className="arrow1 ms-2">
                         <i className="fa-solid fa-arrow-right" />
@@ -169,5 +211,5 @@ export default function Header1({
         </div>
       </div>
     </header>
-  )
+  );
 }
