@@ -23,7 +23,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Housa - Real Esate Next.js Template",
+  title: "ungarn-immo",
   description: "Made by AliThemes",
   icons: {
     icon: [
