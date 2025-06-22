@@ -63,7 +63,7 @@ export default function AddProperty() {
                                                     <div className="input-area">
                                                         <h5>Select Category*</h5>
                                                         <div className="space16" />
-                                                        <select className="nice-select">
+                                                        <select className="nice-select\\">
                                                             <option>Apartment</option>
                                                             <option>Bar</option>
                                                             <option>Cafe</option>
