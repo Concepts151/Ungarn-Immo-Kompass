@@ -1,8 +1,6 @@
 "use client";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { uploadImage } from "@/utils/supabase/storage/client";
-import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 
 export default function Profile1() {
@@ -17,7 +15,6 @@ export default function Profile1() {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   //   fetch user details from supabase
   const fetchUserDetails = async () => {
@@ -49,91 +46,20 @@ export default function Profile1() {
   };
 
   // Handle image input change and preview
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setAvatarFile(file);
       const url = URL.createObjectURL(file);
       setAvatarUrl(url);
+      // Optionally: handle upload to supabase here
     }
-  };
-
-  // Upload avatar to Supabase, delete old, update user table
-  const handleAvatarUpload = async () => {
-    if (!avatarFile || !user) return;
-    try {
-      // Delete old avatar if exists
-      if (user.avatarUrl) {
-        const { error: delError } = await supabase.storage
-          .from("avatars")
-          .remove([user.avatarUrl]);
-        if (delError) {
-          // Not fatal, just log
-          console.warn("Failed to delete old avatar:", delError);
-        }
-      }
-      // Upload new avatar
-      const fileExt = avatarFile.name.split(".").pop();
-      const filePath = `${user.id}_${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, avatarFile, { upsert: true });
-      if (uploadError) {
-        toast.error("Failed to upload new avatar.");
-        return;
-      }
-      // Update user table
-      const { error: updateError } = await supabase
-        .from("user")
-        .update({ avatarUrl: filePath })
-        .eq("id", user.id);
-      if (updateError) {
-        toast.error("Failed to update user avatar.");
-        return;
-      }
-      setUser({ ...user, avatarUrl: filePath });
-      setAvatarUrl(
-        `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${filePath}`
-      );
-      setAvatarFile(null);
-      toast.success("Profile photo updated!");
-    } catch (err) {
-      toast.error("Unexpected error updating avatar.");
-    }
-  };
-
-  // Handle profile update (fields)
-  const handleProfileUpdate = async () => {
-    if (!user) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const { error: updateError } = await supabase
-        .from("user")
-        .update({
-          firstName,
-          lastName,
-          phone,
-        })
-        .eq("id", user.id);
-      if (updateError) {
-        setError("Failed to update profile.");
-        toast.error("Failed to update profile.");
-      } else {
-        setUser({ ...user, firstName, lastName, phone });
-        toast.success("Profile updated!");
-      }
-    } catch (err) {
-      setError("Unexpected error updating profile.");
-      toast.error("Unexpected error updating profile.");
-    }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchUserDetails();
-  }, []);
 
+    // console.log(user);
+  }, []);
   return (
     <>
       {/*===== DASHBOARD AREA STARTS =======*/}
@@ -178,18 +104,9 @@ export default function Profile1() {
                         type="file"
                         className="ip-file"
                         onChange={handleAvatarChange}
-                        accept="image/*"
                       />
                     </div>
                     <div className="space16" />
-                    <button
-                      className="vl-btn1"
-                      style={{ marginTop: 8 }}
-                      disabled={!avatarFile}
-                      onClick={handleAvatarUpload}
-                    >
-                      Save Photo
-                    </button>
                     <span>PNG/JPEG (100/100)</span>
                   </div>
                 </div>
@@ -254,12 +171,8 @@ export default function Profile1() {
                     <div className="col-lg-12">
                       <div className="space32" />
                       <div className="btn-area1 text-end">
-                        <button
-                          onClick={handleProfileUpdate}
-                          className="vl-btn1"
-                          disabled={loading}
-                        >
-                          {loading ? "Updating..." : "Update Profile"}
+                        <button onClick={() => {}} className="vl-btn1">
+                          Update Profile
                           <span className="arrow1 ms-2">
                             <i className="fa-solid fa-arrow-right" />
                           </span>
