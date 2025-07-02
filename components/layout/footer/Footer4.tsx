@@ -211,7 +211,7 @@ export default function Footer4() {
                           </clipPath>
                         </defs>
                       </svg>
-                      DemoHousa.com
+                      Ungarn-Immo.com
                     </Link>
                   </li>
                 </ul>

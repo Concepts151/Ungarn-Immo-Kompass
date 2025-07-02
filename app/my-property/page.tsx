@@ -7,7 +7,12 @@ export default function Home() {
     return (
         <>
             <Layout headerStyle={5}>
-                <InnerHeader title="My Properties" currentpage="My Properties" />
+                {/* <InnerHeader title="My Properties" currentpage="My Properties" /> */}
+                <div className="space30"></div>
+                <div className="space30"></div>
+                <div className="space30"></div>
+                <div className="space30"></div>
+                <div className="space30"></div>
                 <DashboardArea />
                 <div className="space30"></div>
             </Layout>

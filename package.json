@@ -13,8 +13,10 @@
         "@supabase/ssr": "^0.6.1",
         "@supabase/supabase-js": "^2.49.10",
         "@types/react-slick": "^0.23.13",
+        "@types/uuid": "^10.0.0",
         "aos": "^2.3.4",
         "bootstrap": "^5.3.3",
+        "browser-image-compression": "^2.0.2",
         "chart.js": "^4.4.8",
         "gsap": "^3.12.7",
         "lucide-react": "^0.477.0",
@@ -28,6 +30,7 @@
         "react-slick": "^0.30.3",
         "slick-carousel": "^1.8.1",
         "swiper": "^11.2.4",
+        "uuid": "^11.1.0",
         "zustand": "^5.0.5"
     },
     "devDependencies": {

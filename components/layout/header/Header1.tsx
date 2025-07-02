@@ -172,7 +172,7 @@ export default function Header1({
                           <Link href="/my-profile">My Profile</Link>
                         </li>
                         <li>
-                          <Link href="/add-property">Add Property</Link>
+                          <Link href="/add-property?new=0">Add Property</Link>
                         </li>
                       </ul>
                     </li>
