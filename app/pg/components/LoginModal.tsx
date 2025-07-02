@@ -23,6 +23,7 @@ export default function LoginModal() {
   const isLoginModalOpen = useToggleModal((state) => state.isLoginModalOpen);
   const setName = useSessionStore((state) => state.setName);
   const setSession = useSessionStore((state) => state.setSession);
+  const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
 
   const closeModal = () => {
     setCloseModal();
@@ -38,8 +39,12 @@ export default function LoginModal() {
       console.error("Error fetching user details:", error);
       return;
     }
-    console.log("userDetails", data.iscomplete);
     setName(data.firstName || "User");
+    setAvatarUrl(
+      data.avatarUrl
+        ? `${data.avatarUrl}`
+        : null
+    );
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,7 +69,7 @@ export default function LoginModal() {
         return;
       }
       toast.success('Login Successful!')
-      getUserDetails();
+      await getUserDetails(); // Await to ensure avatarUrl is set before closing modal
       closeModal();
     } catch (err: any) {
       setError(err.message || "Login failed");
