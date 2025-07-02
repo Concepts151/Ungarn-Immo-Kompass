@@ -84,7 +84,7 @@ export default function Profile1() {
     // Handle avatar upload if a new file is selected
     if (avatarFile) {
       // Delete old avatar if exists and is not a blob url
-      if (user?.avatarUrl && !avatarUrl?.startsWith("blob:")) {
+      if (user?.avatarUrl || !avatarUrl?.startsWith("blob:")) {
         await deleteOldAvatar(user.avatarUrl);
       }
       // Upload new avatar
