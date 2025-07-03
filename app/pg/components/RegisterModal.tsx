@@ -31,6 +31,7 @@ const RegisterModal = () => {
   const [loading, setLoading] = useState(false);
 
   const setSession = useSessionStore((state) => state.setSession);
+  const setName = useSessionStore((state) => state.setName);
 
   const isRegisterModalOpen = useToggleModal(
     (state) => state.isSignupModalOpen
@@ -88,7 +89,10 @@ const RegisterModal = () => {
       console.log("Signup error:", error);
       console.log("Signup data:", data);
 
+      
+
       if (!error) {
+        setSession(data);
         closeModal();
         setDetailModal(true);
       }
@@ -118,7 +122,7 @@ const RegisterModal = () => {
       // await signup(form); // Replace with your server action
       const { data, error } = await updateDetails(form);
       console.log("Update details error:", error);
-
+      setName(detailData.firstName || "User");
       closeDetailModal();
       setOpenAvatarModal(true);
     } catch (err: any) {

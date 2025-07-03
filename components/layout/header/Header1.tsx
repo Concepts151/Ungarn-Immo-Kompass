@@ -35,7 +35,6 @@ export default function Header1({
       setOpenSignupDetailModal(true);
     } else {
       setName(data.firstName || "User");
-      // Always set the full public URL for avatar
       setAvatarUrl(data.avatarUrl ? `${data.avatarUrl}` : null);
       console.log("User details fetched successfully:", data);
     }
@@ -51,7 +50,7 @@ export default function Header1({
 
       if (response.data.session) {
         console.log("Session data:", response.data.session);
-        console.log("avatarUrl"), avatarUrl;
+        console.log("avatarUrl", avatarUrl);
 
         // Fetch user details if session exists
         getUserDetails();
