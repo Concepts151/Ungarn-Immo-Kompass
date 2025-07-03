@@ -97,9 +97,6 @@ export default function Header1({
               <div className="vl-main-menu text-center">
                 <nav className="vl-mobile-menu-active">
                   <ul>
-                    {/* <li>
-                      {session?.session && <Link href={``}> active</Link>}
-                    </li> */}
                     <li>
                       <Link href="/sidebar-grid">Listings</Link>
                     </li>
@@ -112,67 +109,39 @@ export default function Header1({
                     <li>
                       <Link href="/contact">Contact Us</Link>
                     </li>
-                    <li>
-                      <Link href="#">
-                        Properties
-                        <span>
-                          <i className="fa-solid fa-angle-down d-lg-inline d-none" />
-                        </span>
-                      </Link>
-                      <ul className="sub-menu">
-                        <li>
-                          <Link href="/property-details-v1">
-                            Property Details 01
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/property-details-v2">
-                            Property Details 02
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/property-details-v3">
-                            Property Details 03
-                          </Link>
-                        </li>
-                        <li>
-                          <Link href="/property-details-v4">
-                            Property Details 04
-                          </Link>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <Link href="#">
-                        Dashboard
-                        <span>
-                          <i className="fa-solid fa-angle-down d-lg-inline d-none" />
-                        </span>
-                      </Link>
-                      <ul className="sub-menu">
-                        <li>
-                          <Link href="/dashboard">Dashboard</Link>
-                        </li>
-                        <li>
-                          <Link href="/my-property">My Properties</Link>
-                        </li>
-                        <li>
-                          <Link href="/message">Message</Link>
-                        </li>
-                        <li>
-                          <Link href="/my-favorites">My Favourites</Link>
-                        </li>
-                        <li>
-                          <Link href="/reviews">Reviews</Link>
-                        </li>
-                        <li>
-                          <Link href="/my-profile">My Profile</Link>
-                        </li>
-                        <li>
-                          <Link href="/add-property?new=0">Add Property</Link>
-                        </li>
-                      </ul>
-                    </li>
+                    {session?.session != null && (
+                      <li>
+                        <Link href="#">
+                          Dashboard
+                          <span>
+                            <i className="fa-solid fa-angle-down d-lg-inline d-none" />
+                          </span>
+                        </Link>
+                        <ul className="sub-menu">
+                          <li>
+                            <Link href="/dashboard">Dashboard</Link>
+                          </li>
+                          <li>
+                            <Link href="/my-property">My Properties</Link>
+                          </li>
+                          <li>
+                            <Link href="/message">Message</Link>
+                          </li>
+                          <li>
+                            <Link href="/my-favorites">My Favourites</Link>
+                          </li>
+                          <li>
+                            <Link href="/reviews">Reviews</Link>
+                          </li>
+                          <li>
+                            <Link href="/my-profile">My Profile</Link>
+                          </li>
+                          <li>
+                            <Link href="/add-property?new=0">Add Property</Link>
+                          </li>
+                        </ul>
+                      </li>
+                    )}
                   </ul>
                 </nav>
               </div>
