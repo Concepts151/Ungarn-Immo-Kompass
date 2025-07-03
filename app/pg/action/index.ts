@@ -65,5 +65,6 @@ export async function updateDetails(formData: FormData) {
 
 export const logout = async () => {
   const supabase = await createClient();
-  supabase.auth.signOut();
+  await supabase.auth.signOut();
+  
 };

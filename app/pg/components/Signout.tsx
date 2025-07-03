@@ -17,7 +17,9 @@ export default function LogoutButton() {
       await logout(); // Call your async logout action here
       // Optionally, redirect or update state here
       clearSession();
-      window.location.reload();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/"; // Redirect to home or login page
     } catch (err: any) {
       setError(err.message || "Logout failed. Please try again.");
     } finally {
