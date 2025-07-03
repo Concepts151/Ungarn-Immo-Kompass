@@ -16,6 +16,7 @@ interface SessionState {
   setSession: (session: any) => void;
   setName: (name: string) => void;
   setAvatarUrl: (url: string | null) => void;
+  clearSession: () => void; // Add clearSession to the interface
 }
 
 export const useToggleModal = create<State>((set) => ({
@@ -34,4 +35,11 @@ export const useSessionStore = create<SessionState>((set) => ({
   setSession: (session) => set({ session }),
   setName: (name) => set({ name }),
   setAvatarUrl: (url) => set({ avatarUrl: url }),
+  clearSession: () =>
+    set({
+      userid: null,
+      session: null,
+      name: "User",
+      avatarUrl: null,
+    }), // Reset session-related state
 }));
