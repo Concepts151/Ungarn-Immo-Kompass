@@ -1,79 +1,87 @@
-import initialProperties from "@/data/property.json"
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import initialProperties from "@/data/property.json";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
+
+import { createClient } from "@/utils/supabase/client";
 
 // Define types for our state
 interface Property {
-  id: number
-  keyword: string
-  address: string
-  city: string
-  state: string
-  status: string
-  type: string
-  bedrooms: number
-  bathrooms: number
-  garages: number
-  rooms: number
-  minPrice: number
-  maxPrice: number
-  minSize: number
-  maxSize: number
-  amenities: string[]
+  id: number;
+  keyword: string;
+  address: string;
+  city: string;
+  state: string;
+  status: string;
+  type: string;
+  bedrooms: number;
+  bathrooms: number;
+  garages: number;
+  rooms: number;
+  minPrice: number;
+  maxPrice: number;
+  minSize: number;
+  maxSize: number;
+  amenities: string[];
 }
 
 interface PropertyType {
-  id: number
-  name: string
-  value: string
+  id: number;
+  name: string;
+  value: string;
 }
 
 interface Amenity {
-  id: number
-  name: string
-  value: string
-  isChecked: boolean
+  id: number;
+  name: string;
+  value: string;
+  isChecked: boolean;
 }
 
 interface City {
-  id: number
-  name: string
-  value: string
+  id: number;
+  name: string;
+  value: string;
 }
 
 interface State {
-  id: number
-  name: string
-  value: string
+  id: number;
+  name: string;
+  value: string;
 }
 
 interface Status {
-  id: number
-  name: string
-  value: string
+  id: number;
+  name: string;
+  value: string;
 }
 
 interface SortOption {
-  id: number
-  name: string
-  value: string
+  id: number;
+  name: string;
+  value: string;
 }
 
 interface PropertyState {
-  properties: Property[]
-  favoriteProperties: number[]
-  propertyTypes: PropertyType[]
-  amenitiesList: Amenity[]
-  cities: City[]
-  states: State[]
-  statuses: Status[]
-  sortOptions: SortOption[]
+  properties: Property[];
+  favoriteProperties: number[];
+  propertyTypes: PropertyType[];
+  amenitiesList: Amenity[];
+  cities: City[];
+  states: State[];
+  statuses: Status[];
+  sortOptions: SortOption[];
 }
 
 // Type for property update payload
 interface UpdatePropertyPayload {
-  id: number
-  [key: string]: any // Allow any property to be updated
+  id: number;
+  [key: string]: any; // Allow any property to be updated
 }
+
+
 
 const initialState: PropertyState = {
   properties: initialProperties as Property[],
@@ -92,7 +100,12 @@ const initialState: PropertyState = {
     { id: 11, name: "Farm", value: "farm" },
   ],
   amenitiesList: [
-    { id: 1, name: "Air Conditioning", value: "air-conditioning", isChecked: false },
+    {
+      id: 1,
+      name: "Air Conditioning",
+      value: "air-conditioning",
+      isChecked: false,
+    },
     { id: 2, name: "Parking", value: "parking", isChecked: false },
     { id: 3, name: "Swimming Pool", value: "swimming-pool", isChecked: false },
     { id: 4, name: "Garden", value: "garden", isChecked: false },
@@ -106,10 +119,20 @@ const initialState: PropertyState = {
     { id: 12, name: "Fireplace", value: "fireplace", isChecked: false },
     { id: 13, name: "Heating", value: "heating", isChecked: false },
     { id: 14, name: "Garage", value: "garage", isChecked: false },
-    { id: 15, name: "Disabled Access", value: "disabled-access", isChecked: false },
+    {
+      id: 15,
+      name: "Disabled Access",
+      value: "disabled-access",
+      isChecked: false,
+    },
     { id: 16, name: "Gym", value: "gym", isChecked: false },
     { id: 17, name: "Sauna", value: "sauna", isChecked: false },
-    { id: 18, name: "Outdoor Shower", value: "outdoor-shower", isChecked: false },
+    {
+      id: 18,
+      name: "Outdoor Shower",
+      value: "outdoor-shower",
+      isChecked: false,
+    },
     { id: 19, name: "Barbeque", value: "barbeque", isChecked: false },
     { id: 20, name: "Lawn", value: "lawn", isChecked: false },
   ],
@@ -165,53 +188,70 @@ const initialState: PropertyState = {
     { id: 7, name: "Newest", value: "newest" },
     { id: 8, name: "Oldest", value: "oldest" },
   ],
-}
+};
+
+// export const fetchProperties = createAsyncThunk(
+//   "property/fetch",
+//   async () => {}
+// );
 
 export const propertySlice = createSlice({
   name: "property",
   initialState,
   reducers: {
     toggleFavoriteProperty: (state, { payload }: PayloadAction<number>) => {
-      const propertyId = payload
-      const isExist = state.favoriteProperties.includes(propertyId)
+      const propertyId = payload;
+      const isExist = state.favoriteProperties.includes(propertyId);
 
       if (isExist) {
-        state.favoriteProperties = state.favoriteProperties.filter((id) => id !== propertyId)
+        state.favoriteProperties = state.favoriteProperties.filter(
+          (id) => id !== propertyId
+        );
       } else {
-        state.favoriteProperties.push(propertyId)
+        state.favoriteProperties.push(propertyId);
       }
     },
     toggleAmenityCheck: (state, { payload }: PayloadAction<number>) => {
       state.amenitiesList = state.amenitiesList.map((item) => {
         if (item.id === payload) {
-          return { ...item, isChecked: !item.isChecked }
+          return { ...item, isChecked: !item.isChecked };
         }
-        return item
-      })
+        return item;
+      });
     },
     clearAmenityFilters: (state) => {
       state.amenitiesList = state.amenitiesList.map((item) => ({
         ...item,
         isChecked: false,
-      }))
+      }));
     },
     addProperty: (state, { payload }: PayloadAction<Omit<Property, "id">>) => {
       // Generate a new ID based on the highest existing ID
-      const newId = Math.max(...state.properties.map((p) => p.id)) + 1
-      state.properties.push({ ...payload, id: newId })
+      const newId = Math.max(...state.properties.map((p) => p.id)) + 1;
+      state.properties.push({ ...payload, id: newId });
     },
-    updateProperty: (state, { payload }: PayloadAction<UpdatePropertyPayload>) => {
-      const { id, ...updatedData } = payload
-      const index = state.properties.findIndex((property) => property.id === id)
+    updateProperty: (
+      state,
+      { payload }: PayloadAction<UpdatePropertyPayload>
+    ) => {
+      const { id, ...updatedData } = payload;
+      const index = state.properties.findIndex(
+        (property) => property.id === id
+      );
       if (index !== -1) {
-        state.properties[index] = { ...state.properties[index], ...updatedData }
+        state.properties[index] = {
+          ...state.properties[index],
+          ...updatedData,
+        };
       }
     },
     deleteProperty: (state, { payload }: PayloadAction<number>) => {
-      state.properties = state.properties.filter((property) => property.id !== payload)
+      state.properties = state.properties.filter(
+        (property) => property.id !== payload
+      );
     },
   },
-})
+});
 
 export const {
   toggleFavoriteProperty,
@@ -220,7 +260,6 @@ export const {
   addProperty,
   updateProperty,
   deleteProperty,
-} = propertySlice.actions
+} = propertySlice.actions;
 
-export default propertySlice.reducer
-
+export default propertySlice.reducer;

@@ -9,5 +9,5 @@ export default function StoreProvider({ children }: any) {
 				{children}
 			</Provider>
 		</>
-	)
+	) 
 }

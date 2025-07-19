@@ -4,14 +4,19 @@ import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import Modal from "../custom-comp/listing-edit-modal";
 
 export default function DashboardArea() {
   const supabase = createClient();
   const router = useRouter();
   const [expose, setExpose] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const listingsPerPage = 3;
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
+  const [selectedListing, setSelectedListing] = useState<any>(null); // Selected listing data
 
   const totalPages = Math.ceil(expose.length / listingsPerPage);
 
@@ -38,6 +43,39 @@ export default function DashboardArea() {
     //if data is complete do nothing, else open signup detail modal
   }
 
+  const handleEditClick = (listing: any) => {
+    setSelectedListing(listing); // Set the selected listing data
+    setIsModalOpen(true); // Open the modal
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false); // Close the modal
+    setSelectedListing(null); // Clear the selected listing
+  };
+
+  const handleUpdateListing = async (updatedData: any) => {
+    try {
+      const { error } = await supabase
+        .from("expose")
+        .update(updatedData)
+        .eq("id", selectedListing.id);
+
+      if (error) {
+        console.error("Error updating listing:", error);
+        toast.error("Failed to update listing.");
+        return;
+      }
+
+      toast.success("Listing updated successfully!");
+      setIsModalOpen(false); // Close the modal after successful update
+      setSelectedListing(null); // Clear the selected listing
+      // Optionally, refetch the listings to reflect the changes
+    } catch (err) {
+      console.error("Unexpected error updating listing:", err);
+      toast.error("An unexpected error occurred.");
+    }
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       const {
@@ -53,75 +91,83 @@ export default function DashboardArea() {
     checkSession();
   }, []);
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      const { data: userdata, error } = await supabase.from("user").select("*").single();
-      if (!userdata) {
-        // No user found, do not fetch listings
+  const fetchListings = async () => {
+    const { data: userdata, error } = await supabase
+      .from("user")
+      .select("*")
+      .single();
+    if (!userdata) {
+      // No user found, do not fetch listings
+      return;
+    }
+    try {
+      const { data: listingsData, error: listingsError } = await supabase
+        .from("expose")
+        .select("*")
+        .eq("sellerId", userdata.id);
+
+      if (listingsError) {
+        console.error("Error fetching listings:", listingsError);
         return;
       }
-      try {
-        const { data: listingsData, error: listingsError } = await supabase
-          .from("expose")
-          .select("*")
-          .eq("sellerId", userdata.id);
 
-        if (listingsError) {
-          console.error("Error fetching listings:", listingsError);
-          return;
-        }
+      const enrichedListings = await Promise.all(
+        listingsData.map(async (listing) => {
+          const { data: imagesData, error: imagesError } = await supabase
+            .from("expose_media")
+            .select("url")
+            .eq("expose_id", listing.id)
+            .eq("media_type", "image");
 
-        const enrichedListings = await Promise.all(
-          listingsData.map(async (listing) => {
-            const { data: imagesData, error: imagesError } = await supabase
-              .from("expose_media")
-              .select("url")
-              .eq("expose_id", listing.id)
-              .eq("media_type", "image");
+          if (imagesError) {
+            console.error(
+              `Error fetching images for listing ${listing.id}:`,
+              imagesError
+            );
+            return { ...listing, images: [] };
+          }
 
-            if (imagesError) {
-              console.error(
-                `Error fetching images for listing ${listing.id}:`,
-                imagesError
-              );
-              return { ...listing, images: [] };
-            }
+          const { data: basicDetails, error: basicDetailsError } =
+            await supabase
+              .from("expose_basic")
+              .select("*")
+              .eq("exposeid", listing.id);
 
-            const { data: basicDetails, error: basicDetailsError } =
-              await supabase
-                .from("expose_basic")
-                .select("*")
-                .eq("exposeid", listing.id);
-
-            if (basicDetailsError) {
-              console.error(
-                `Error fetching basic details for listing ${listing.id}:`,
-                basicDetailsError
-              );
-              return {
-                ...listing,
-                images: imagesData.map((img) => img.url),
-                basicDetails: null,
-              };
-            }
-
+          if (basicDetailsError) {
+            console.error(
+              `Error fetching basic details for listing ${listing.id}:`,
+              basicDetailsError
+            );
             return {
               ...listing,
               images: imagesData.map((img) => img.url),
-              basicDetails: basicDetails[0] || null,
+              basicDetails: null,
             };
-          })
-        );
+          }
 
-        console.log("Enriched Listings with Basic Details:", enrichedListings);
-        setExpose(enrichedListings);
-      } catch (err) {
-        console.error("Unexpected error fetching listings or images:", err);
-      }
-    };
+          return {
+            ...listing,
+            images: imagesData.map((img) => img.url),
+            basicDetails: basicDetails[0] || null,
+          };
+        })
+      );
+
+      console.log("Enriched Listings with Basic Details:", enrichedListings);
+      setExpose(enrichedListings);
+    } catch (err) {
+      console.error("Unexpected error fetching listings or images:", err);
+    }
+  };
+
+  useEffect(() => {
     getUserDetails();
     fetchListings();
   }, []);
+
+  // function fetchListings(): void {
+  //   throw new Error("Function not implemented.");
+  // }
 
   return (
     <>
@@ -205,10 +251,10 @@ export default function DashboardArea() {
                                       {item.basicDetails?.title || "n/a"}
                                     </Link>
                                     <div className="space16" />
-                                    <p>{item.basicDetails.address}</p>
+                                    <p>{item.basicDetails?.address || "n/a"}</p>
                                   </div>
                                   <Link href="#" className="price">
-                                    ${item.basicDetails.price}
+                                    ${item.basicDetails?.price || "N/a"}
                                   </Link>
                                 </div>
                                 <div className="space20" />
@@ -237,7 +283,7 @@ export default function DashboardArea() {
                                           />
                                         </svg>
                                       </span>
-                                      {item.basicDetails.living_area} sqft
+                                      {item.basicDetails?.living_area} sqft
                                     </li>
                                     <li>
                                       <span>
@@ -276,7 +322,7 @@ export default function DashboardArea() {
                                           />
                                         </svg>
                                       </span>
-                                      {item.basicDetails.bedroom} Beds
+                                      {item.basicDetails?.bedroom} Beds
                                     </li>
                                     <li>
                                       <span>
@@ -320,7 +366,7 @@ export default function DashboardArea() {
                                           />
                                         </svg>
                                       </span>
-                                      {item.basicDetails.bathroom} Baths
+                                      {item.basicDetails?.bathroom} Baths
                                     </li>
                                   </ul>
                                   <div className="space24" />
@@ -379,7 +425,10 @@ export default function DashboardArea() {
                           </div>
                         </div>
                         <div className="actions w-lg-25">
-                          <button className="edit">
+                          <button
+                            className="edit"
+                            onClick={() => handleEditClick(item)}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
@@ -483,6 +532,15 @@ export default function DashboardArea() {
           </div>
         </div>
       </div>
+      {/* Modal for Editing Listing */}
+      {isModalOpen && (
+        <Modal
+          listing={selectedListing}
+          onClose={handleModalClose}
+          onUpdate={handleUpdateListing}
+          fetchListing={fetchListings}
+        />
+      )}
     </>
   );
 }

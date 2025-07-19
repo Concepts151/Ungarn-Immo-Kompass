@@ -36,6 +36,26 @@ export default function AddProperty() {
   const [category, setCategory] = useState("Apartment");
   const [listedIn, setListedIn] = useState("Active");
   const [propertyStatus, setPropertyStatus] = useState("Approved");
+  const [details, setDetails] = useState({
+    material: "",
+    roofType: "",
+    roofCondition: "",
+    insulation: "",
+    windows: "",
+    windowsAge: "",
+    hasRollerShutter: "",
+    heatingType: "",
+    heatingCondition: "",
+    electricCondition: "",
+    waterCondition: "",
+    energyCertificate: "",
+    energyClass: "",
+    energyConsumption: "",
+    internetType: "",
+    internetSpeed: "",
+    monthlyCost: "",
+    gardenDesc: "",
+  });
 
   const [isPending, startTransition] = useTransition();
   const [listingId, setListingId] = useState<string | null>(null);
@@ -340,6 +360,44 @@ export default function AddProperty() {
       toast.error("An error occurred while adding image to media table.");
     }
   }
+
+  // Handler for details tab input changes
+  const handleDetailsChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Submit function for details tab
+  const handleSubmitDetails = async () => {
+    if (!listingId) {
+      toast.error("Listing ID is required to save details.");
+      return;
+    }
+    try {
+      const { error } = await supabase.from("exposedetails").insert([
+        {
+          exposeid: listingId,
+          ...details,
+        },
+      ]).select();
+
+      if (error) {
+        toast.error("Failed to save details.");
+        return;
+      }
+      toast.success("Details saved successfully!");
+      // Optionally move to next tab here
+    } catch (err) {
+      toast.error("An error occurred while saving details.");
+    }
+  };
 
   return (
     <>
@@ -1092,7 +1150,10 @@ export default function AddProperty() {
                               <div className="space16" />
                               <input
                                 type="text"
-                                placeholder="Size in ft (only numbers)"
+                                placeholder="Material"
+                                name="material"
+                                value={details.material}
+                                onChange={handleDetailsChange}
                               />
                             </div>
                           </div>
@@ -1103,7 +1164,10 @@ export default function AddProperty() {
                               <div className="space16" />
                               <input
                                 type="text"
-                                placeholder="Lot size in ft (only numbers)"
+                                placeholder="Roof Type"
+                                name="roofType"
+                                value={details.roofType}
+                                onChange={handleDetailsChange}
                               />
                             </div>
                           </div>
@@ -1112,7 +1176,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Roof Condition</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Room" />
+                              <input
+                                type="text"
+                                placeholder="Roof Condition"
+                                name="roofCondition"
+                                value={details.roofCondition}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1120,7 +1190,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Insulation</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Bedrooms" />
+                              <input
+                                type="text"
+                                placeholder="Insulation"
+                                name="insulation"
+                                value={details.insulation}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1128,7 +1204,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Windows</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Bethrooms" />
+                              <input
+                                type="text"
+                                placeholder="Windows"
+                                name="windows"
+                                value={details.windows}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1138,7 +1220,10 @@ export default function AddProperty() {
                               <div className="space16" />
                               <input
                                 type="text"
-                                placeholder="Custom Id (Text)"
+                                placeholder="windows age"
+                                name="windowsAge"
+                                value={details.windowsAge}
+                                onChange={handleDetailsChange}
                               />
                             </div>
                           </div>
@@ -1147,7 +1232,16 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Roller Shutter</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Garages" />
+                              <select
+                                className="nice-select"
+                                name="hasRollerShutter"
+                                value={details.hasRollerShutter}
+                                onChange={handleDetailsChange}
+                              >
+                                <option value="">Select</option>
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                              </select>
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1155,7 +1249,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Heating Type</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Garages Size" />
+                              <input
+                                type="text"
+                                placeholder="Heating Type"
+                                name="heatingType"
+                                value={details.heatingType}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1163,7 +1263,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Heating Condition</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Year Built" />
+                              <input
+                                type="text"
+                                placeholder="Heating Condition"
+                                name="heatingCondition"
+                                value={details.heatingCondition}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1173,7 +1279,10 @@ export default function AddProperty() {
                               <div className="space16" />
                               <input
                                 type="text"
-                                placeholder="Available from (date)"
+                                placeholder="Electric Conditions"
+                                name="electricCondition"
+                                value={details.electricCondition}
+                                onChange={handleDetailsChange}
                               />
                             </div>
                           </div>
@@ -1182,7 +1291,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Water Condition</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Basement" />
+                              <input
+                                type="text"
+                                placeholder="Water Conditions"
+                                name="waterCondition"
+                                value={details.waterCondition}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1190,7 +1305,16 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Energy Certificate</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Extra details" />
+                              <select
+                                className="nice-select"
+                                name="energyCertificate"
+                                value={details.energyCertificate}
+                                onChange={handleDetailsChange}
+                              >
+                                <option value="">Select</option>
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                              </select>
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1198,7 +1322,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Energy Class</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Roofing" />
+                              <input
+                                type="text"
+                                placeholder="Energy Class"
+                                name="energyClass"
+                                value={details.energyClass}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1207,8 +1337,11 @@ export default function AddProperty() {
                               <h5>Energy Consumption</h5>
                               <div className="space16" />
                               <input
-                                type="text"
-                                placeholder="Exterior Material"
+                                type="number"
+                                placeholder="Energy Consumption"
+                                name="energyConsumption"
+                                value={details.energyConsumption}
+                                onChange={handleDetailsChange}
                               />
                             </div>
                           </div>
@@ -1217,7 +1350,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Internet type</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Structure type" />
+                              <input
+                                type="text"
+                                placeholder="Internet type"
+                                name="internetType"
+                                value={details.internetType}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1225,7 +1364,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Internet Speed</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Structure type" />
+                              <input
+                                type="text"
+                                placeholder="Internet Speed"
+                                name="internetSpeed"
+                                value={details.internetSpeed}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                           <div className="col-lg-4 col-md-6">
@@ -1233,96 +1378,13 @@ export default function AddProperty() {
                             <div className="input-area">
                               <h5>Monthly Cost</h5>
                               <div className="space16" />
-                              <input type="text" placeholder="Structure type" />
-                            </div>
-                          </div>
-                          <div className="col-lg-4 col-md-6">
-                            <div className="space28" />
-                            <div className="input-area">
-                              <h5>Gardern Description</h5>
-                              <div className="space16" />
-                              <input type="text" placeholder="Structure type" />
-                            </div>
-                          </div>
-                          <div className="col-lg-4 col-md-6">
-                            <div className="space28" />
-                            <div className="input-area">
-                              <h5>Floors no</h5>
-                              <div className="space16" />
-                              <div className="nice-select" tabIndex={0}>
-                                <span className="current">Select</span>
-                                <ul className="list">
-                                  <li data-value={1} className="option">
-                                    1
-                                  </li>
-                                  <li
-                                    data-value={2}
-                                    className="option selected"
-                                  >
-                                    2
-                                  </li>
-                                  <li data-value={1} className="option">
-                                    3
-                                  </li>
-                                  <li data-value={1} className="option">
-                                    4
-                                  </li>
-                                  <li data-value={1} className="option">
-                                    5
-                                  </li>
-                                  <li data-value={1} className="option">
-                                    6
-                                  </li>
-                                  <li data-value={1} className="option">
-                                    7
-                                  </li>
-                                  <li data-value={1} className="option">
-                                    8
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-lg-4 col-md-6">
-                            <div className="space28" />
-                            <div className="input-area">
-                              <h5>Energy Class</h5>
-                              <div className="space16" />
-                              <div className="nice-select" tabIndex={0}>
-                                <span className="current">Choose</span>
-                                <ul className="list">
-                                  <li data-value={1} className="option">
-                                    For Rent
-                                  </li>
-                                  <li
-                                    data-value={2}
-                                    className="option selected"
-                                  >
-                                    For Sale
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-lg-4 col-md-6">
-                            <div className="space28" />
-                            <div className="input-area">
-                              <h5>Energy index in kWh/m2a</h5>
-                              <div className="space16" />
-                              <div className="nice-select" tabIndex={0}>
-                                <span className="current">Choose</span>
-                                <ul className="list">
-                                  <li data-value={1} className="option">
-                                    New Listing
-                                  </li>
-                                  <li
-                                    data-value={2}
-                                    className="option selected"
-                                  >
-                                    Open House
-                                  </li>
-                                </ul>
-                              </div>
+                              <input
+                                type="text"
+                                placeholder="Monthly  Cost"
+                                name="monthlyCost"
+                                value={details.monthlyCost}
+                                onChange={handleDetailsChange}
+                              />
                             </div>
                           </div>
                         </div>
@@ -1330,28 +1392,32 @@ export default function AddProperty() {
                           <div className="col-lg-12 col-md-12">
                             <div className="space28" />
                             <div className="input-area">
-                              <h5>
-                                Owner/ Agent nots (not visible on front end)
-                              </h5>
+                              <h5>Gardern Description</h5>
                               <div className="space16" />
                               <textarea
-                                placeholder="There are many variations of passages"
-                                defaultValue={""}
+                                placeholder="Decribe the garden area, its features, and any landscaping details."
+                                name="gardenDesc"
+                                value={details.gardenDesc}
+                                onChange={handleDetailsChange}
                               />
                             </div>
                           </div>
                           <div className="col-lg-12">
                             <div className="space40" />
                             <div className="btn-area1 text-end">
-                              <Link href="#" className="vl-btn1">
-                                Update To Next Step
+                              <button
+                                type="button"
+                                onClick={handleSubmitDetails}
+                                className="vl-btn1"
+                              >
+                                Save Details
                                 <span className="arrow1 ms-2">
                                   <i className="fa-solid fa-arrow-right" />
                                 </span>
                                 <span className="arrow2 ms-2">
                                   <i className="fa-solid fa-arrow-right" />
                                 </span>
-                              </Link>
+                              </button>
                             </div>
                           </div>
                         </div>
