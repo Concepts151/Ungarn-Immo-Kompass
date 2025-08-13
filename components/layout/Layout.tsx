@@ -35,7 +35,7 @@ export default function Layout({
   const { scroll, isMobileMenu, handleMobileMenu } = useLayoutEffects();
 
   return (
-    <>
+    <div>
       <div id="top" />
       <AddClassBody />
       <AnimatedText />
@@ -54,6 +54,6 @@ export default function Layout({
       {/* <FooterSelector footerStyle={footerStyle} /> */}
       <Footer4 />
       <BackToTop target="#top" />
-    </>
+    </div>
   );
 }
