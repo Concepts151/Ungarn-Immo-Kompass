@@ -1,0 +1,22 @@
+.progress_container_wrapper {
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.progress_button_upcoming {
+  border: none;
+
+}
+
+.progress_button_current {
+  border: none;
+  background-color: #ed8438 !important;
+  color: #fff !important;
+}
+
+.progress_button_completed {
+  border: none;
+  background-color: #ed8438 !important;
+  color: #fff !important;
+}

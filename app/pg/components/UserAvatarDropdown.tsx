@@ -21,13 +21,15 @@ export default function UserAvatarDropdown() {
     : user?.email?.[0]?.toUpperCase() ?? "U"
 
   return (
-    <div className="dropdown">
+    <div className="dropdown" style={{display:"flex", justifyContent:"end"}}>
       <button
         className="avatar-dropdown-btn"
         type="button"
         id="avatarDropdown"
         data-bs-toggle="dropdown"
-        aria-expanded="false">
+        aria-expanded="false"
+        // style={{width:"100%"}}
+        >
         {/* Avatar or profile pic */}
         {avatarUrl ? (
           <img
@@ -39,8 +41,8 @@ export default function UserAvatarDropdown() {
         ) : (
           <div className="avatar-circle">{initials}</div>
         )}
-        <span className="avatar-name d-none d-md-block">{name}</span>
-        <svg
+        {/* <span className="avatar-name d-none d-md-block">{name}</span> */}
+        {/* <svg
           width={18}
           height={18}
           style={{ marginRight: 6, color: "#857fff" }}
@@ -50,7 +52,7 @@ export default function UserAvatarDropdown() {
           strokeLinecap="round"
           strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9" />
-        </svg>
+        </svg> */}
       </button>
       <ul
         className="dropdown-menu avatar-dropdown-menu dropdown-menu-end shadow"

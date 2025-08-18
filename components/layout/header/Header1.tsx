@@ -15,6 +15,8 @@ export default function Header1({
   isMobileMenu,
   handleMobileMenu,
 }: any) {
+ 
+
   const supabase = createClient();
   const session = useSessionStore((state) => state.session);
   const setSession = useSessionStore((state) => state.setSession);
@@ -81,22 +83,49 @@ export default function Header1({
         }`}
       >
         <div className="container-fluid">
-          <div className="row align-items-center">
+          <div
+            // className="row align-items-center"
+            style={{ height: "40px", display: "flex", alignItems: "center" }}
+          >
             <div className="col-lg-2 col-md-6 col-6">
-              <div className="vl-logo">
-                <Link href="/">
-                  <img
-                    src="/assets/img/logo/Ungarn-Immo-Full.png"
-                    alt="housa"
-                  />
-                  {/* <p className="fw-bold" style={{color:"#000"}}>Ungarn-Immo-Kompass</p> */}
+              <div className="">
+                <Link href="/" className="">
+                  <div
+                    className=""
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      height: "100%",
+                    }}
+                  >
+                    <img
+                      src="/assets/img/logo/fav-logo1.png"
+                      alt=""
+                      style={{ height: "40px" }}
+                    />
+                    <p
+                      className=""
+                      style={{
+                        wordBreak: "keep-all",
+                        whiteSpace: "nowrap",
+                        fontSize: "24px",
+                        margin: "0px",
+                        fontWeight: "bold",
+                        color: "#31543a",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Ungarn-Immo
+                    </p>
+                  </div>
                 </Link>
               </div>
             </div>
             <div className="col-lg-8 d-none d-lg-block">
               <div className="vl-main-menu text-center">
                 <nav className="vl-mobile-menu-active">
-                  <ul>
+                  <ul style={{ margin: "0px" }}>
                     <li>
                       <Link href="/sidebar-grid">Listings</Link>
                     </li>
@@ -155,6 +184,7 @@ export default function Header1({
                     <button
                       onClick={() => setOpenSignupModal(true)}
                       className="vl-btn1 mt-0"
+                      style={{ width: "100%" }}
                     >
                       Get Started
                       <span className="arrow1 ms-2">

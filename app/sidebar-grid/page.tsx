@@ -1289,7 +1289,7 @@ export default function SidebarGrid() {
                   <div className="property-mapgrid-area">
                     <div className="heading1 mb-3">
                       <h3>Properties ({listings.length})</h3>
-                      <div className="">{loading&& <div>Fetching</div>}</div>
+                      <div className="">{loading&& <div>Fetching...</div>}</div>
                       <div className="tabs-btn">
                         <ul
                           className="nav nav-pills d-none d-lg-block"

@@ -8,34 +8,82 @@ import toast from "react-hot-toast";
 import { Upload } from "lucide-react";
 import { uploadImage } from "@/utils/supabase/storage/client";
 import cities from "@/data/hu.json";
+import AddPropertyProgress from "@/app/add-property/components/add-property-progress";
+import "@/app/add-property/components/css/add-property.css";
+import DescriptionInfoForm from "@/app/add-property/components/description-info-form";
+import MediaForm from "@/app/add-property/components/media-form";
+import LocationInfoForm from "@/app/add-property/components/location-info-form";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
 
+const steps = ["Description", "Media", "Location", "Amenities"];
+
+interface ListingFormData {
+  title: string;
+  description: string;
+  address: string;
+  postalCode: string;
+  price: string;
+  currency: string;
+  lotSize: string;
+  livingArea: string;
+  numberOfRooms: string;
+  numberOfBedrooms: string;
+  numberOfBathrooms: string;
+  city: string;
+  year: string;
+  country: string;
+  category: string;
+  listedIn: string;
+  propertyStatus: string; // imageUrls: string[];
+  // fetchedImages: string[];
+}
+
+interface Locationdata {
+  longitude: number;
+  latitude: number;
+}
+
+const initialListingFormData: ListingFormData = {
+  title: "",
+  description: "",
+  address: "",
+  postalCode: "",
+  price: "",
+  currency: "",
+  lotSize: "",
+  livingArea: "",
+  numberOfRooms: "",
+  numberOfBedrooms: "",
+  numberOfBathrooms: "",
+  city: "",
+  year: "",
+  country: "Hungary",
+  category: "",
+  listedIn: "",
+  propertyStatus: "",
+};
+
+const initialLocationData: Locationdata = {
+  longitude: 0,
+  latitude: 0,
+};
+
 export default function AddProperty() {
+  // new states
+  const [currentStep, setCurrentStep] = useState(1);
+  //
+
   const supabase = createClient();
   const tabsRef = useRef<HTMLUListElement>(null);
   const [activeTab, setActiveTab] = useState<string>("pills-home-tab");
-
-  // States for form fields
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [listingFormData, setListingFormData] = useState<ListingFormData>(
+    initialListingFormData
+  );
+  const [locationData, setLocationData] = useState<Locationdata>(initialLocationData)
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [fetchedImages, setFetchedImages] = useState<string[]>([]);
-  const [address, setAddress] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [price, setPrice] = useState("");
-  const [lotSize, setLotSize] = useState("");
-  const [livingArea, setLivingArea] = useState("");
-  const [numberOfRooms, setNumberOfRooms] = useState("");
-  const [numberOfBedrooms, setNumberOfBedrooms] = useState("");
-  const [numberOfBathrooms, setNumberOfBathrooms] = useState("");
-  const [city, setCity] = useState("");
-  const [year, setYear] = useState("");
-  const [country, setCountry] = useState("Hungary");
-  const [currency, setCurrency] = useState("US Dollar (USD)");
-  const [category, setCategory] = useState("Apartment");
-  const [listedIn, setListedIn] = useState("Active");
-  const [propertyStatus, setPropertyStatus] = useState("Approved");
+
   const [details, setDetails] = useState({
     material: "",
     roofType: "",
@@ -178,8 +226,33 @@ export default function AddProperty() {
     setActiveTab(tabId);
   };
 
+  const handleNext = () => {
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+  };
+
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
   const handleSubmitDescription = async () => {
     // Validation to ensure all fields are filled
+    const {
+      title,
+      description,
+      address,
+      postalCode,
+      price,
+      lotSize,
+      livingArea,
+      numberOfBathrooms,
+      numberOfBedrooms,
+      numberOfRooms,
+      country,
+      city,
+      year,
+      category,
+      currency,
+    } = listingFormData;
     if (
       !title ||
       !description ||
@@ -373,6 +446,17 @@ export default function AddProperty() {
       [name]: value,
     }));
   };
+  const handleLocationChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setLocationData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   // Submit function for details tab
   const handleSubmitDetails = async () => {
@@ -381,12 +465,15 @@ export default function AddProperty() {
       return;
     }
     try {
-      const { error } = await supabase.from("exposedetails").insert([
-        {
-          exposeid: listingId,
-          ...details,
-        },
-      ]).select();
+      const { error } = await supabase
+        .from("exposedetails")
+        .insert([
+          {
+            exposeid: listingId,
+            ...details,
+          },
+        ])
+        .select();
 
       if (error) {
         toast.error("Failed to save details.");
@@ -407,9 +494,56 @@ export default function AddProperty() {
           <div className="row">
             <div className="col-lg-12">
               <div className="property-boxarea">
+                {/* to br removed */}
+                {JSON.stringify(listingFormData, null, 2)} <br />
+                image urls:
+                {JSON.stringify(imageUrls, null, 2)}
+                <br />
+                location:
+                {JSON.stringify(locationData, null, 2)}
+                {/* to br removed */}
                 <h3>Add New Property</h3>
                 <div className="space40" />
                 <div className="all-tabs-boxarea">
+                  <AddPropertyProgress
+                    currentStep={currentStep}
+                    totalSteps={steps.length}
+                    steps={steps}
+                  />
+                  <div className="multipage_form_wrapper">
+                    {currentStep === 1 && (
+                      <DescriptionInfoForm
+                        data={listingFormData}
+                        onDataChange={setListingFormData}
+                        onNext={handleNext}
+                      />
+                    )}
+                    {currentStep === 2 && (
+                      <MediaForm
+                        imageUrls={imageUrls}
+                        handleImageChange={handleImageChange}
+                        onNext={handleNext}
+                        onBack={handleBack}
+                      />
+                    )}
+                    {currentStep === 3 && (
+                      <LocationInfoForm
+                        propertyData={listingFormData}
+                        data={locationData}
+                        onDataChange={setLocationData}
+                        onNext={handleNext}
+                        onBack={handleBack}
+                      />
+                    )}
+                    {currentStep === 4 && (
+                      <DescriptionInfoForm
+                        data={listingFormData}
+                        onDataChange={setListingFormData}
+                        onNext={handleNext}
+                      />
+                    )}
+                  </div>
+                  <div className="space40" />
                   <ul
                     className="nav nav-pills"
                     id="pills-tab"
@@ -502,8 +636,9 @@ export default function AddProperty() {
                       </button>
                     </li>
                   </ul>
+
                   <div className="tab-content" id="pills-tabContent">
-                    <div
+                    {/* <div
                       className={`tab-pane fade${
                         activeTab === "pills-home-tab" ? " show active" : ""
                       }`}
@@ -791,7 +926,7 @@ export default function AddProperty() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                     <div
                       className={`tab-pane fade${
                         activeTab === "pills-profile-tab" ? " show active" : ""
@@ -801,12 +936,11 @@ export default function AddProperty() {
                       aria-labelledby="pills-profile-tab"
                       tabIndex={0}
                     >
-                      <div className="property-main-boxarea">
+                      {/* <div className="property-main-boxarea">
                         <div className="space48" />
                         <h4>Upload Photos Of Your Property</h4>
                         <div className="space38" />
 
-                        {/* Fetched Images Section */}
                         {fetchedImages.length > 0 && (
                           <div className="fetched-images-section">
                             <h5>
@@ -963,7 +1097,7 @@ export default function AddProperty() {
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                     <div
                       className={`tab-pane fade${
