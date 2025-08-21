@@ -2,3 +2,14 @@
     display: flex !important;
     justify-content: space-between !important;
 }
+
+.error_msg{
+    color: red;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.input_error{
+    border: 1px solid red !important;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5) !important;
+}

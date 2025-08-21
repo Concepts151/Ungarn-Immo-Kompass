@@ -39,6 +39,9 @@ const AddPropertyProgress = ({
             <button className={buttonClass}>
               {isCompleted ? <CheckIcon size={20} /> : stepNumber+". "} {step}
             </button>
+            {/* <button className={buttonClass}>
+              {isCompleted ? <CheckIcon size={20} /> : stepNumber + ". " + step}
+            </button> */}
           </li>
         );
       })}

@@ -1,5 +1,6 @@
 import React from "react";
 import cities from "@/data/hu.json";
+import MapView from "./map-view";
 
 interface ListingDescriptionFormData {
   title: string;
@@ -22,8 +23,8 @@ interface ListingDescriptionFormData {
 }
 
 interface Locationdata {
-  longitude: number;
-  latitude: number;
+  longitude: string;
+  latitude: string;
 }
 interface LocationFormProps {
   propertyData: ListingDescriptionFormData;
@@ -31,6 +32,8 @@ interface LocationFormProps {
   onDataChange: (data: any) => void;
   onNext: () => void;
   onBack: () => void;
+  steps: string[];
+  currentStep: number;
 }
 
 const LocationInfoForm = ({
@@ -39,6 +42,8 @@ const LocationInfoForm = ({
   onDataChange,
   onBack,
   onNext,
+  steps,
+  currentStep,
 }: LocationFormProps) => {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -123,7 +128,9 @@ const LocationInfoForm = ({
 
           <div className="col-lg-12">
             <div className="space48" />
-            <div className="mapouter">
+            <MapView />
+            <div className="space48" />
+            {/* <div className="mapouter">
               <div className="gmap_canvas">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d4506257.120552435!2d88.67021924228865!3d21.954385721237916!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sbd!4v1704088968016!5m2!1sen!2sbd"
@@ -135,7 +142,7 @@ const LocationInfoForm = ({
                   referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
           <div className="col-lg-6 col-md-6">
             <div className="space28" />
@@ -147,7 +154,9 @@ const LocationInfoForm = ({
                 id="latitude"
                 placeholder="Latitude"
                 value={data.latitude}
-                onChange={(e) => handleInputChange("latitude", Number(e.target.value))}
+                onChange={(e) =>
+                  handleInputChange("latitude", e.target.value)
+                }
               />
             </div>
           </div>
@@ -158,10 +167,12 @@ const LocationInfoForm = ({
               <div className="space16" />
               <input
                 type="text"
-                    id="latitude"
+                id="latitude"
                 placeholder="longitude*"
                 value={data.longitude}
-                onChange={(e) => handleInputChange("longitude", Number(e.target.value))}
+                onChange={(e) =>
+                  handleInputChange("longitude", e.target.value)
+                }
               />
             </div>
           </div>
@@ -171,6 +182,7 @@ const LocationInfoForm = ({
           <div className="col-lg-12">
             <div className=" Forms_navigaion_button_wrapper">
               <button
+                type="button"
                 className="forms_navigation_back_btn"
                 onClick={() => onBack()}
               >
@@ -179,8 +191,12 @@ const LocationInfoForm = ({
                 </span>
                 Back
               </button>
-              <button className="vl-btn1" onClick={() => handleNext()}>
-                Continue to Media
+              <button
+                type="button"
+                className="vl-btn1"
+                onClick={() => handleNext()}
+              >
+                Continue to {steps[currentStep]}
                 <span className="arrow1 ms-2">
                   <i className="fa-solid fa-arrow-right" />
                 </span>

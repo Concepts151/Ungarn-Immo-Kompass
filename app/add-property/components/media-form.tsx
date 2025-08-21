@@ -3,14 +3,25 @@ import "@/app/add-property/components/css/add-property.css";
 
 interface MediaFormProps {
   imageUrls: any[];
-  handleImageChange:(event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onNext: () => void;
   onBack: () => void;
+  steps: string[];
+  currentStep: number;
+  handleDeleteImage: (url: any) => void;
 }
 
-const MediaForm = ({ imageUrls,handleImageChange, onBack, onNext }: MediaFormProps) => {
+const MediaForm = ({
+  imageUrls,
+  handleImageChange,
+  onBack,
+  onNext,
+  steps,
+  currentStep,
+  handleDeleteImage
+}: MediaFormProps) => {
   const handleNext = () => {
-    onNext(); 
+    onNext();
     // if (validateForm()) {
     //   onNext();
     // }
@@ -52,7 +63,7 @@ const MediaForm = ({ imageUrls,handleImageChange, onBack, onNext }: MediaFormPro
                 <img src={url} alt={`img-${index}`} />
                 <span
                   className="remove-file"
-                //   onClick={() => handleDeleteImage(url)}
+                  onClick={() => handleDeleteImage(url)}
                   style={{ cursor: "pointer" }}
                 >
                   <svg
@@ -83,6 +94,7 @@ const MediaForm = ({ imageUrls,handleImageChange, onBack, onNext }: MediaFormPro
           <div className="col-lg-12">
             <div className=" Forms_navigaion_button_wrapper">
               <button
+                type="button"
                 className="forms_navigation_back_btn"
                 onClick={() => onBack()}
               >
@@ -91,8 +103,12 @@ const MediaForm = ({ imageUrls,handleImageChange, onBack, onNext }: MediaFormPro
                 </span>
                 Back
               </button>
-              <button className="vl-btn1" onClick={() => handleNext()}>
-                Continue to Media
+              <button
+                type="button"
+                className="vl-btn1"
+                onClick={() => handleNext()}
+              >
+                Continue to {steps[currentStep]}
                 <span className="arrow1 ms-2">
                   <i className="fa-solid fa-arrow-right" />
                 </span>
