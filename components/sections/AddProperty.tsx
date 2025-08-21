@@ -104,7 +104,7 @@ const initialLocationData: Locationdata = {
 };
 
 export default function AddProperty() {
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(1);
   const supabase = createClient();
   const [listingFormData, setListingFormData] = useState<ListingFormData>(
     initialListingFormData
