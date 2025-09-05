@@ -5,10 +5,12 @@ import {
 } from "@/app/pg/components/gobalActions";
 import UserAvatarDropdown from "@/app/pg/components/UserAvatarDropdown";
 import { useSessionStore } from "@/app/store";
+import LanguageToggle from "@/components/custom-comp/toggle-language";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export default function Header1({
   scroll,
@@ -23,12 +25,13 @@ export default function Header1({
   const setName = useSessionStore((state) => state.setName);
   const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
   const avatarUrl = useSessionStore((state) => state.avatarUrl);
+  const t =  useTranslations("navbar");
 
   async function getUserDetails() {
     const { data, error } = await supabase.from("user").select("*").single();
 
     if (error) {
-      console.error("Error fetching user details:", error);
+      console.error("Error fetching user details:", error); 
       return;
     }
     console.log("userDetails", data);
@@ -127,46 +130,46 @@ export default function Header1({
                 <nav className="vl-mobile-menu-active">
                   <ul style={{ margin: "0px" }}>
                     <li>
-                      <Link href="/sidebar-grid">Listings</Link>
+                      <Link href="/sidebar-grid">{t('Listings')}</Link>
                     </li>
                     <li>
-                      <Link href="/about-us">About Us</Link>
+                      <Link href="/about-us">{t('AboutUs')}</Link>
                     </li>
                     <li>
-                      <Link href="/our-service">Our Services</Link>
+                      <Link href="/our-service">{t('OurServices')}</Link>
                     </li>
                     <li>
-                      <Link href="/contact">Contact Us</Link>
+                      <Link href="/contact">{t('ContactUs')}</Link>
                     </li>
                     {session?.session != null && (
                       <li>
                         <Link href="#">
-                          Dashboard
+                        {t('Dashboard')}
                           <span>
                             <i className="fa-solid fa-angle-down d-lg-inline d-none" />
                           </span>
                         </Link>
                         <ul className="sub-menu">
                           <li>
-                            <Link href="/dashboard">Dashboard</Link>
+                            <Link href="/dashboard">{t('Dashboard')}</Link>
                           </li>
                           <li>
-                            <Link href="/my-property">My Properties</Link>
+                            <Link href="/my-property">{t('MyProperties')}</Link>
                           </li>
                           <li>
-                            <Link href="/message">Message</Link>
+                            <Link href="/message">{t('Message')}</Link>
                           </li>
                           <li>
-                            <Link href="/my-favorites">My Favourites</Link>
+                            <Link href="/my-favorites">{t('MyFavorites')}</Link>
                           </li>
                           <li>
-                            <Link href="/reviews">Reviews</Link>
+                            <Link href="/reviews">{t('Review')}</Link>
                           </li>
                           <li>
-                            <Link href="/my-profile">My Profile</Link>
+                            <Link href="/my-profile">{t('MyProfile')}</Link>
                           </li>
                           <li>
-                            <Link href="/add-property?new=0">Add Property</Link>
+                            <Link href="/add-property?new=0">{t('AddProperty')}</Link>
                           </li>
                         </ul>
                       </li>
@@ -175,7 +178,8 @@ export default function Header1({
                 </nav>
               </div>
             </div>
-            <div className="col-lg-2 col-md-6 col-6">
+            <div className="col-lg-2 col-md-6 col-6" style={{display: "flex", justifyContent: "space-between"}}>
+              <LanguageToggle />
               <div className="vl-hero-btn d-none d-lg-block text-end">
                 {session?.session != null ? (
                   <UserAvatarDropdown />

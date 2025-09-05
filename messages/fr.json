@@ -1,0 +1,25 @@
+{
+  "localeSwitcher": {
+    "label": "Langues"
+  },
+  "tabTitle": {
+    "home": "Accueil | Ungarn-immo"
+  },
+  "navbar": {
+    "Listings": "Annonces",
+    "AboutUs": "À propos",
+    "OurServices": "Nos services",
+    "ContactUs": "Contactez-nous",
+    "Dashboard": "Tableau de bord",
+    "MyProperties": "Mes biens",
+    "AddProperty": "Ajouter un bien",
+    "Message": "Messages",
+    "MyProfile": "Mon profil",
+    "MyFavorites": "Mes favoris",
+    "Review": "Avis"
+  },
+  "HomePage": {
+    "Hero_h1": "Réaliser votre rêve de propriété",
+    "Hero_p": "Que vous souhaitiez acheter, vendre ou louer, Housa vous met en relation avec les meilleures propriétés et des conseils d’experts. Découvrez facilement et en toute confiance des maisons qui correspondent à votre vision et à votre budget."
+  }
+}

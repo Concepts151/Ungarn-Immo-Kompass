@@ -15,6 +15,9 @@ import StoreProvider from "@/features/StoreProvider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+
 const inter = Inter({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
@@ -54,15 +57,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async  function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const messages = await getMessages()
+  const locale = await getLocale()
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${inter.className} homepage1-body body1`}>
-        <StoreProvider>{children}</StoreProvider>
+        <NextIntlClientProvider messages={messages}>
+          <StoreProvider>{children}</StoreProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

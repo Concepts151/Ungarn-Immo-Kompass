@@ -52,7 +52,7 @@ export const sendEmail = async (config: EmailConfig): Promise<boolean> => {
     try {
       const info = await transporter.sendMail({
         from: `Ungarn Immo <${process.env.EMAIL_FROM}>`,
-        to: "victoryessien01@gmail.com",
+        to: config.to,
         subject: config.subject,
         text: config.text,
         html: config.html,

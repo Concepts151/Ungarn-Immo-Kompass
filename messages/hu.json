@@ -1,0 +1,25 @@
+{
+  "localeSwitcher": {
+    "label": "Nyelvek"
+  },
+  "tabTitle": {
+    "home": "Kezdőlap | Ungarn-immo"
+  },
+  "navbar": {
+    "Listings": "Ingatlanok",
+    "AboutUs": "Rólunk",
+    "OurServices": "Szolgáltatásaink",
+    "ContactUs": "Kapcsolat",
+    "Dashboard": "Irányítópult",
+    "MyProperties": "Ingatlanaim",
+    "AddProperty": "Ingatlan hozzáadása",
+    "Message": "Üzenet",
+    "MyProfile": "Profilom",
+    "MyFavorites": "Kedvenceim",
+    "Review": "Vélemények"
+  },
+  "HomePage": {
+    "Hero_h1": "Az otthontulajdonlási álom megvalósítása",
+    "Hero_p": "Akár vásárolni, eladni vagy bérelni szeretne, a Housa összeköti Önt a legjobb ingatlanokkal és szakértői tanácsokkal. Fedezze fel azokat az otthonokat, amelyek illeszkednek az elképzeléseihez és a költségvetéséhez, könnyedén és magabiztosan."
+  }
+}
