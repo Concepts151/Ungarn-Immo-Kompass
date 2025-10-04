@@ -1,9 +1,14 @@
 "use client";
+import { useGetPropertiesQuery } from "@/state/api";
+import { useAppSelector } from "@/state/redux";
 import Link from "next/link";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import LandingPropertyCard from "../custom-comp/landing-property-card";
+import { FiltersState } from "@/state";
+import { useState } from "react";
 
-const swiperOptions = {
+const swiperOptions = { 
     modules: [Autoplay, Pagination, Navigation],
     spaceBetween: 30,
     slidesPerView: 1,
@@ -22,7 +27,27 @@ const swiperOptions = {
     },
 };
 
+const initialState: FiltersState = {
+    location: "any",
+    beds: "any",
+    baths: "any",
+    propertyType: "any",
+    amenities: [],
+    availableFrom: "any",
+    priceRange: [null, null],
+    squareFeet: [null, null],
+    coordinates: [null, null],
+  }
+
 export default function Property1() {
+    // const filters = useAppSelector((state) => state.global.filters);
+    const [localFilters, setLocalFilters] = useState<FiltersState>(initialState);
+    const {data:Properties} = useGetPropertiesQuery(localFilters);
+
+    console.log(Properties);
+    
+
+
     return (
         <>
             <div className="space30"></div>
@@ -100,7 +125,10 @@ export default function Property1() {
                                 <div className="tab-content" id="pills-tabContent">
                                     <div className="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabIndex={0}>
                                         <div className="row">
-                                            <div className="col-lg-4 col-md-6">
+                                            {Properties?.map((property)=>(
+                                                <LandingPropertyCard key={property.id} basic={property.basic} media={property.media}/>
+                                            ))}
+                                            {/* <div className="col-lg-4 col-md-6">
                                                 <div className="property-single-boxarea">
                                                     <Swiper {...swiperOptions} className="property-list-img-area owl-carousel">
                                                         <SwiperSlide>
@@ -228,8 +256,8 @@ export default function Property1() {
                                                         </Link>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-lg-4 col-md-6">
+                                            </div> */}
+                                            {/* <div className="col-lg-4 col-md-6">
                                                 <div className="property-single-boxarea">
                                                     <Swiper {...swiperOptions} className="property-list-img-area owl-carousel">
                                                         <SwiperSlide>
@@ -357,8 +385,8 @@ export default function Property1() {
                                                         </Link>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-lg-4 col-md-6">
+                                            </div> */}
+                                            {/* <div className="col-lg-4 col-md-6">
                                                 <div className="property-single-boxarea">
                                                     <Swiper {...swiperOptions} className="property-list-img-area owl-carousel">
                                                         <SwiperSlide>
@@ -486,8 +514,8 @@ export default function Property1() {
                                                         </Link>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-lg-4 col-md-6">
+                                            </div> */}
+                                            {/* <div className="col-lg-4 col-md-6">
                                                 <div className="property-single-boxarea">
                                                     <Swiper {...swiperOptions} className="property-list-img-area owl-carousel">
                                                         <SwiperSlide>
@@ -615,8 +643,8 @@ export default function Property1() {
                                                         </Link>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-lg-4 col-md-6">
+                                            </div> */}
+                                            {/* <div className="col-lg-4 col-md-6">
                                                 <div className="property-single-boxarea">
                                                     <Swiper {...swiperOptions} className="property-list-img-area owl-carousel">
                                                         <SwiperSlide>
@@ -744,8 +772,8 @@ export default function Property1() {
                                                         </Link>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-lg-4 col-md-6">
+                                            </div> */}
+                                            {/* <div className="col-lg-4 col-md-6">
                                                 <div className="property-single-boxarea">
                                                     <Swiper {...swiperOptions} className="property-list-img-area owl-carousel">
                                                         <SwiperSlide>
@@ -873,7 +901,7 @@ export default function Property1() {
                                                         </Link>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                     <div className="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabIndex={0}>

@@ -18,17 +18,30 @@ export async function login(formData: FormData) {
   return { data, error };
 }
 
-export async function signup(formData: FormData) {
+export async function signup(formData: {
+  email: string;
+  password: string;
+  role: string;
+}) {
   const supabase = await createClient();
+
+  console.log("role:", formData.role);
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
-  const form = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+  // const form = {
+  //   email: formData.email,
+  //   password: formData.password,
+  //   option: {
+  //     data: { role: formData.role },
+  //   },
+  // };
 
-  const { data, error } = await supabase.auth.signUp(form);
+  const { data, error } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+    options: { data: { role: formData.role } },
+  });
   if (error) console.error("Error signing up:", error);
 
   return { data, error };
@@ -66,5 +79,4 @@ export async function updateDetails(formData: FormData) {
 export const logout = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  
 };

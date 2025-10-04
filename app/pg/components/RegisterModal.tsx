@@ -5,6 +5,9 @@ import { AtSign, Eye, EyeOff, Lock, Phone, User } from "lucide-react";
 import { useSessionStore, useToggleModal } from "@/app/store";
 import { setOpenAvatarModal, switchToLoginModal } from "./gobalActions";
 import ProfileImageUpload from "./AvatarUpload";
+import { CustomSelect } from "@/components/custom-comp/micro/custom-select";
+
+type RoleOptions = "BUYER" | "SELLER" | "MODERATOR" | "ADMIN";
 
 const setModal = (bool: boolean) => {
   useToggleModal.setState({ isSignupModalOpen: bool });
@@ -29,6 +32,7 @@ const RegisterModal = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<RoleOptions>("BUYER");
 
   const setSession = useSessionStore((state) => state.setSession);
   const setName = useSessionStore((state) => state.setName);
@@ -48,12 +52,14 @@ const RegisterModal = () => {
   const closeModal = () => {
     setModal(false);
     setFormData({ name: "", email: "", password: "", confirm: "" });
+    setRole("BUYER");
     setError(null);
     setShowPassword(false);
   };
   const closeDetailModal = () => {
     setDetailModal(false);
     setDetailData({ firstName: "", lastName: "", phone: "" });
+    setRole("BUYER");
     setError(null);
     setShowPassword(false);
   };
@@ -65,6 +71,11 @@ const RegisterModal = () => {
   const handleDetailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDetailData({ ...detailData, [e.target.name]: e.target.value });
   };
+
+  const handleRoleChange = (value: RoleOptions) => {
+    console.log("role value:", value);
+    setRole(value);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,17 +90,21 @@ const RegisterModal = () => {
       // Simulate error for demo:
       // throw new Error("Invalid credentials");
 
+      
+      const signUpData = {...formData, role: role};
+      
+      console.log("Form data:", signUpData);
+      
+
       if (formData.password !== formData.confirm) {
         setError("Passwords do not match");
         throw new Error("Passwords do not match");
       }
 
-      const { data, error } = await signup(form);
+      const { data, error } = await signup(signUpData);
 
       console.log("Signup error:", error);
       console.log("Signup data:", data);
-
-      
 
       if (!error) {
         setSession(data);
@@ -239,9 +254,28 @@ const RegisterModal = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {/* <div className="flex-row">
+              <div style={{ width: "100%" }}>
+                <div className="flex-column" style={{ paddingBottom: "10px" }}>
+                  <label>User Role</label>
+                </div>
+                <CustomSelect
+                  label=""
+                  options={[
+                    { value: "BUYER", label: "Buyer" },
+                    { value: "SELLER", label: "Seller" },
+                  ]}
+                  value={role}
+                  placeholder="Choose a framework"
+                  // helpText="Select your prefered role."
+                  onChange={(value)=>handleRoleChange(value as RoleOptions)}
+                  size="lg"
+                  
+                ></CustomSelect>
+              </div>
+
+              <div className="flex-row">
                 <span className="span">Forgot password?</span>
-              </div> */}
+              </div>
               <button
                 type="submit"
                 className="button-submit"
@@ -255,8 +289,8 @@ const RegisterModal = () => {
                   Sign in
                 </span>
               </p>
-              <p className="p line">Or</p>
-              <div className="flex-row">
+              {/* <p className="p line">Or</p> */}
+              {/* <div className="flex-row">
                 <button className="btn-modal google" type="button">
                   <svg width="20" viewBox="0 0 512 512" fill="none">
                     <path
@@ -286,7 +320,7 @@ const RegisterModal = () => {
                   </svg>
                   Google
                 </button>
-              </div>
+              </div> */}
             </form>
           </div>
         </div>

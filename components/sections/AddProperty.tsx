@@ -8,23 +8,25 @@ import toast from "react-hot-toast";
 import { Upload } from "lucide-react";
 import { uploadImage } from "@/utils/supabase/storage/client";
 import cities from "@/data/hu.json";
-import AddPropertyProgress from "@/app/add-property/components/add-property-progress";
-import "@/app/add-property/components/css/add-property.css";
-import DescriptionInfoForm from "@/app/add-property/components/description-info-form";
-import MediaForm from "@/app/add-property/components/media-form";
-import LocationInfoForm from "@/app/add-property/components/location-info-form";
-import DetailsForm from "@/app/add-property/components/details-info-form";
-import AmenitiesForm from "@/app/add-property/components/amenities-info-form";
-import Overview from "@/app/add-property/components/overview";
+import AddPropertyProgress from "@/app/(dashboard)/add-property/components/add-property-progress";
+import "@/app/(dashboard)/add-property/components/css/add-property.css";
+import DescriptionInfoForm from "@/app/(dashboard)/add-property/components/description-info-form";
+import MediaForm from "@/app/(dashboard)/add-property/components/media-form";
+import LocationInfoForm from "@/app/(dashboard)/add-property/components/location-info-form";
+import DetailsForm from "@/app/(dashboard)/add-property/components/details-info-form";
+import AmenitiesForm from "@/app/(dashboard)/add-property/components/amenities-info-form";
+import Overview from "@/app/(dashboard)/add-property/components/overview";
+import { useGetAuthUserQuery } from "@/state/api";
+import Conditions from "@/app/(dashboard)/add-property/components/conditon-and-plan";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
 
 const steps = [
   "Description",
   "Media",
-  "Location",
   "Details",
   "Amenities",
+  "Condition & Floor Plan",
   "Overview",
 ];
 
@@ -54,6 +56,16 @@ interface DetailsFormData {}
 interface Locationdata {
   longitude: string;
   latitude: string;
+}
+
+export interface ExposeCondition {
+  structureRating: number; // 1–5
+  electricRating: number; // 1–5
+  heatingRating: number; // 1–5
+  damageDescription: string;
+  renovationNeeded: string;
+  additionalNotes?: string | null;
+  floorPlanUrl?: string[] | null;
 }
 
 const initialListingFormData: ListingFormData = {
@@ -103,8 +115,18 @@ const initialLocationData: Locationdata = {
   latitude: "0",
 };
 
+const initialConditionData: ExposeCondition = {
+  structureRating: 1,
+  electricRating: 1,
+  heatingRating: 1,
+  damageDescription: "",
+  renovationNeeded: "",
+  additionalNotes: null,
+  floorPlanUrl: null,
+};
+
 export default function AddProperty() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(5);
   const supabase = createClient();
   const [listingFormData, setListingFormData] = useState<ListingFormData>(
     initialListingFormData
@@ -113,11 +135,16 @@ export default function AddProperty() {
     useState<Locationdata>(initialLocationData);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [fetchedImages, setFetchedImages] = useState<string[]>([]);
+  const [floorPlanUrls, setFloorPlanUrls] = useState<string[]>([]);
 
   const [details, setDetails] = useState(initialDetailsFormData);
+  const [conditionData, setConditionData] = useState(initialConditionData);
 
   const [isPending, startTransition] = useTransition();
   const [listingId, setListingId] = useState<string | null>(null);
+
+  // redux user
+  const { data: authUser } = useGetAuthUserQuery();
 
   const fetchImages = async () => {
     if (!listingId || listingId === "0") return; // Skip fetching if listingId is "0"
@@ -167,6 +194,7 @@ export default function AddProperty() {
 
   useEffect(() => {
     fetchImages();
+    console.log("authUser", authUser);
   }, []);
 
   const handleNext = () => {
@@ -221,70 +249,70 @@ export default function AddProperty() {
 
     console.log("Current User:", user?.id);
 
-    if (user) {
-      try {
-        const { data: exposeData, error: exposeError } = await supabase
-          .from("expose")
-          .insert([
-            { sellerId: user.id, title: title, description: description },
-          ])
-          .select();
+    // if (user) {
+    //   try {
+    //     const { data: exposeData, error: exposeError } = await supabase
+    //       .from("expose")
+    //       .insert([
+    //         { sellerId: user.id, title: title, description: description },
+    //       ])
+    //       .select();
 
-        if (exposeError) {
-          console.error("Error inserting data:", exposeError);
-          return;
-        }
-        console.log("Insert Data:", exposeData);
-        // Assuming the inserted data contains an `id` field
-        const propertyId = exposeData[0]?.id;
+    //     if (exposeError) {
+    //       console.error("Error inserting data:", exposeError);
+    //       return;
+    //     }
+    //     console.log("Insert Data:", exposeData);
+    //     // Assuming the inserted data contains an `id` field
+    //     const propertyId = exposeData[0]?.id;
 
-        if (propertyId) {
-          const { data: exposeBasicData, error: exposeBasicError } =
-            await supabase
-              .from("expose_basic")
-              .insert([
-                {
-                  exposeid: propertyId,
-                  title: title,
-                  address: address,
-                  postal_code: postalCode,
-                  price: price,
-                  lot_size: lotSize,
-                  living_area: livingArea,
-                  rooms: numberOfRooms,
-                  bedroom: numberOfBedrooms,
-                  bathroom: numberOfBathrooms,
-                  build_year: year,
-                  city: city,
-                  country: country,
-                  property_type: category as Category,
-                  last_renovation: "2020",
-                  currency: currency,
-                },
-              ])
-              .select();
+    //     if (propertyId) {
+    //       const { data: exposeBasicData, error: exposeBasicError } =
+    //         await supabase
+    //           .from("expose_basic")
+    //           .insert([
+    //             {
+    //               exposeid: propertyId,
+    //               title: title,
+    //               address: address,
+    //               postal_code: postalCode,
+    //               price: price,
+    //               lot_size: lotSize,
+    //               living_area: livingArea,
+    //               rooms: numberOfRooms,
+    //               bedroom: numberOfBedrooms,
+    //               bathroom: numberOfBathrooms,
+    //               build_year: year,
+    //               city: city,
+    //               country: country,
+    //               property_type: category as Category,
+    //               last_renovation: "2020",
+    //               currency: currency,
+    //             },
+    //           ])
+    //           .select();
 
-          console.log("expose basic", exposeBasicData);
+    //       console.log("expose basic", exposeBasicData);
 
-          handleUploadImage(propertyId)
+    //       handleUploadImage(propertyId);
 
-          // const { data: exposeDetailsData, error: exposeDetailsError } =
-          //   await supabase
-          //     .from("expose_basic")
-          //     .insert([
-          //       {
-          //         exposeid: propertyId,
-                  
-          //       },
-          //     ])
-          //     .select();
-          // Redirect using window.location
-          // window.location.href = `/add-property?new=${propertyId}`;
-        }
-      } catch (error) {
-        console.log("Error inserting data:", error);
-      }
-    }
+    //       // const { data: exposeDetailsData, error: exposeDetailsError } =
+    //       //   await supabase
+    //       //     .from("expose_basic")
+    //       //     .insert([
+    //       //       {
+    //       //         exposeid: propertyId,
+
+    //       //       },
+    //       //     ])
+    //       //     .select();
+    //       // Redirect using window.location
+    //       // window.location.href = `/add-property?new=${propertyId}`;
+    //     }
+    //   } catch (error) {
+    //     console.log("Error inserting data:", error);
+    //   }
+    // }
   };
 
   // upload images
@@ -304,7 +332,7 @@ export default function AddProperty() {
     setImageUrls(imageUrls.filter((imageUrl) => imageUrl !== url));
   };
 
-  const handleUploadImage = (listingId:any) => {
+  const handleUploadImage = (listingId: any) => {
     startTransition(async () => {
       const {
         data: { user },
@@ -443,6 +471,8 @@ export default function AddProperty() {
     }
   };
 
+
+
   return (
     <>
       {/*===== DASHBOARD AREA STARTS =======*/}
@@ -491,18 +521,8 @@ export default function AddProperty() {
                         handleDeleteImage={handleDeleteImage}
                       />
                     )}
+
                     {currentStep === 3 && (
-                      <LocationInfoForm
-                        propertyData={listingFormData}
-                        data={locationData}
-                        onDataChange={setLocationData}
-                        onNext={handleNext}
-                        onBack={handleBack}
-                        steps={steps}
-                        currentStep={currentStep}
-                      />
-                    )}
-                    {currentStep === 4 && (
                       <DetailsForm
                         data={details}
                         onNext={handleNext}
@@ -512,8 +532,18 @@ export default function AddProperty() {
                         currentStep={currentStep}
                       />
                     )}
-                    {currentStep === 5 && (
+                    {currentStep === 4 && (
                       <AmenitiesForm
+                        onNext={handleNext}
+                        onBack={handleBack}
+                        steps={steps}
+                        currentStep={currentStep}
+                      />
+                    )}
+                    {currentStep === 5 && (
+                      <Conditions
+                        data={conditionData}
+                        onConditionData={setConditionData}
                         onNext={handleNext}
                         onBack={handleBack}
                         steps={steps}

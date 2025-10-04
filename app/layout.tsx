@@ -11,12 +11,12 @@ import "/public/assets/css/plugins/sidebar.css";
 import "/public/assets/css/plugins/slick-slider.css";
 import "/public/assets/css/plugins/swiper-slider.css";
 
-import StoreProvider from "@/features/StoreProvider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import StoreProvider from "@/state/redux";
 
 const inter = Inter({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
