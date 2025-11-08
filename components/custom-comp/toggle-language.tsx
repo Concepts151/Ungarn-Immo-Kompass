@@ -13,7 +13,7 @@ interface LanguageOption {
   name: string;
   flag: string;
 }
-
+ 
 interface LanguageToggleProps {
   currentLocale?: Locale;
   onLanguageChange?: (locale: Locale) => void;
@@ -33,7 +33,7 @@ export default function LanguageToggle({
       .split("; ")
       .find((row) => row.startsWith("UNGARN_IMMO_NEXTAPP_LOCALE="))
       ?.split("=")[1];
-    console.log(cookieLocale);
+    console.log("cookie:",cookieLocale);
 
     if (cookieLocale) {
       setLocale(cookieLocale);

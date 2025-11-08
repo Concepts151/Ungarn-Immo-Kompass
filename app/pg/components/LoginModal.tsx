@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../page.css";
 import { AtSign, Eye, EyeOff, Lock } from "lucide-react";
 import { login } from "../action";
 import { useSessionStore, useToggleModal } from "@/app/store";
+import { useMatrixStore } from "@/app/store/matrixStore";
 import { switchToSignupModal } from "./gobalActions";
 import { createClient } from "@/utils/supabase/client";
+import { useGetAuthUserQuery } from "@/state/api";
+import { initializeMatrixClient } from "@/lib/matrixUtils";
 import toast, { Toaster } from "react-hot-toast";
 
 const setCloseModal = () => {
@@ -24,6 +27,10 @@ export default function LoginModal() {
   const setName = useSessionStore((state) => state.setName);
   const setSession = useSessionStore((state) => state.setSession);
   const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
+  const setMatrixCredentials = useMatrixStore((state) => state.setMatrixCredentials);
+
+  // Get auth user query to fetch Matrix credentials
+  const { data: authData, refetch } = useGetAuthUserQuery();
 
   const closeModal = () => {
     setCloseModal();
@@ -68,8 +75,42 @@ export default function LoginModal() {
         setError(error.message || "Login failed");
         return;
       }
-      toast.success('Login Successful!')
-      await getUserDetails(); // Await to ensure avatarUrl is set before closing modal
+      
+      toast.success('Login Successful!');
+      await getUserDetails();
+      
+      // Refetch auth user to get Matrix credentials
+      const { data: authUserData } = await refetch();
+      
+      // Initialize Matrix if credentials are available (only on client side)
+      if (typeof window !== 'undefined' && authUserData?.matrix) {
+        try {
+          setMatrixCredentials({
+            matrixUserId: authUserData.matrix.matrixUserId,
+            matrixAccessToken: authUserData.matrix.matrixAccessToken,
+            matrixHomeserver: authUserData.matrix.matrixHomeserver,
+          });
+          
+          // Wait a bit for Matrix SDK to load, then initialize
+          setTimeout(() => {
+            try {
+              initializeMatrixClient(
+                authUserData.matrix.matrixUserId,
+                authUserData.matrix.matrixAccessToken,
+                authUserData.matrix.matrixHomeserver
+              );
+              console.log("Matrix client initialized successfully");
+            } catch (matrixInitError) {
+              console.error("Failed to initialize Matrix client:", matrixInitError);
+            }
+          }, 500);
+          
+        } catch (matrixError) {
+          console.error("Failed to set Matrix credentials:", matrixError);
+          // Don't block login if Matrix fails
+        }
+      }
+      
       closeModal();
     } catch (err: any) {
       setError(err.message || "Login failed");

@@ -44,26 +44,48 @@ export const api = createApi({
               ? `/seller/${user?.id}`
               : "";
           console.log("endpoint:", endpoint);
-          // const endpoint = `/user/${session?.user.email}`;
-          //   const endpoint = `/user/admin@example.com`;
-          let userDetailsResponse = await fetchWithBQ(endpoint);
-          console.log('user:', user);
           
+          let userDetailsResponse = await fetchWithBQ(endpoint);
+          console.log("user:", user);
           console.log("userDetailsResponse:", userDetailsResponse);
 
           if (!userDetailsResponse.data) {
             userDetailsResponse = await createNewUserInDatabase(
-              user,
+              user, 
               idToken,
               userRole,
               fetchWithBQ
             );
           }
 
+          // Get Matrix credentials if user has a matrixUserId
+          let matrixCredentials = null;
+          const userData = userDetailsResponse.data as { matrixUserId?: string; matrixPassword?: string };
+          if (userData?.matrixUserId && userData?.matrixPassword) {
+            try {
+              const matrixResponse = await fetchWithBQ({
+                url: 'auth/matrix-token',  // Remove leading slash
+                method: 'POST',
+                body: {
+                  matrixUserId: userData.matrixUserId,
+                  matrixPassword: userData.matrixPassword
+                }
+              });
+              
+              if (matrixResponse.data) {
+                matrixCredentials = matrixResponse.data;
+              }
+            } catch (matrixError) {
+              console.error("Failed to get Matrix credentials:", matrixError);
+              // Continue without Matrix credentials
+            }
+          }
+
           return {
             data: {
               user: userDetailsResponse.data,
               userRole: userRole,
+              matrix: matrixCredentials, // Include Matrix credentials in response
             },
           };
         } catch (error: any) {
@@ -72,6 +94,21 @@ export const api = createApi({
       },
     }),
     // property related endpoints
+    // Create property endpoint
+    createProperty: build.mutation<any, any>({
+      query: (propertyData) => ({
+        url: "properties",
+        method: "POST",
+        body: propertyData,
+      }),
+      invalidatesTags: [{ type: "Properties", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Property created successfully!",
+          error: "Failed to create property.",
+        });
+      },
+    }),
     getProperties: build.query<
       Property[],
       Partial<FiltersState & { favoriteIds?: number[] }>
@@ -104,7 +141,18 @@ export const api = createApi({
         });
       },
     }),
+    getProperty: build.query<Property, string>({
+      query: (id) => `properties/${id}`,
+      providesTags: (result, error, id) => [
+        { type: "Properties", id: result?.id },
+      ],
+    }),
   }),
 });
 
-export const { useGetPropertiesQuery, useGetAuthUserQuery } = api;
+export const {
+  useGetPropertiesQuery,
+  useGetAuthUserQuery,
+  useCreatePropertyMutation,
+  useGetPropertyQuery,
+} = api;

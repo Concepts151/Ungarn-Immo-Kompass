@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useTranslations } from "next-intl";
+import { useGetAuthUserQuery } from "@/state/api";
 
 export default function Header1({
   scroll,
@@ -24,6 +25,10 @@ export default function Header1({
   const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
   const avatarUrl = useSessionStore((state) => state.avatarUrl);
   const t = useTranslations("navbar");
+  const { data: authUser } = useGetAuthUserQuery();
+
+  console.log("authUser in header:", authUser);
+  
 
   async function getUserDetails() {
     const { data, error } = await supabase.from("user").select("*").single();
@@ -128,7 +133,7 @@ export default function Header1({
                 <nav className="vl-mobile-menu-active">
                   <ul style={{ margin: "0px" }}>
                     <li>
-                      <Link href="/sidebar-grid">{t("Listings")}</Link>
+                      <Link href="/search">{t("Listings")}</Link>
                     </li>
                     <li>
                       <Link href="/about-us">{t("AboutUs")}</Link>
@@ -184,7 +189,7 @@ export default function Header1({
                 display: "flex",
                 justifyContent: "end",
                 alignItems: "center",
-                gap:"20px"
+                gap:"10px"
               }}
             >
               <LanguageToggle />

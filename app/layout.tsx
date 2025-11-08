@@ -57,18 +57,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default async  function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const messages = await getMessages()
-  const locale = await getLocale()
+  const messages = await getMessages();
+  const locale = await getLocale();
   return (
     <html lang={locale}>
       <body className={`${inter.className} homepage1-body body1`}>
         <NextIntlClientProvider messages={messages}>
-          <StoreProvider>{children}</StoreProvider>
+          <StoreProvider>
+            {/* Matrix Provider wraps everything */}
+            {children}
+          </StoreProvider>
         </NextIntlClientProvider>
       </body>
     </html>

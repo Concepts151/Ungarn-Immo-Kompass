@@ -1,8 +1,8 @@
-import Link from "next/link";
 import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Property, PropertyBasic, PropertyMedia } from "@/types/api";
+import { Swiper, SwiperSlide } from "swiper/react";
+import Link from "next/link";
 
 const swiperOptions = {
   modules: [Autoplay, Pagination, Navigation],
@@ -33,16 +33,15 @@ function formatCurrency(value: number): string {
   }
 }
 
-const LandingPropertyCard = ({
+const ListingCard = ({
   basic,
   media,
 }: {
   basic: PropertyBasic;
   media: PropertyMedia[];
 }) => {
-  return (
-    <div className="col-lg-4 col-md-6">
-      <div className="property-single-boxarea">
+  return <div className="col-12">
+<div className="property-single-boxarea">
         <Swiper
           {...swiperOptions}
           className="property-list-img-area owl-carousel"
@@ -280,8 +279,7 @@ const LandingPropertyCard = ({
           </Link>
         </div>
       </div>
-    </div>
-  );
+  </div>;
 };
 
-export default LandingPropertyCard;
+export default ListingCard;

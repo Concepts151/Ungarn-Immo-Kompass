@@ -61,6 +61,7 @@ const DescriptionInfoForm = ({
   ) => {
     onDataChange({ ...data, [field]: value });
     // Clear error when user starts typing
+    console.log(data);
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" });
     }
@@ -184,7 +185,18 @@ const DescriptionInfoForm = ({
           <div className="input-area">
             <h5>City</h5>
             <div className="space16" />
-            <select
+            <input
+              type="text"
+              className={errors.city && "input_error"}
+              placeholder="City"
+              id="city"
+              value={data.city}
+              onChange={(e) => handleInputChange("city", e.target.value)}
+            />
+            {errors.category && (
+              <p className="error_msg">{errors.city}</p>
+            )} 
+            {/* <select
               className="form-select"
 
               value={data.category}
@@ -198,7 +210,7 @@ const DescriptionInfoForm = ({
             </select>
             {errors.category && (
               <p className="error_msg">{errors.category}</p>
-            )}
+            )} */}
           </div>
         </div>
         <div className="col-lg-4 col-md-6">
@@ -212,6 +224,7 @@ const DescriptionInfoForm = ({
               onChange={(e) => handleInputChange("country", e.target.value)}
             >
               <option value="Hungary">Hungary</option>
+              <option value="Nigeria">Nigeria</option>
             </select>
             {errors.country && (
               <p className="error_msg">{errors.country}</p>
@@ -441,7 +454,7 @@ const DescriptionInfoForm = ({
             className="vl-btn1"
             onClick={() => handleNext()}
           >
-            Continue to {steps[3]}
+            Continue to {steps[currentStep]}
             <span className="arrow1 ms-2">
               <i className="fa-solid fa-arrow-right" />
             </span>

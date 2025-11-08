@@ -56,7 +56,8 @@ export const createNewUserInDatabase = async (
 ) => {
   const createEndpoint =
     userRole === "BUYER" ? `/buyer` : userRole === "SELLER" ? `/seller` : "";
-
+ console.log(user);
+ 
   // console.log(user.signInDetails?.loginId);
   const createUserResponse = await fetchWithBQ({
     url: createEndpoint,

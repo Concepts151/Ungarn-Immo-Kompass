@@ -1,3 +1,4 @@
+import { MatrixClientType } from "@/types/index.t";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { boolean } from "zod";
 
@@ -17,6 +18,14 @@ interface initialStateTypes {
   filters: FiltersState;
   isFiltersFullOpen: boolean;
   viewMode: string;
+  matrix: MatrixState;
+}
+
+interface MatrixState {
+  client: MatrixClientType | null;
+  isInitialized: boolean;
+  isClientRunning: boolean;
+  userId: string | null;
 }
 
 export const initialState: initialStateTypes = {
@@ -29,10 +38,16 @@ export const initialState: initialStateTypes = {
     availableFrom: "any",
     priceRange: [null, null],
     squareFeet: [null, null],
-    coordinates: [47.4984, 19.0389],
+    coordinates: [null, null],
   },
   isFiltersFullOpen: false,
   viewMode: "grid",
+  matrix: {
+    client: null,
+    isInitialized: false,
+    isClientRunning: false,
+    userId: null,
+  },
 };
 
 export const globalSlice = createSlice({
@@ -48,10 +63,38 @@ export const globalSlice = createSlice({
     setViewMode: (state, action: PayloadAction<"grid" | "list">) => {
       state.viewMode = action.payload;
     },
+    // Matrix Client management
+    setMatrixClient: (
+      state,
+      action: PayloadAction<MatrixClientType | null>
+    ) => {
+      state.matrix.client = action.payload;
+      state.matrix.userId = action.payload?.getUserId() || null;
+    },
+
+    setMatrixInitialized: (state, action: PayloadAction<boolean>) => {
+      state.matrix.isInitialized = action.payload;
+    },
+
+    setMatrixClientRunning: (state, action: PayloadAction<boolean>) => {
+      state.matrix.isClientRunning = action.payload;
+    },
+
+    // Matrix Reset
+    resetMatrix: (state) => {
+      state.matrix = initialState.matrix;
+    },
   },
 });
 
-export const { setFilters, toggleFiltersFullOpen, setViewMode } =
-  globalSlice.actions;
+export const {
+  setFilters,
+  toggleFiltersFullOpen,
+  setViewMode,
+  setMatrixClient,
+  setMatrixInitialized,
+  setMatrixClientRunning,
+  resetMatrix,
+} = globalSlice.actions;
 
 export default globalSlice.reducer;

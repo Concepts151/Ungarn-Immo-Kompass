@@ -14,6 +14,7 @@ import Footer1 from "./footer/Footer1";
 import Footer2 from "./footer/Footer2";
 import Footer3 from "./footer/Footer3";
 import Footer4 from "./footer/Footer4";
+import MatrixChat from "@/app/components/MatrixChat";
 
 const BootstrapComponents = dynamic(
   () => import("../elements/BootstrapComponents"),
@@ -54,6 +55,7 @@ export default function Layout({
       {/* <FooterSelector footerStyle={footerStyle} /> */}
       <Footer4 />
       <BackToTop target="#top" />
+      <MatrixChat/>
     </div>
   );
 }

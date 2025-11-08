@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import bootstrap from "bootstrap";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Upload } from "lucide-react";
 import { uploadImage } from "@/utils/supabase/storage/client";
@@ -16,7 +16,7 @@ import LocationInfoForm from "@/app/(dashboard)/add-property/components/location
 import DetailsForm from "@/app/(dashboard)/add-property/components/details-info-form";
 import AmenitiesForm from "@/app/(dashboard)/add-property/components/amenities-info-form";
 import Overview from "@/app/(dashboard)/add-property/components/overview";
-import { useGetAuthUserQuery } from "@/state/api";
+import { useCreatePropertyMutation, useGetAuthUserQuery } from "@/state/api";
 import Conditions from "@/app/(dashboard)/add-property/components/conditon-and-plan";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
@@ -25,7 +25,6 @@ const steps = [
   "Description",
   "Media",
   "Details",
-  "Amenities",
   "Condition & Floor Plan",
   "Overview",
 ];
@@ -51,7 +50,32 @@ interface ListingFormData {
   // fetchedImages: string[];
 }
 
-interface DetailsFormData {}
+interface DetailsFormData {
+  material: string;
+  roofType: string;
+  roofCondition: string;
+  insulation: string;
+  windows: string;
+  windowsAge: string;
+  hasRollerShutters: boolean;
+  heatingType: string;
+  heatingCondition: string;
+  electricCondition: string;
+  waterCondition: string;
+  energyCertificate: boolean;
+  energyClass: string;
+  energyConsumption: string;
+  internetType: string;
+  internetSpeed: string;
+  monthlyCosts: {
+    electricity: number;
+    water: number;
+    gas: number;
+    trash: number;
+    tax: number;
+  };
+  gardenDesc: string;
+}
 
 interface Locationdata {
   longitude: string;
@@ -74,7 +98,7 @@ const initialListingFormData: ListingFormData = {
   address: "",
   postalCode: "",
   price: "",
-  currency: "",
+  currency: "Hungarian forint (HUF)",
   lotSize: "",
   livingArea: "",
   numberOfRooms: "",
@@ -83,9 +107,9 @@ const initialListingFormData: ListingFormData = {
   city: "",
   year: "",
   country: "Hungary",
-  category: "",
-  listedIn: "",
-  propertyStatus: "",
+  category: "HOUSE",
+  listedIn: "Active",
+  propertyStatus: "Sale",
 };
 
 const initialDetailsFormData: DetailsFormData = {
@@ -96,17 +120,23 @@ const initialDetailsFormData: DetailsFormData = {
   insulation: "",
   windows: "",
   windowsAge: "",
-  hasRollerShutter: "",
+  hasRollerShutters: false,
   heatingType: "",
   heatingCondition: "",
   electricCondition: "",
   waterCondition: "",
-  energyCertificate: "",
+  energyCertificate: false,
   energyClass: "",
   energyConsumption: "",
   internetType: "",
   internetSpeed: "",
-  monthlyCost: "",
+  monthlyCosts: {
+    electricity: 0,
+    water: 0,
+    gas: 0,
+    trash: 0,
+    tax: 0,
+  },
   gardenDesc: "",
 };
 
@@ -126,7 +156,7 @@ const initialConditionData: ExposeCondition = {
 };
 
 export default function AddProperty() {
-  const [currentStep, setCurrentStep] = useState(5);
+  const [currentStep, setCurrentStep] = useState(1);
   const supabase = createClient();
   const [listingFormData, setListingFormData] = useState<ListingFormData>(
     initialListingFormData
@@ -142,58 +172,35 @@ export default function AddProperty() {
 
   const [isPending, startTransition] = useTransition();
   const [listingId, setListingId] = useState<string | null>(null);
+  // new
+  const router = useRouter();
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [floorPlanFiles, setFloorPlanFiles] = useState<File[]>([]);
 
   // redux user
   const { data: authUser } = useGetAuthUserQuery();
+  const [createProperty] = useCreatePropertyMutation();
 
-  const fetchImages = async () => {
-    if (!listingId || listingId === "0") return; // Skip fetching if listingId is "0"
-
-    try {
-      const { data, error } = await supabase
-        .from("expose_media")
-        .select("url")
-        .eq("expose_id", listingId)
-        .eq("media_type", "image");
-
-      if (error) {
-        toast.error("Failed to fetch images.");
-        return;
-      }
-
-      setFetchedImages(data.map((item) => item.url));
-    } catch {
-      toast.error("An error occurred while fetching images.");
-    }
+  // Convert property type category to match backend enum
+  const mapCategoryToPropertyType = (category: string): string => {
+    const mapping: { [key: string]: string } = {
+      House: "HOUSE",
+      Apartment: "APARTMENT",
+      Farm: "FARMHOUSE",
+      Bar: "APARTMENT", // Map to closest available type
+      Cafe: "APARTMENT", // Map to closest available type
+    };
+    return mapping[category] || "HOUSE";
   };
 
-  const handleDeleteFetchedImage = async (url: string) => {
-    if (!listingId) {
-      toast.error("Listing ID is required to delete images.");
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from("expose_media")
-        .delete()
-        .eq("expose_id", listingId)
-        .eq("url", url);
-
-      if (error) {
-        toast.error("Failed to delete image.");
-        return;
-      }
-
-      toast.success("Image deleted successfully.");
-      await fetchImages(); // Refetch images after deletion
-    } catch {
-      toast.error("An error occurred while deleting the image.");
-    }
+  // Convert currency format
+  const mapCurrency = (currency: string): string => {
+    if (currency.includes("HUF")) return "HUF";
+    if (currency.includes("EUR")) return "EUR";
+    return "HUF";
   };
 
   useEffect(() => {
-    fetchImages();
     console.log("authUser", authUser);
   }, []);
 
@@ -205,219 +212,9 @@ export default function AddProperty() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmitNewListing = async () => {
-    // Validation to ensure all fields are filled
-    const {
-      title,
-      description,
-      address,
-      postalCode,
-      price,
-      lotSize,
-      livingArea,
-      numberOfBathrooms,
-      numberOfBedrooms,
-      numberOfRooms,
-      country,
-      city,
-      year,
-      category,
-      currency,
-    } = listingFormData;
-    if (
-      !title ||
-      !description ||
-      !address ||
-      !postalCode ||
-      !price ||
-      !lotSize ||
-      !livingArea ||
-      !numberOfRooms ||
-      !numberOfBedrooms ||
-      !numberOfBathrooms ||
-      !city ||
-      !year
-    ) {
-      toast.error("Please fill in all fields before proceeding.");
-      return;
-    }
-
-    // fetch user data
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    console.log("Current User:", user?.id);
-
-    // if (user) {
-    //   try {
-    //     const { data: exposeData, error: exposeError } = await supabase
-    //       .from("expose")
-    //       .insert([
-    //         { sellerId: user.id, title: title, description: description },
-    //       ])
-    //       .select();
-
-    //     if (exposeError) {
-    //       console.error("Error inserting data:", exposeError);
-    //       return;
-    //     }
-    //     console.log("Insert Data:", exposeData);
-    //     // Assuming the inserted data contains an `id` field
-    //     const propertyId = exposeData[0]?.id;
-
-    //     if (propertyId) {
-    //       const { data: exposeBasicData, error: exposeBasicError } =
-    //         await supabase
-    //           .from("expose_basic")
-    //           .insert([
-    //             {
-    //               exposeid: propertyId,
-    //               title: title,
-    //               address: address,
-    //               postal_code: postalCode,
-    //               price: price,
-    //               lot_size: lotSize,
-    //               living_area: livingArea,
-    //               rooms: numberOfRooms,
-    //               bedroom: numberOfBedrooms,
-    //               bathroom: numberOfBathrooms,
-    //               build_year: year,
-    //               city: city,
-    //               country: country,
-    //               property_type: category as Category,
-    //               last_renovation: "2020",
-    //               currency: currency,
-    //             },
-    //           ])
-    //           .select();
-
-    //       console.log("expose basic", exposeBasicData);
-
-    //       handleUploadImage(propertyId);
-
-    //       // const { data: exposeDetailsData, error: exposeDetailsError } =
-    //       //   await supabase
-    //       //     .from("expose_basic")
-    //       //     .insert([
-    //       //       {
-    //       //         exposeid: propertyId,
-
-    //       //       },
-    //       //     ])
-    //       //     .select();
-    //       // Redirect using window.location
-    //       // window.location.href = `/add-property?new=${propertyId}`;
-    //     }
-    //   } catch (error) {
-    //     console.log("Error inserting data:", error);
-    //   }
-    // }
-  };
-
-  // upload images
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const filesArray = Array.from(event.target.files);
-      const newImageUrls = filesArray.map((file) => URL.createObjectURL(file));
-      if (fetchedImages.length + imageUrls.length + newImageUrls.length > 10) {
-        toast.error("You can only upload up to 10 images in total.");
-        return;
-      }
-      setImageUrls([...imageUrls, ...newImageUrls]);
-    }
-  };
-
   const handleDeleteImage = (url: string) => {
     setImageUrls(imageUrls.filter((imageUrl) => imageUrl !== url));
   };
-
-  const handleUploadImage = (listingId: any) => {
-    startTransition(async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast.error("You must be logged in to upload images.");
-        return;
-      }
-
-      for (const url of imageUrls) {
-        const imageFile = await convertBlobUrlToFile(url);
-
-        const { imageUrl, error } = await uploadImage({
-          file: imageFile,
-          bucket: "listings",
-          folder: listingId!,
-        });
-
-        if (error) {
-          toast.error("Failed to upload image.");
-          return;
-        }
-
-        await addRecordToMediaTable(imageUrl, listingId);
-      }
-
-      toast.success("Images uploaded successfully!");
-      setImageUrls([]); // Clear the image URLs after upload
-      await fetchImages(); // Refetch existing images
-    });
-  };
-
-  async function convertBlobUrlToFile(blobUrl: string): Promise<File> {
-    const response = await fetch(blobUrl);
-    const blob = await response.blob();
-    const fileName = Math.random().toString(36).slice(2, 9); // Generate a random file name
-    const mineType = blob.type || "application/octet-stream"; // Default to jpeg if type is not available
-    const file = new File([blob], `${fileName}.${mineType.split("/")[1]}`, {
-      type: mineType,
-    });
-    return file;
-  }
-
-  async function addRecordToMediaTable(url: string, listingId: string) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      console.error("User not authenticated");
-      toast.error("You must be logged in to upload images.");
-      return;
-    }
-
-    if (!listingId) {
-      console.error("Listing ID is not set");
-      toast.error("Listing ID is required to upload images.");
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from("expose_media")
-        .insert([
-          {
-            expose_id: listingId, // Assuming `listingId` is the ID of the property
-            url: url, // Add the URL to the `imageUrl` column
-            media_type: "image", // Assuming the media type is an image
-          },
-        ])
-        .select();
-
-      if (error) {
-        console.error("Error inserting media data:", error);
-        toast.error("Failed to add image to media table.");
-        return;
-      }
-
-      console.log("Media Insert Data:", data);
-    } catch (error) {
-      console.error("Error inserting media data:", error);
-      toast.error("An error occurred while adding image to media table.");
-    }
-  }
 
   // Handler for details tab input changes
   const handleDetailsChange = (
@@ -443,35 +240,222 @@ export default function AddProperty() {
     }));
   };
 
-  // Submit function for details tab
-  const handleSubmitDetails = async () => {
-    if (!listingId) {
-      toast.error("Listing ID is required to save details.");
-      return;
-    }
-    try {
-      const { error } = await supabase
-        .from("exposedetails")
-        .insert([
-          {
-            exposeid: listingId,
-            ...details,
-          },
-        ])
-        .select();
+  // Handle image selection
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const filesArray = Array.from(event.target.files);
 
-      if (error) {
-        toast.error("Failed to save details.");
+      if (imageFiles.length + filesArray.length > 10) {
+        toast.error("You can only upload up to 10 images in total.");
         return;
       }
-      toast.success("Details saved successfully!");
-      // Optionally move to next tab here
-    } catch (err) {
-      toast.error("An error occurred while saving details.");
+
+      // Store actual files for upload
+      setImageFiles([...imageFiles, ...filesArray]);
+
+      // Create preview URLs
+      const newImageUrls = filesArray.map((file) => URL.createObjectURL(file));
+      setImageUrls([...imageUrls, ...newImageUrls]);
     }
   };
 
+  // Upload images to Supabase Storage
+  const uploadImagesToSupabase = async (): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
 
+    for (const file of imageFiles) {
+      try {
+        const { imageUrl, error } = await uploadImage({
+          file: file,
+          bucket: "listings",
+          folder: `property_${Date.now()}`,
+        });
+
+        if (error) {
+          console.error("Error uploading image:", error);
+          continue;
+        }
+
+        if (imageUrl) {
+          uploadedUrls.push(imageUrl);
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
+    return uploadedUrls;
+  };
+
+  // Handle floor plan selection
+  const handleFloorPlanChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (event.target.files) {
+      const filesArray = Array.from(event.target.files);
+
+      // Store actual files for upload
+      setFloorPlanFiles([...floorPlanFiles, ...filesArray]);
+
+      // Create preview URLs
+      const newUrls = filesArray.map((file) => URL.createObjectURL(file));
+      setFloorPlanUrls([...floorPlanUrls, ...newUrls]);
+    }
+  };
+
+  // Upload floor plans to Supabase Storage
+  const uploadFloorPlansToSupabase = async (): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+
+    for (const file of floorPlanFiles) {
+      try {
+        const { imageUrl, error } = await uploadImage({
+          file: file,
+          bucket: "listings",
+          folder: `floorplans_${Date.now()}`,
+        });
+
+        if (error) {
+          console.error("Error uploading floor plan:", error);
+          continue;
+        }
+
+        if (imageUrl) {
+          uploadedUrls.push(imageUrl);
+        }
+      } catch (error) {
+        console.error("Error uploading floor plan:", error);
+      }
+    }
+
+    return uploadedUrls;
+  };
+
+  // Actual function implementation:
+  const handleSubmitNewListing = async () => {
+    // Validation
+    const {
+      title,
+      description,
+      address,
+      postalCode,
+      price,
+      lotSize,
+      livingArea,
+      numberOfBathrooms,
+      numberOfBedrooms,
+      numberOfRooms,
+      country,
+      city,
+      year,
+      category,
+      currency,
+    } = listingFormData;
+
+    if (!address || !postalCode || !price || !city) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    if (!authUser?.user?.id) {
+      toast.error("You must be logged in to create a property.");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        // First, upload images to Supabase Storage
+        const uploadedMediaUrls = await uploadImagesToSupabase();
+        const uploadedFloorPlanUrls = await uploadFloorPlansToSupabase();
+
+        // Prepare the property data
+        const propertyData = {
+          sellerId: authUser.user.id,
+          basic: {
+            title: title,
+            propertyType: mapCategoryToPropertyType(category),
+            address: address,
+            postalCode: postalCode,
+            city: city,
+            county: country, // Using city as county for now
+            price: parseInt(price),
+            currency: mapCurrency(currency),
+            lotSize: parseInt(lotSize) || 0,
+            livingArea: parseInt(livingArea) || 0,
+            rooms: parseInt(numberOfRooms) || 0,
+            bedrooms: parseInt(numberOfBedrooms) || 0,
+            bathrooms: parseInt(numberOfBathrooms) || 0,
+            buildYear: parseInt(year) || new Date().getFullYear(),
+            lastRenovation: null,
+          },
+          details: details.heatingType
+            ? {
+                material: details.material || null,
+                roofType: details.roofType || null,
+                roofCondition: details.roofCondition || null,
+                insulation: details.insulation || null,
+                windows: details.windows || null,
+                windowsAge: parseInt(details.windowsAge) || null,
+                hasRollerShutters: details.hasRollerShutters,
+                heatingType: details.heatingType,
+                heatingCondition: details.heatingCondition,
+                electricCondition: details.electricCondition,
+                waterCondition: details.waterCondition,
+                energyCertificate: details.energyCertificate,
+                energyConsumption:
+                  parseFloat(details.energyConsumption) || null,
+                energyClass: details.energyClass || null,
+                internetType: details.internetType,
+                internetSpeed: parseInt(details.internetSpeed) || 0,
+                monthlyCosts: details.monthlyCosts,
+                gardenDesc: details.gardenDesc || null,
+              }
+            : undefined,
+          condition: conditionData.damageDescription
+            ? {
+                structureRating: conditionData.structureRating,
+                electricRating: conditionData.electricRating,
+                heatingRating: conditionData.heatingRating,
+                damageDescription: conditionData.damageDescription,
+                renovationNeeded: conditionData.renovationNeeded,
+                additionalNotes: conditionData.additionalNotes,
+              }
+            : undefined,
+          // Location will be geocoded by the backend if not provided
+          location:
+            locationData.latitude && locationData.longitude
+              ? {
+                  latitude: parseFloat(locationData.latitude),
+                  longitude: parseFloat(locationData.longitude),
+                }
+              : undefined,
+          media: uploadedMediaUrls.map((url: string) => ({
+            mediaType: "PHOTO",
+            url: url,
+            thumbnailUrl: url, // Using same URL for now
+          })),
+          floorplans: uploadedFloorPlanUrls.map((url: string) => ({
+            url: url,
+          })),
+        };
+
+        // Call the API to create the property
+        const result = await createProperty(propertyData).unwrap();
+
+        // toast.success("Property created successfully!");
+
+        // Redirect to the property listing or dashboard
+        // setTimeout(() => {
+        //   router.push("/dashboard/properties");
+        // }, 1500);
+      } catch (error: any) {
+        console.error("Error creating property:", error);
+        toast.error(
+          error?.data?.message || "Failed to create property. Please try again."
+        );
+      }
+    });
+  };
 
   return (
     <>
@@ -532,25 +516,29 @@ export default function AddProperty() {
                         currentStep={currentStep}
                       />
                     )}
-                    {currentStep === 4 && (
+                    {/* {currentStep === 4 && (
                       <AmenitiesForm
                         onNext={handleNext}
                         onBack={handleBack}
                         steps={steps}
                         currentStep={currentStep}
                       />
-                    )}
-                    {currentStep === 5 && (
+                    )} */}
+                    {currentStep === 4 && (
                       <Conditions
                         data={conditionData}
                         onConditionData={setConditionData}
                         onNext={handleNext}
                         onBack={handleBack}
+                        floorPlanFiles={floorPlanFiles}
+                        floorPlanUrls={floorPlanUrls}
+                        onFloorPlanChange={handleFloorPlanChange}
+                        onDeleteFloorPlan={() => {}}
                         steps={steps}
                         currentStep={currentStep}
                       />
                     )}
-                    {currentStep === 6 && (
+                    {currentStep === 5 && (
                       <Overview
                         descriptionData={listingFormData}
                         mediaData={imageUrls}

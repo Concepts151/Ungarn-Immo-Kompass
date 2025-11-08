@@ -1,5 +1,28 @@
+import { Expose } from "@/app/(nondashboard)/property/[id]/page";
 import Link from "next/link";
-export default function Properties3Details() {
+
+
+interface PropertiesDetailsProps {
+    property: Expose;
+}
+ 
+export default function PropertiesDetails({property}: any) {
+
+     // Get the first 5 images from media array
+    const images = property.media.slice(0, 5);
+    
+    // Format price with currency
+    const formatPrice = (price: number, currency: string) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency,
+            minimumFractionDigits: 0,
+        }).format(price);
+    };
+
+    // Get seller full name
+    const sellerName = `${property.seller.firstName || ''} ${property.seller.lastName || ''}`.trim() || 'Property Owner';
+
     return (
         <>
             {/*===== PROPERTIES AREA STARTS =======*/}
@@ -8,7 +31,7 @@ export default function Properties3Details() {
                     <div className="row">
                         <div className="col-lg-6">
                             <div className="img1 #">
-                                <img src="/assets/img/all-images/properties/property-img37.png" alt="housa" />
+                                <img src={images[0]?.url || "/assets/img/all-images/properties/property-img37.png"} alt="housa" style={{height: '530px', objectFit: 'cover', width: '100%'}}/>
                             </div>
                         </div>
                         <div className="col-lg-6">
@@ -16,25 +39,25 @@ export default function Properties3Details() {
                                 <div className="col-lg-6 col-md-6">
                                     <div className="space30 d-md-none d-block" />
                                     <div className="img1 #">
-                                        <img src="/assets/img/all-images/properties/property-img38.png" alt="housa" />
+                                        <img src={images[1]?.url || "/assets/img/all-images/properties/property-img38.png"} alt="housa" style={{height: '250px', objectFit: 'cover', width: '100%'}} />
                                     </div>
                                 </div>
                                 <div className="col-lg-6 col-md-6">
                                     <div className="space30 d-md-none d-block" />
                                     <div className="img1 #">
-                                        <img src="/assets/img/all-images/properties/property-img39.png" alt="housa" />
+                                        <img src={images[2]?.url || "/assets/img/all-images/properties/property-img39.png"} alt="housa" style={{height: '250px', objectFit: 'cover', width: '100%'}} />
                                     </div>
                                 </div>
                                 <div className="col-lg-6 col-md-6">
                                     <div className="space30" />
                                     <div className="img1 #">
-                                        <img src="/assets/img/all-images/properties/property-img40.png" alt="housa" />
+                                        <img src={images[3]?.url || "/assets/img/all-images/properties/property-img40.png"} alt="housa" style={{height: '250px', objectFit: 'cover', width: '100%'}} />
                                     </div>
                                 </div>
                                 <div className="col-lg-6 col-md-6">
                                     <div className="space30" />
                                     <div className="img1 #">
-                                        <img src="/assets/img/all-images/properties/property-img41.png" alt="housa" />
+                                        <img src={images[4]?.url || "/assets/img/all-images/properties/property-img41.png"} alt="housa" style={{height: '250px', objectFit: 'cover', width: '100%'}} />
                                     </div>
                                 </div>
                             </div>
@@ -42,12 +65,12 @@ export default function Properties3Details() {
                     </div>
                     <div className="space40" />
                     <div className="col-lg-12">
-                        <div className="botton-heading heading1">
-                            <h2>Luxury House in Greenville</h2>
-                            <p>$12,50,000</p>
+                         <div className="botton-heading heading1">
+                            <h2>{property.basic.propertyType.charAt(0) + property.basic.propertyType.slice(1).toLowerCase()} in {property.basic.city.charAt(0).toUpperCase() + property.basic.city.slice(1)}</h2>
+                            <p>{formatPrice(property.basic.price, property.basic.currency)}</p>
                         </div>
                         <div className="space40" />
-                        <p className="location">
+                         <p className="location">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none">
                                     <path
@@ -56,7 +79,7 @@ export default function Properties3Details() {
                                     />
                                 </svg>
                             </span>
-                            2323 Dancing Dove, Long Island City, NY 11101
+                            {property.basic.address}, {property.basic.city}, {property.basic.county} {property.basic.postalCode}
                         </p>
                         <div className="space28" />
                         <div className="property-other-widget">
@@ -68,7 +91,7 @@ export default function Properties3Details() {
                                             <path d="M3 21H21V3.00046L3 3V21Z" stroke="#1B1B1B" strokeWidth="1.5" strokeLinejoin="round" />
                                         </svg>
                                     </span>
-                                    2150 sqft
+                                    {property.basic.livingArea} sqft
                                 </li>
                                 <li>
                                     <span>
@@ -79,7 +102,7 @@ export default function Properties3Details() {
                                             <path d="M20 12V7.36057C20 6.66893 20 6.32311 19.8292 5.99653C19.6584 5.66995 19.4151 5.50091 18.9284 5.16283C16.9661 3.79978 14.5772 3 12 3C9.42282 3 7.03391 3.79978 5.07163 5.16283C4.58492 5.50091 4.34157 5.66995 4.17079 5.99653C4 6.32311 4 6.66893 4 7.36057V12" stroke="#1B1B1B" strokeWidth="1.5" strokeLinecap="round" />
                                         </svg>
                                     </span>
-                                    5 Beds
+                                    {property.basic.bedrooms} Beds
                                 </li>
                                 <li>
                                     <span>
@@ -91,7 +114,7 @@ export default function Properties3Details() {
                                             <path d="M8 6L10.5 4" stroke="#1B1B1B" strokeWidth="1.5" strokeLinecap="round" />
                                         </svg>
                                     </span>
-                                    3 Baths
+                                    {property.basic.bathrooms} Baths
                                 </li>
                             </ul>
                             <div className="space24" />
@@ -101,7 +124,7 @@ export default function Properties3Details() {
                                         <img src="/assets/img/all-images/others/others-img1.png" alt="housa" />
                                     </div>
                                     <div className="text">
-                                        <Link href="#">Santiago Towne</Link>
+                                        <Link href="#">{sellerName}</Link>
                                     </div>
                                 </div>
                                 <div className="love-share">

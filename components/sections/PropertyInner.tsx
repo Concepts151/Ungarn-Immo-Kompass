@@ -1,7 +1,31 @@
 import Link from "next/link";
-import ContactSeller from "@/components/elements/ContactSeller";
+// import ContactSeller from "@/components/elements/ContactSeller";
+import { Expose } from "@/app/(nondashboard)/property/[id]/page";
 
-export default function PropertyInner({ block_extend }: any) {
+import dynamic from 'next/dynamic';
+
+// Dynamically import ContactSeller with no SSR
+const ContactSeller = dynamic(
+  () => import('@/components/elements/ContactSeller'),
+  { ssr: false }
+);
+
+interface PropertyInnerProps {
+  block_extend?: string;
+  property: any;
+}
+
+export default function PropertyInner({ block_extend, property }: PropertyInnerProps) {
+// Extract seller information
+    const seller = property.seller;
+    const sellerName = `${seller.firstName} ${seller.lastName}`;
+    
+    // Create property title from basic info
+    const propertyTitle = `${property.basic.propertyType} in ${property.basic.city}`;
+    const sellerMatrixId = property.seller.matrixUserId;
+
+    console.log("property in inner:", property);
+    
     return (
         <>
             {/*===== PROPERTY AREA STARTS =======*/}
@@ -14,11 +38,14 @@ export default function PropertyInner({ block_extend }: any) {
                                 <div className="row">
                                     <div className="col-lg-3">
                                         <div className="sidebar1-area">
-                                            <ContactSeller
-                                                agentName="Shagor Ahmed"
-                                                agentImage="/assets/img/all-images/others/others-img7.png"
-                                                agentEmail="housa@.com"
-                                                agentPhone="(234) 345-4574"
+                                             <ContactSeller
+                                                sellerName={sellerName}
+                                                sellerImage="/assets/img/all-images/others/others-img7.png"
+                                                sellerEmail={seller.email}
+                                                sellerPhone={seller.phone}
+                                                sellerMatrixId={sellerMatrixId}
+                                                propertyId={property.id}
+                                                propertyTitle={propertyTitle}
                                             />
                                             <div className="space30" />
 
@@ -189,9 +216,9 @@ export default function PropertyInner({ block_extend }: any) {
                                                 <div className="space24" />
                                                 <p>This stunning Apartment is located in the heart of Woodland, offering the perfect blend of modern comfort and timeless elegance. Designed for both functionality and style, this property features spacious rooms, high-quality finishes, and an inviting atmosphere that feels like home. Whether you're looking for a peaceful retreat or a prime investment opportunity, this property is a must-see.</p>
                                                 <div className="space30" />
-                                                <h3>What Makes This Property Special</h3>
-                                                <div className="space12" />
-                                                <div className="row">
+                                                {/* <h3>What Makes This Property Special</h3>
+                                                <div className="space12" /> */}
+                                                {/* <div className="row">
                                                     <div className="col-lg-6">
                                                         <div className="others-box">
                                                             <img src="/assets/img/icons/check1.svg" alt="housa" />
@@ -242,7 +269,7 @@ export default function PropertyInner({ block_extend }: any) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> */}
                                                 <div className="space30" />
                                                 <h3>Property Gallery, Explore The Space</h3>
                                                 <div className="space32" />

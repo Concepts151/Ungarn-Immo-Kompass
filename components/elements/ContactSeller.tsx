@@ -1,88 +1,195 @@
 "use client";
+
+import { useGetAuthUserQuery } from "@/state/api";
+import { createRoomViaAPI } from "@/utils/api";
 import Link from "next/link";
+import { useState } from "react";
 
 interface ContactSellerProps {
-    agentName?: string;
-    agentImage?: string;
-    agentEmail?: string;
-    agentPhone?: string;
+  sellerName: string;
+  sellerImage?: string;
+  sellerEmail: string;
+  sellerPhone: string;
+  sellerMatrixId: string;
+  propertyId: string;
+  propertyTitle: string;
 }
 
 export default function ContactSeller({
-    agentName = "Shagor Ahmed",
-    agentImage = "/assets/img/all-images/others/others-img7.png",
-    agentEmail = "housa@.com",
-    agentPhone = "(234) 345-4574",
+  sellerName,
+  sellerImage = "/assets/img/all-images/others/others-img7.png",
+  sellerEmail,
+  sellerPhone,
+  sellerMatrixId,
+  propertyId,
+  propertyTitle,
 }: ContactSellerProps) {
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const data = {
-            fullName: formData.get('fullName') as string,
-            phoneNumber: formData.get('phoneNumber') as string,
-            email: formData.get('email') as string,
-            message: formData.get('message') as string,
-        };
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-        try {
-            e.currentTarget.reset();
-            alert('Message sent successfully!');
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('Failed to send message. Please try again.');
-        }
-    };
+  const { data: authUser } = useGetAuthUserQuery();
 
-    return (
-        <div className="details-siderbar2">
-            <h4>Contact Seller</h4>
-            <div className="space24" />
-            <div className="personal-info">
-                <div className="img1">
-                    <img src={agentImage} alt={agentName} />
-                </div>
-                <div className="content">
-                    <Link href="#">{agentName}</Link>
-                    <Link href={`mailto:${agentEmail}`}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z" />
-                        </svg>
-                        {agentEmail}
-                    </Link>
-                    <Link href={`tel:${agentPhone}`}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9.36556 10.6821C10.302 12.3288 11.6712 13.698 13.3179 14.6344L14.2024 13.3961C14.4965 12.9845 15.0516 12.8573 15.4956 13.0998C16.9024 13.8683 18.4571 14.3353 20.0789 14.4637C20.599 14.5049 21 14.9389 21 15.4606V19.9234C21 20.4361 20.6122 20.8657 20.1022 20.9181C19.5723 20.9726 19.0377 21 18.5 21C9.93959 21 3 14.0604 3 5.5C3 4.96227 3.02742 4.42771 3.08189 3.89776C3.1343 3.38775 3.56394 3 4.07665 3H8.53942C9.0611 3 9.49513 3.40104 9.5363 3.92109C9.66467 5.54288 10.1317 7.09764 10.9002 8.50444C11.1427 8.9484 11.0155 9.50354 10.6039 9.79757L9.36556 10.6821ZM6.84425 10.0252L8.7442 8.66809C8.20547 7.50514 7.83628 6.27183 7.64727 5H5.00907C5.00303 5.16632 5 5.333 5 5.5C5 12.9558 11.0442 19 18.5 19C18.667 19 18.8337 18.997 19 18.9909V16.3527C17.7282 16.1637 16.4949 15.7945 15.3319 15.2558L13.9748 17.1558C13.4258 16.9425 12.8956 16.6915 12.3874 16.4061L12.3293 16.373C10.3697 15.2587 8.74134 13.6303 7.627 11.6707L7.59394 11.6126C7.30849 11.1044 7.05754 10.5742 6.84425 10.0252Z"></path>
-                        </svg>
-                        {agentPhone}
-                    </Link>
-                </div>
-            </div>
-            <div className="space10" />
-            <form onSubmit={handleSubmit}>
-                <div className="input-area">
-                    <input type="text" name="fullName" placeholder="Full Name" required />
-                </div>
-                <div className="input-area">
-                    <input type="tel" name="phoneNumber" placeholder="Phone Number" required />
-                </div>
-                <div className="input-area">
-                    <input type="email" name="email" placeholder="Email Address" required />
-                </div>
-                <div className="input-area">
-                    <textarea name="message" placeholder="Your Message" required />
-                </div>
-                <div className="input-area">
-                    <button type="submit" className="vl-btn1">
-                        Send Message
-                        <span className="arrow1 ms-2">
-                            <i className="fa-solid fa-arrow-right" />
-                        </span>
-                        <span className="arrow2 ms-2">
-                            <i className="fa-solid fa-arrow-right" />
-                        </span>
-                    </button>
-                </div>
-            </form>
+  const handleContactSeller = async () => {
+    setError(null);
+    setSuccess(false);
+    setLoading(true);
+
+    console.log("Contacting seller:", sellerMatrixId);
+    
+
+    try {
+      // Check if user is authenticated
+      if (!authUser?.matrix?.matrixUserId) {
+        setError("Please log in to message the seller");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare room creation data
+      const accessToken = authUser?.matrix?.matrixAccessToken;
+      const roomName = `Chat ${propertyTitle}`;
+      const topic = `Inquiry regarding property ID: ${propertyId}`;
+      const formattedUserId = sellerMatrixId;
+
+
+
+      // Create the room via your API
+      const result = await createRoomViaAPI(
+        accessToken,
+        roomName,
+        topic,
+        formattedUserId,
+        true
+      );
+
+      if (result.roomId) {
+        setSuccess(true);
+
+        // Optional: Redirect to chat after a short delay
+        setTimeout(() => {
+          // window.location.href = `/dashboard/messages?roomId=${result.roomId}`;
+          // Or if using Next.js router:
+          // router.push(`/dashboard/messages?roomId=${result.roomId}`);
+        }, 1500);
+      } else {
+        setError("Failed to create chat room");
+      }
+    } catch (err) {
+      console.error("Error creating chat room:", err);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="details-siderbar2">
+      <h4>Contact Seller</h4>
+      <div className="space24" />
+
+      {/* Seller Info */}
+      <div className="personal-info">
+        <div className="img1">
+          <img src={sellerImage} alt={sellerName} />
         </div>
-    );
-} 
+        <div className="content">
+          <Link href="#">{sellerName}</Link>
+          <Link href={`mailto:${sellerEmail}`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z" />
+            </svg>
+            {sellerEmail}
+          </Link>
+          <Link href={`tel:${sellerPhone}`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M9.36556 10.6821C10.302 12.3288 11.6712 13.698 13.3179 14.6344L14.2024 13.3961C14.4965 12.9845 15.0516 12.8573 15.4956 13.0998C16.9024 13.8683 18.4571 14.3353 20.0789 14.4637C20.599 14.5049 21 14.9389 21 15.4606V19.9234C21 20.4361 20.6122 20.8657 20.1022 20.9181C19.5723 20.9726 19.0377 21 18.5 21C9.93959 21 3 14.0604 3 5.5C3 4.96227 3.02742 4.42771 3.08189 3.89776C3.1343 3.38775 3.56394 3 4.07665 3H8.53942C9.0611 3 9.49513 3.40104 9.5363 3.92109C9.66467 5.54288 10.1317 7.09764 10.9002 8.50444C11.1427 8.9484 11.0155 9.50354 10.6039 9.79757L9.36556 10.6821ZM6.84425 10.0252L8.7442 8.66809C8.20547 7.50514 7.83628 6.27183 7.64727 5H5.00907C5.00303 5.16632 5 5.333 5 5.5C5 12.9558 11.0442 19 18.5 19C18.667 19 18.8337 18.997 19 18.9909V16.3527C17.7282 16.1637 16.4949 15.7945 15.3319 15.2558L13.9748 17.1558C13.4258 16.9425 12.8956 16.6915 12.3874 16.4061L12.3293 16.373C10.3697 15.2587 8.74134 13.6303 7.627 11.6707L7.59394 11.6126C7.30849 11.1044 7.05754 10.5742 6.84425 10.0252Z"></path>
+            </svg>
+            {sellerPhone}
+          </Link>
+        </div>
+      </div>
+
+      <div className="space20" />
+
+      {/* Success Message */}
+      {success && (
+        <div
+          className="alert alert-success"
+          role="alert"
+          style={{
+            fontSize: "14px",
+            padding: "10px",
+            marginBottom: "15px",
+            backgroundColor: "#d4edda",
+            color: "#155724",
+            border: "1px solid #c3e6cb",
+            borderRadius: "4px",
+          }}
+        >
+          ✓ Chat opened! You can now message the seller.
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div
+          className="alert alert-danger"
+          role="alert"
+          style={{
+            fontSize: "14px",
+            padding: "10px",
+            marginBottom: "15px",
+            backgroundColor: "#f8d7da",
+            color: "#721c24",
+            border: "1px solid #f5c6cb",
+            borderRadius: "4px",
+          }}
+        >
+          ✗ {error}
+        </div>
+      )}
+
+      {/* Message Seller Button */}
+      <div className="input-area">
+        <button
+          type="button"
+          className="vl-btn1"
+          onClick={handleContactSeller}
+          // disabled={loading || !isReady}
+          // style={{
+          //   opacity: (loading || !isReady) ? 0.6 : 1,
+          //   cursor: (loading || !isReady) ? 'not-allowed' : 'pointer',
+          //   width: '100%'
+          // }}
+        >
+          {loading ? "Opening Chat..." : "Message Seller"}
+          <span className="arrow1 ms-2">
+            <i className="fa-solid fa-arrow-right" />
+          </span>
+          <span className="arrow2 ms-2">
+            <i className="fa-solid fa-arrow-right" />
+          </span>
+        </button>
+      </div>
+
+      {/* Status Messages */}
+      {/* {!isReady && !loading && (
+        <p 
+          className="text-muted small text-center mt-2" 
+          style={{ fontSize: '12px', color: '#6c757d' }}
+        >
+          {isReady === false ? '🔐 Please log in to message sellers' : '⏳ Connecting...'}
+        </p>
+      )} */}
+    </div>
+  );
+}
