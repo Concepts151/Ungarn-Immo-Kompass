@@ -21,7 +21,7 @@ export default function PropertyInner({ block_extend, property }: PropertyInnerP
     const sellerName = `${seller.firstName} ${seller.lastName}`;
     
     // Create property title from basic info
-    const propertyTitle = `${property.basic.propertyType} in ${property.basic.city}`;
+    const propertyTitle = `${property.basic.title} in ${property.basic.city}`;
     const sellerMatrixId = property.seller.matrixUserId;
 
     console.log("property in inner:", property);

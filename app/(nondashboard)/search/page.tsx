@@ -12,7 +12,7 @@ import { useAppDispatch } from '@/state/redux'
 import { cleanParams } from '@/lib/utils'
 import { setFilters } from '@/state'
 
-const page = () => {
+const SearchPage = () => {
     const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
 
@@ -34,7 +34,7 @@ const page = () => {
 
     const cleanFilters = cleanParams(initialFilters);
     dispatch(setFilters(cleanFilters));
-  }, []);
+  }, [searchParams, dispatch]);
   return (
     <>
       <Layout headerStyle={5}>
@@ -70,4 +70,4 @@ const page = () => {
   )
 }
 
-export default page
+export default SearchPage

@@ -115,7 +115,7 @@ export interface Expose {
 }
 
 
-const page = () => {
+const PropertyPage = () => {
     const { id } = useParams();
     // Ensure id is a string
     const propertyId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : '';
@@ -145,4 +145,4 @@ const page = () => {
   )
 }
 
-export default page
+export default PropertyPage

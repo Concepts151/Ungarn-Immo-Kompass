@@ -48,7 +48,7 @@ export default function ContactSeller({
 
       // Prepare room creation data
       const accessToken = authUser?.matrix?.matrixAccessToken;
-      const roomName = `Chat ${propertyTitle}`;
+      const roomName = `${propertyTitle}`;
       const topic = `Inquiry regarding property ID: ${propertyId}`;
       const formattedUserId = sellerMatrixId;
 

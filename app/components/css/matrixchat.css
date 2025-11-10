@@ -223,6 +223,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  margin-bottom: 14px;
 }
 
 .from_msg {
@@ -290,21 +291,21 @@
   margin-top: 1.25rem; /* Tailwind's spacing scale: 5 = 1.25rem (20px) */
 }
 
-.invite_wrapper{
-    background-color: #fff;
-    border-radius: 4px;
-    padding: 12px;
-    border: 1px solid #fff085;
+.invite_wrapper {
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid #fff085;
 }
 
-.invite_card{
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 12px;
-    flex-direction: column;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.invite_card {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-direction: column;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .bg-black-50 {
   background-color: rgba(0, 0, 0, 0.5);

@@ -1,5 +1,6 @@
+
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./css/matrixchat.css";
 import { MessageCircle, X } from "lucide-react";
 import { useGetAuthUserQuery } from "@/state/api";
@@ -14,8 +15,33 @@ import RoomList from "./RoomList";
 import MessageArea from "./MessageArea";
 import LeaveRoomModal from "./modals/LeaveRoomModal";
 
+// Type for authenticated user from backend
+interface AuthUser {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+    role: "BUYER" | "SELLER" | "ADMIN";
+    isEmailVerified: boolean;
+    isPhoneVerified: boolean;
+    isSellerVerified: boolean;
+    matrixUserId: string;
+    matrixPassword: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  userRole: "BUYER" | "SELLER" | "ADMIN";
+  matrix: {
+    matrixUserId: string;
+    matrixAccessToken: string;
+    matrixHomeserver: string;
+  };
+}
+
 const MatrixChat = () => {
-  const { data: authUser } = useGetAuthUserQuery();
+  const { data: authUser } = useGetAuthUserQuery() as { data: AuthUser | undefined };
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,7 +53,7 @@ const MatrixChat = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Matrix state
-  const [client, setClient] = useState<MatrixClientType | null>(null);
+  const [client, setClient] = useState<any | null>(null);
   const [matrixUserId, setMatrixUserId] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [deviceId, setDeviceId] = useState("");
@@ -84,7 +110,7 @@ const MatrixChat = () => {
 
   // Use refs to track current values in event listeners
   const selectedRoomRef = useRef<any | null>(null);
-  const clientRef = useRef<MatrixClientType | null>(null);
+  const clientRef = useRef<any | null>(null);
   const isOutgoingCallRef = useRef<boolean>(false);
 
   // Update ref when selectedRoom changes
@@ -101,6 +127,15 @@ const MatrixChat = () => {
   useEffect(() => {
     isOutgoingCallRef.current = isOutgoingCall;
   }, [isOutgoingCall]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        console.log('Notification permission:', permission);
+      });
+    }
+  }, []);
 
   // Get or create device ID
   const getOrCreateDeviceId = () => {
@@ -119,7 +154,8 @@ const MatrixChat = () => {
     process.env.NEXT_PUBLIC_MATRIX_HOMESERVER || "https://matrix.151.hu";
 
   // Load messages for a room
-  const loadMessages = async (room: any) => {
+  // Fixed: Removed unnecessary dependencies 'client' and 'selectedRoomRef'
+  const loadMessages = useCallback(async (room: any) => {
     if (!room) return;
 
     const timeline = room.getLiveTimeline();
@@ -128,10 +164,11 @@ const MatrixChat = () => {
       .filter((e: any) => e.getType() === "m.room.message");
 
     setMessages(events);
-  };
+  }, []);
 
   // Update rooms and invites from client
-  const updateRoomsAndInvites = (matrixClient: MatrixClientType) => {
+  // Fixed: Removed unnecessary dependency 'client'
+  const updateRoomsAndInvites = useCallback((matrixClient: MatrixClientType) => {
     const allRooms = matrixClient.getRooms();
 
     // Separate rooms by membership status
@@ -148,12 +185,34 @@ const MatrixChat = () => {
     console.log(
       `Found ${joinedRooms.length} joined rooms and ${invitedRooms.length} invites`
     );
+    
+    // Check if we have new invites
+    const previousInviteCount = invites.length;
+    const newInviteCount = invitedRooms.length;
+    
     setRooms(joinedRooms);
     setInvites(invitedRooms);
-  };
+    
+    // Show notification for new invites
+    if (newInviteCount > previousInviteCount) {
+      const newInvitesReceived = newInviteCount - previousInviteCount;
+      console.log(`🔔 ${newInvitesReceived} new invite(s) received!`);
+      
+      // Show browser notification if permission granted
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const latestInvite = invitedRooms[invitedRooms.length - 1];
+        const roomName = latestInvite?.name || 'Unknown Room';
+        new Notification('New Chat Invite', {
+          body: `You've been invited to ${roomName}`,
+          icon: '/favicon.ico',
+          tag: 'matrix-invite',
+        });
+      }
+    }
+  }, [invites.length]);
 
   // Initialize WebRTC peer connection
-  const createPeerConnection = () => {
+  const createPeerConnection = useCallback(() => {
     const configuration: RTCConfiguration = {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -199,7 +258,7 @@ const MatrixChat = () => {
     };
 
     return pc;
-  };
+  }, [client]); // client is used in onicecandidate
 
   // Get local media stream
   const getLocalStream = async (video: boolean) => {
@@ -256,52 +315,37 @@ const MatrixChat = () => {
       setIsOutgoingCall(true);
 
       // Generate call ID
-      callIdRef.current = `call_${Date.now()}`;
+      const newCallId = `call_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(7)}`;
+      callIdRef.current = newCallId;
       console.log("Call ID:", callIdRef.current);
 
-      // Get local stream
-      console.log("Getting local media stream...");
+      // Get local media
       const stream = await getLocalStream(video);
-      console.log("✅ Local media stream obtained");
 
       // Create peer connection
-      console.log("Creating peer connection...");
       const pc = createPeerConnection();
       peerConnectionRef.current = pc;
-      console.log("✅ Peer connection created:", !!peerConnectionRef.current);
 
       // Add local tracks to peer connection
-      console.log("Adding local tracks...");
       stream.getTracks().forEach((track) => {
-        console.log(`Adding ${track.kind} track`);
         pc.addTrack(track, stream);
       });
 
       // Create offer
-      console.log("Creating offer...");
       const offer = await pc.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: video,
       });
+
       await pc.setLocalDescription(offer);
-      console.log("✅ Local description set");
 
-      // Get other user in room
-      const members = selectedRoomRef.current.getJoinedMembers();
-      const otherMember = members.find((m: any) => m.userId !== matrixUserId);
-
-      if (otherMember) {
-        const name = otherMember.name || otherMember.userId;
-        console.log("Calling:", name);
-        setRemoteName(name);
-      }
-
-      // Send invite via Matrix
-      console.log("Sending call invite...");
-      await client.sendEvent(callRoomIdRef.current, "m.call.invite", {
+      // Send invite to Matrix room
+      console.log("Sending m.call.invite...");
+      await client.sendEvent(selectedRoomRef.current.roomId, "m.call.invite", {
         call_id: callIdRef.current,
         version: 1,
-        party_id: deviceId,
         lifetime: 60000,
         offer: {
           type: offer.type,
@@ -310,301 +354,92 @@ const MatrixChat = () => {
       });
 
       console.log("✅ Call invite sent successfully");
+      setCallState("calling");
     } catch (error) {
-      console.error("❌ Error starting call:", error);
-      setError(
-        `Failed to start call: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      console.error("Error starting call:", error);
+      setError("Failed to start call. Please try again.");
       handleHangup();
     }
   };
 
   // Answer incoming call
   const answerCall = async () => {
-    // Diagnostic logging
-    console.log("=== ANSWER CALL DIAGNOSTICS ===");
-    console.log("Client exists:", !!client);
-    console.log("Selected room exists:", !!selectedRoomRef.current);
-    console.log("Call room ID:", callRoomIdRef.current);
-    console.log("Device ID:", deviceId);
-    console.log("Peer connection exists:", !!peerConnectionRef.current);
-    console.log("Call ID:", callIdRef.current);
-    console.log("Call state:", callState);
-    console.log("Is video call:", isVideoCall);
-    console.log("==============================");
-
-    if (!client) {
-      console.error("Cannot answer: no client");
-      setError("Client not initialized. Please try again.");
-      return;
-    }
-
-    if (!callRoomIdRef.current) {
-      console.error("Cannot answer: no call room ID stored");
-      setError("Call room not found. Please ask them to call again.");
-      handleHangup();
-      return;
-    }
-
-    if (!deviceId) {
-      console.error("Cannot answer: no device ID");
-      setError("Device ID missing. Please try logging in again.");
-      return;
-    }
-
     if (!peerConnectionRef.current) {
-      console.error("Cannot answer: no peer connection");
-      setError("Call connection lost. Please ask them to call again.");
-      handleHangup();
+      console.error("No peer connection to answer");
       return;
     }
 
     try {
-      console.log("Answering call...");
+      console.log("📞 Answering call...");
       setCallState("connecting");
 
-      // Get the room from the stored room ID
-      const callRoom = client.getRoom(callRoomIdRef.current);
-      if (!callRoom) {
-        console.error("Cannot find room:", callRoomIdRef.current);
-        setError("Call room not found.");
-        handleHangup();
-        return;
-      }
-
-      // Get local stream
-      console.log("Getting local media stream...");
+      // Get local media
       const stream = await getLocalStream(isVideoCall);
-      console.log("Local media stream obtained");
 
-      // Add local tracks to peer connection
+      // Add local tracks to existing peer connection
       stream.getTracks().forEach((track) => {
-        console.log("Adding track:", track.kind);
-        peerConnectionRef.current!.addTrack(track, stream);
+        peerConnectionRef.current?.addTrack(track, stream);
       });
-
-      // Add any pending ICE candidates
-      if (pendingCandidatesRef.current.length > 0) {
-        console.log(
-          `Adding ${pendingCandidatesRef.current.length} pending ICE candidates`
-        );
-        for (const candidate of pendingCandidatesRef.current) {
-          try {
-            await peerConnectionRef.current.addIceCandidate(
-              new RTCIceCandidate(candidate)
-            );
-            console.log("Added pending ICE candidate");
-          } catch (error) {
-            console.error("Error adding pending ICE candidate:", error);
-          }
-        }
-        pendingCandidatesRef.current = [];
-      }
 
       // Create answer
-      console.log("Creating answer...");
       const answer = await peerConnectionRef.current.createAnswer();
       await peerConnectionRef.current.setLocalDescription(answer);
-      console.log("Local description set");
 
-      // Send answer via Matrix using the stored room ID
-      console.log("Sending answer to remote peer...");
-      await client.sendEvent(callRoomIdRef.current, "m.call.answer", {
-        call_id: callIdRef.current,
-        version: 1,
-        party_id: deviceId,
-        answer: {
-          type: answer.type,
-          sdp: answer.sdp,
-        },
-      });
+      // Send answer to Matrix room
+      if (client && callRoomIdRef.current) {
+        console.log("Sending m.call.answer...");
+        await client.sendEvent(callRoomIdRef.current, "m.call.answer", {
+          call_id: callIdRef.current,
+          version: 1,
+          answer: {
+            type: answer.type,
+            sdp: answer.sdp,
+          },
+        });
 
-      console.log("✅ Call answered successfully");
-    } catch (error) {
-      console.error("Error answering call:", error);
-      setError(
-        `Failed to answer call: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-      handleHangup();
-    }
-  };
+        console.log("✅ Call answer sent successfully");
 
-  // Handle incoming call invite
-  const handleCallInvite = async (event: any, room: any) => {
-    console.log("📞 Incoming call invite");
-
-    const content = event.getContent();
-    const incomingCallId = content.call_id;
-
-    // If we already have an active call, ignore this invite
-    if (callIdRef.current && callState !== "idle" && callState !== "ended") {
-      console.log("⚠️ Ignoring invite - already in a call");
-      return;
-    }
-
-    try {
-      console.log("Setting up incoming call...");
-      callIdRef.current = incomingCallId;
-      callRoomIdRef.current = room.roomId; // Store the room ID
-      console.log("Room ID:", room.roomId);
-
-      const offer = content.offer;
-
-      // Create peer connection FIRST
-      console.log("Creating peer connection...");
-      const pc = createPeerConnection();
-      peerConnectionRef.current = pc;
-      console.log("✅ Peer connection created:", !!peerConnectionRef.current);
-
-      // Set remote description
-      console.log("Setting remote description...");
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      console.log("✅ Remote description set for incoming call");
-
-      // Determine if it's video call
-      const hasVideo = offer.sdp.includes("m=video");
-      console.log(`Call type: ${hasVideo ? "Video" : "Audio"}`);
-      setIsVideoCall(hasVideo);
-      setIsVideoEnabled(hasVideo);
-
-      // Get sender name
-      const sender = event.getSender();
-      console.log("Call from:", sender);
-      setRemoteName(sender);
-
-      // Show incoming call UI
-      console.log("Showing incoming call UI...");
-      setIsOutgoingCall(false);
-      setCallState("calling");
-      setShowVideoCall(true);
-      console.log("✅ Incoming call setup complete");
-    } catch (error) {
-      console.error("❌ Error handling call invite:", error);
-      setError("Failed to receive call");
-      handleHangup();
-    }
-  };
-
-  // Handle call answer
-  const handleCallAnswer = async (event: any) => {
-    const content = event.getContent();
-
-    // Ignore if not our call
-    if (content.call_id !== callIdRef.current) {
-      console.log("Ignoring answer for different call");
-      return;
-    }
-
-    if (!peerConnectionRef.current) {
-      console.error(
-        "No peer connection for answer - call may have been hung up"
-      );
-      return;
-    }
-
-    // Only process if we're the one who initiated the call
-    if (!isOutgoingCallRef.current) {
-      console.log("Ignoring answer - we didn't initiate this call");
-      return;
-    }
-
-    console.log("Call answered by remote peer");
-
-    try {
-      const answer = content.answer;
-
-      // Check if we're in the correct state
-      if (peerConnectionRef.current.signalingState === "have-local-offer") {
-        await peerConnectionRef.current.setRemoteDescription(
-          new RTCSessionDescription(answer)
-        );
-        console.log("Remote description set successfully");
-
-        // Add any pending ICE candidates
-        for (const candidate of pendingCandidatesRef.current) {
-          try {
+        // Process any pending ICE candidates
+        if (pendingCandidatesRef.current.length > 0) {
+          console.log(
+            `Processing ${pendingCandidatesRef.current.length} pending ICE candidates`
+          );
+          for (const candidate of pendingCandidatesRef.current) {
             await peerConnectionRef.current.addIceCandidate(
               new RTCIceCandidate(candidate)
             );
-            console.log("Added pending ICE candidate");
-          } catch (error) {
-            console.error("Error adding pending ICE candidate:", error);
           }
+          pendingCandidatesRef.current = [];
         }
-        pendingCandidatesRef.current = [];
-      } else {
-        console.warn(
-          "Received answer in wrong state:",
-          peerConnectionRef.current.signalingState
-        );
       }
     } catch (error) {
-      console.error("Error handling call answer:", error);
+      console.error("Error answering call:", error);
+      setError("Failed to answer call. Please try again.");
+      handleHangup();
     }
   };
 
-  // Handle ICE candidates
-  const handleCallCandidates = async (event: any) => {
-    const content = event.getContent();
-
-    // Ignore if not our call
-    if (content.call_id !== callIdRef.current) {
-      console.log("Ignoring candidates for different call");
-      return;
-    }
-
-    const candidates = content.candidates;
-
-    for (const candidate of candidates) {
+  // Reject incoming call
+  const rejectCall = async () => {
+    if (client && callRoomIdRef.current && callIdRef.current) {
       try {
-        if (
-          peerConnectionRef.current &&
-          peerConnectionRef.current.remoteDescription
-        ) {
-          await peerConnectionRef.current.addIceCandidate(
-            new RTCIceCandidate(candidate)
-          );
-          console.log("Added ICE candidate");
-        } else {
-          // Store candidates until remote description is set
-          pendingCandidatesRef.current.push(candidate);
-          console.log("Stored ICE candidate for later");
-        }
-      } catch (error) {
-        console.error("Error adding ICE candidate:", error);
-      }
-    }
-  };
-
-  // Handle call hangup
-  const handleHangup = () => {
-    console.log("Hanging up call");
-
-    // Send hangup event only if we have an active call
-    if (
-      client &&
-      callRoomIdRef.current &&
-      callIdRef.current &&
-      callState !== "ended"
-    ) {
-      client
-        .sendEvent(callRoomIdRef.current, "m.call.hangup", {
+        console.log("Rejecting call...");
+        await client.sendEvent(callRoomIdRef.current, "m.call.hangup", {
           call_id: callIdRef.current,
           version: 1,
           reason: "user_hangup",
-        })
-        .catch(console.error);
+        });
+      } catch (error) {
+        console.error("Error sending hangup:", error);
+      }
     }
 
-    // Stop local stream
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((track) => track.stop());
-      localStreamRef.current = null;
-    }
+    handleHangup();
+  };
+
+  // Handle hangup
+  const handleHangup = () => {
+    console.log("🔴 Hanging up call...");
 
     // Close peer connection
     if (peerConnectionRef.current) {
@@ -612,34 +447,32 @@ const MatrixChat = () => {
       peerConnectionRef.current = null;
     }
 
-    // Clear pending candidates
-    pendingCandidatesRef.current = [];
-
-    // Reset state
-    setCallState("ended");
-    setTimeout(() => {
-      setShowVideoCall(false);
-      setCallState("idle");
-      setIsMuted(false);
-      setIsVideoEnabled(true);
-      setIsOutgoingCall(false);
-      callIdRef.current = "";
-      callRoomIdRef.current = ""; // Clear the room ID
-    }, 2000);
-  };
-
-  // Handle incoming hangup
-  const handleCallHangup = (event: any) => {
-    const content = event.getContent();
-
-    // Ignore if not our call
-    if (content.call_id !== callIdRef.current) {
-      console.log("Ignoring hangup for different call");
-      return;
+    // Stop local media
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+      localStreamRef.current = null;
     }
 
-    console.log("Remote user hung up");
-    handleHangup();
+    // Clear video elements
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    // Reset call state
+    setShowVideoCall(false);
+    setCallState("idle");
+    setIsOutgoingCall(false);
+    setIsMuted(false);
+    setIsVideoEnabled(true);
+    setRemoteName("");
+    callIdRef.current = "";
+    callRoomIdRef.current = "";
+    pendingCandidatesRef.current = [];
+
+    console.log("✅ Call cleanup complete");
   };
 
   // Toggle mute
@@ -664,55 +497,397 @@ const MatrixChat = () => {
     }
   };
 
-  // Setup Matrix client listeners
-  const setupClientListeners = (matrixClient: MatrixClientType) => {
-    // Suppress RTC warnings
-    const originalWarn = console.warn;
-    const originalError = console.error;
+  // Handle call invite event - wrapped in useCallback
+  const handleCallInvite = useCallback(
+    async (event: any) => {
+      console.log("📞 Received call invite:", event);
 
-    console.warn = (...args) => {
-      const message = args.join(" ").toString();
-      if (
-        message.includes("MatrixRTCSessionManager") ||
-        message.includes("unknown room") ||
-        message.includes("Got room state event")
-      ) {
+      const content = event.getContent();
+      const incomingCallId = content.call_id;
+      const offer = content.offer;
+      const roomId = event.getRoomId();
+
+      // Get room name for display
+      const room = clientRef.current?.getRoom(roomId);
+      let callerName = "Unknown";
+      if (room) {
+        callerName = room.name || "Unknown Room";
+      }
+
+      console.log(`Call from: ${callerName}`);
+      console.log(`Room ID: ${roomId}`);
+      console.log(`Call ID: ${incomingCallId}`);
+
+      // Store call information
+      callIdRef.current = incomingCallId;
+      callRoomIdRef.current = roomId;
+      setRemoteName(callerName);
+      setIsVideoCall(offer.sdp.includes("m=video"));
+      setIsOutgoingCall(false);
+
+      // Create peer connection
+      const pc = createPeerConnection();
+      peerConnectionRef.current = pc;
+
+      // Set remote description
+      try {
+        await pc.setRemoteDescription(
+          new RTCSessionDescription({
+            type: offer.type,
+            sdp: offer.sdp,
+          })
+        );
+        console.log("✅ Remote description set successfully");
+      } catch (error) {
+        console.error("Error setting remote description:", error);
         return;
       }
-      originalWarn.apply(console, args);
-    };
 
-    console.error = (...args) => {
-      const message = args.join(" ").toString();
+      // Show incoming call UI
+      setShowVideoCall(true);
+      setCallState("calling");
+    },
+    [createPeerConnection] // Added createPeerConnection dependency
+  );
+
+  // Handle call answer event - wrapped in useCallback
+  const handleCallAnswer = useCallback(
+    async (event: any) => {
+      console.log("📞 Received call answer:", event);
+
+      const content = event.getContent();
+      const answer = content.answer;
+
       if (
-        message.includes("MatrixRTCSessionManager") ||
-        message.includes("Got room state event")
+        !peerConnectionRef.current ||
+        content.call_id !== callIdRef.current
       ) {
+        console.log("Ignoring answer for different call");
         return;
       }
-      originalError.apply(console, args);
-    };
 
-    matrixClient.on("sync", async (state: string) => {
-      setSyncState(state);
-      if (state === "PREPARED") {
-        console.log("✅ Client synced and ready");
-        updateRoomsAndInvites(matrixClient);
+      try {
+        await peerConnectionRef.current.setRemoteDescription(
+          new RTCSessionDescription({
+            type: answer.type,
+            sdp: answer.sdp,
+          })
+        );
+        console.log("✅ Remote description set from answer");
+
+        // Process any pending ICE candidates
+        if (pendingCandidatesRef.current.length > 0) {
+          console.log(
+            `Processing ${pendingCandidatesRef.current.length} pending ICE candidates`
+          );
+          for (const candidate of pendingCandidatesRef.current) {
+            await peerConnectionRef.current.addIceCandidate(
+              new RTCIceCandidate(candidate)
+            );
+          }
+          pendingCandidatesRef.current = [];
+        }
+      } catch (error) {
+        console.error("Error setting remote description:", error);
       }
-    });
+    },
+    [] // No dependencies needed since we use refs for dynamic values
+  );
 
-    // Listen for new messages and timeline updates
-    matrixClient.on(
-      "Room.timeline",
-      (event: any, room: any, toStartOfTimeline: boolean) => {
-        // Only handle live events (not historical)
-        if (toStartOfTimeline) return;
+  // Handle ICE candidates - wrapped in useCallback
+  const handleCallCandidates = useCallback(
+    async (event: any) => {
+      const content = event.getContent();
+
+      if (content.call_id !== callIdRef.current) {
+        console.log("Ignoring candidates for different call");
+        return;
+      }
+
+      if (!peerConnectionRef.current) {
+        console.log("No peer connection, storing candidates for later");
+        pendingCandidatesRef.current.push(...content.candidates);
+        return;
+      }
+
+      // Check if we have a remote description
+      if (!peerConnectionRef.current.remoteDescription) {
+        console.log(
+          "No remote description yet, storing candidates for later"
+        );
+        pendingCandidatesRef.current.push(...content.candidates);
+        return;
+      }
+
+      // Add candidates
+      for (const candidate of content.candidates) {
+        try {
+          await peerConnectionRef.current.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+          console.log("✅ Added ICE candidate");
+        } catch (error) {
+          console.error("Error adding ICE candidate:", error);
+        }
+      }
+    },
+    [] // No dependencies needed since we use refs for dynamic values
+  );
+
+  // Handle call hangup - wrapped in useCallback
+  const handleCallHangup = useCallback(
+    (event: any) => {
+      console.log("📞 Received call hangup:", event);
+
+      const content = event.getContent();
+      if (content.call_id === callIdRef.current) {
+        console.log("Call ended by remote party");
+        setCallState("ended");
+        setTimeout(() => {
+          handleHangup();
+        }, 2000);
+      }
+    },
+    [] // No dependencies needed since we use refs for dynamic values
+  );
+
+  // Switch to a different room
+  const switchRoom = (room: any) => {
+    console.log("Switching to room:", room.roomId);
+    setSelectedRoom(room);
+    loadMessages(room);
+  };
+
+  // Send a message
+  const sendMessage = async () => {
+    if (!client || !selectedRoom || !newMessage.trim()) return;
+
+    setSending(true);
+    try {
+      await client.sendTextMessage(selectedRoom.roomId, newMessage.trim());
+      setNewMessage("");
+
+      // Reload messages after a brief delay to show the sent message
+      setTimeout(() => {
+        loadMessages(selectedRoom);
+      }, 500);
+    } catch (err: any) {
+      console.error("Failed to send message:", err);
+      setError(err.message || "Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Login to Matrix
+  const handleLogin = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const sdk = await getMatrixSdk();
+      const homeserverUrl = getHomeserver();
+      const storedDeviceId = getOrCreateDeviceId();
+
+      console.log("🔐 Logging in to Matrix...");
+      console.log("Homeserver:", homeserverUrl);
+      console.log("Username:", username);
+
+      const matrixClient = sdk.createClient({
+        baseUrl: homeserverUrl,
+      });
+
+      const loginResponse = await matrixClient.loginWithPassword(
+        username.trim(),
+        password,
+        {
+          type: "m.login.password",
+          device_id: storedDeviceId,
+          initial_device_display_name: "Web Client",
+        }
+      );
+
+      console.log("✅ Login successful!");
+      console.log("User ID:", loginResponse.user_id);
+      console.log("Access Token:", loginResponse.access_token?.substring(0, 20) + "...");
+      console.log("Device ID:", loginResponse.device_id);
+
+      // Store credentials
+      setMatrixUserId(loginResponse.user_id);
+      setAccessToken(loginResponse.access_token);
+      setDeviceId(loginResponse.device_id);
+
+      // Save to localStorage
+      localStorage.setItem("matrix_user_id", loginResponse.user_id);
+      localStorage.setItem("matrix_access_token", loginResponse.access_token);
+      localStorage.setItem("matrix_device_id", loginResponse.device_id);
+      localStorage.setItem("matrix_homeserver", homeserverUrl);
+
+      // Create authenticated client
+      const authenticatedClient = sdk.createClient({
+        baseUrl: homeserverUrl,
+        accessToken: loginResponse.access_token,
+        userId: loginResponse.user_id,
+        deviceId: loginResponse.device_id,
+      });
+
+      setClient(authenticatedClient);
+      setIsAuthenticated(true);
+
+      // Clear password
+      setPassword("");
+
+      console.log("✅ Client initialized successfully");
+    } catch (err: any) {
+      console.error("❌ Login error:", err);
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Register a new Matrix account
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const sdk = await getMatrixSdk();
+      const homeserverUrl = getHomeserver();
+      const storedDeviceId = getOrCreateDeviceId();
+
+      console.log("📝 Registering new Matrix account...");
+      console.log("Homeserver:", homeserverUrl);
+      console.log("Username:", username);
+
+      const matrixClient = sdk.createClient({
+        baseUrl: homeserverUrl,
+      });
+
+      const registerResponse = await matrixClient.register(
+        username.trim(),
+        password,
+        undefined,
+        {
+          type: "m.login.dummy",
+        }
+      );
+
+      console.log("✅ Registration successful!");
+      console.log("User ID:", registerResponse.user_id);
+      console.log("Access Token:", registerResponse.access_token?.substring(0, 20) + "...");
+      console.log("Device ID:", registerResponse.device_id);
+
+      // Store credentials
+      setMatrixUserId(registerResponse.user_id);
+      setAccessToken(registerResponse.access_token);
+      setDeviceId(registerResponse.device_id || storedDeviceId);
+
+      // Save to localStorage
+      localStorage.setItem("matrix_user_id", registerResponse.user_id);
+      localStorage.setItem("matrix_access_token", registerResponse.access_token);
+      localStorage.setItem(
+        "matrix_device_id",
+        registerResponse.device_id || storedDeviceId
+      );
+      localStorage.setItem("matrix_homeserver", homeserverUrl);
+
+      // Create authenticated client
+      const authenticatedClient = sdk.createClient({
+        baseUrl: homeserverUrl,
+        accessToken: registerResponse.access_token,
+        userId: registerResponse.user_id,
+        deviceId: registerResponse.device_id || storedDeviceId,
+      });
+
+      setClient(authenticatedClient);
+      setIsAuthenticated(true);
+
+      // Clear passwords
+      setPassword("");
+      setConfirmPassword("");
+
+      console.log("✅ Client initialized successfully");
+    } catch (err: any) {
+      console.error("❌ Registration error:", err);
+      setError(err.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout
+  const handleLogout = async () => {
+    if (client) {
+      try {
+        await client.stopClient();
+        await client.logout();
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
+    }
+
+    // Clear state
+    setClient(null);
+    setIsAuthenticated(false);
+    setMatrixUserId("");
+    setAccessToken("");
+    setDeviceId("");
+    setRooms([]);
+    setInvites([]);
+    setSelectedRoom(null);
+    setMessages([]);
+
+    // Clear localStorage
+    localStorage.removeItem("matrix_user_id");
+    localStorage.removeItem("matrix_access_token");
+    localStorage.removeItem("matrix_device_id");
+
+    console.log("✅ Logged out successfully");
+  };
+
+  // Set up Matrix event listeners - Fixed: Moved call handlers inside useCallback
+  const setupEventListeners = useCallback(
+    (matrixClient: MatrixClientType) => {
+      console.log("📡 Setting up event listeners...");
+
+      // Timeline event (new messages)
+      matrixClient.on("Room.timeline" as any, (event: any, room: any) => {
+        // Ignore events for rooms we don't know about
+        if (!room) {
+          console.log("⚠️ Received event for unknown room, ignoring");
+          return;
+        }
 
         const eventType = event.getType();
+        const roomId = event.getRoomId();
 
-        // Handle call events
+        // Verify the room exists in our client
+        const knownRoom =( matrixClient as any).getRoom(roomId);
+        if (!knownRoom) {
+          console.log(`⚠️ Received event for room ${roomId} not in client state, ignoring`);
+          return;
+        }
+
+        // Handle regular messages
+        if (eventType === "m.room.message") {
+          if (
+            selectedRoomRef.current &&
+            roomId === selectedRoomRef.current.roomId
+          ) {
+            console.log("📨 New message in current room, reloading messages");
+            loadMessages(selectedRoomRef.current);
+          }
+        }
+
+        // Handle call events only for known rooms
         if (eventType === "m.call.invite") {
-          handleCallInvite(event, room); // Pass room to the handler
+          handleCallInvite(event);
         } else if (eventType === "m.call.answer") {
           handleCallAnswer(event);
         } else if (eventType === "m.call.candidates") {
@@ -720,263 +895,202 @@ const MatrixChat = () => {
         } else if (eventType === "m.call.hangup") {
           handleCallHangup(event);
         }
+      });
 
-        // Update room list to show new message count
+      // Room membership changes (for all members)
+      matrixClient.on("RoomMember.membership" as any, () => {
+        console.log("👥 Membership changed, updating rooms");
         updateRoomsAndInvites(matrixClient);
+      });
 
-        // If the event is in the currently selected room, update messages
-        if (
-          room &&
-          selectedRoomRef.current &&
-          room.roomId === selectedRoomRef.current.roomId
-        ) {
-          loadMessages(room);
+      // My membership changes (specifically for invites) - REAL-TIME INVITES
+      matrixClient.on("Room.myMembership" as any, (room: any, membership: string, prevMembership: string) => {
+        console.log(`🔔 My membership changed in room ${room.roomId}: ${prevMembership} → ${membership}`);
+        
+        // Immediately update rooms and invites when we receive/accept/reject an invite
+        if (membership === "invite") {
+          console.log("📩 NEW INVITE RECEIVED in real-time!");
+        } else if (prevMembership === "invite" && membership === "join") {
+          console.log("✅ Invite accepted");
+        } else if (prevMembership === "invite" && membership === "leave") {
+          console.log("❌ Invite rejected");
         }
-      }
-    );
-
-    // Listen for membership changes (including invites)
-    matrixClient.on("RoomMember.membership", (event: any, member: any) => {
-      if (member.userId === matrixClient.getUserId()) {
-        console.log("Membership changed:", member.membership);
+        
+        // Update the UI immediately
         updateRoomsAndInvites(matrixClient);
-      }
-    });
+      });
 
-    // Listen for room name changes
-    matrixClient.on("Room.name", (room: any) => {
-      updateRoomsAndInvites(matrixClient);
-    });
-  };
+      // New room created/joined - REAL-TIME ROOM DETECTION
+      matrixClient.on("Room" as any, (room: any) => {
+        console.log("🆕 New room detected:", room.roomId);
+        const membership = room.getMyMembership();
+        console.log(`Room membership: ${membership}`);
+        
+        // Update immediately when a new room appears (including invites)
+        updateRoomsAndInvites(matrixClient);
+      });
 
-  // Restore session on mount
+      // Sync state changes
+      matrixClient.on("sync" as any, (state: string, prevState: string | null, data: any) => {
+        console.log("🔄 Sync state:", state);
+        setSyncState(state);
+
+        if (state === "PREPARED") {
+          console.log("✅ Initial sync complete");
+          updateRoomsAndInvites(matrixClient);
+        } else if (state === "SYNCING") {
+          // Also update during ongoing sync to catch new invites quickly
+          updateRoomsAndInvites(matrixClient);
+        } else if (state === "ERROR") {
+          console.error("❌ Sync error:", data);
+          // Don't set error state here as it might be temporary
+        }
+      });
+
+      // Handle unknown room state events (suppress warnings)
+      matrixClient.on("RoomState.events" as any, (event: any, state: any, room: any) => {
+        if (!room) {
+          // Silently ignore - this is expected for rooms we're not part of
+          return;
+        }
+      });
+
+      console.log("✅ Event listeners set up");
+    },
+    [
+      loadMessages,
+      updateRoomsAndInvites,
+      handleCallInvite,
+      handleCallAnswer,
+      handleCallCandidates,
+      handleCallHangup,
+    ]
+  );
+
+  // Start syncing when client is available
   useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        if (authUser) {
-          //   const session = JSON.parse(savedSession);
-          //   const { accessToken: token, userId, homeserver, deviceId: savedDeviceId } = session;
-          if (!authUser?.matrix) {
-            console.warn("Matrix info missing from authUser:", authUser);
-            return; // or handle gracefully
-          }
-          // Use saved device ID or create new one
-          const currentDeviceId = getOrCreateDeviceId();
+    if (client && isAuthenticated) {
+      console.log("🚀 Starting Matrix sync...");
 
-          const sdk = await getMatrixSdk();
-          const restoredClient = sdk.createClient({
-            baseUrl:
-              process.env.NEXT_PUBLIC_MATRIX_HOMESERVER ||
-              "https://matrix.151.hu",
-            accessToken: authUser.matrix?.matrixAccessToken,
-            userId: authUser.matrix?.matrixUserId,
-            deviceId: currentDeviceId,
-          }) as MatrixClientType;
+      // Set up event listeners
+      setupEventListeners(client);
 
-          setupClientListeners(restoredClient);
-          await restoredClient.startClient();
+      // Start syncing with better configuration
+      client
+        .startClient()
+        .then(() => {
+          console.log("✅ Client started successfully");
+        })
+        .catch((err: any) => {
+          console.error("❌ Failed to start client:", err);
+          setError("Failed to start sync");
+        });
 
-          console.log("client", restoredClient);
-
-          setClient(restoredClient);
-          setMatrixUserId(authUser.matrix.matrixUserId);
-          setAccessToken(authUser.matrix.matrixAccessToken);
-          setDeviceId(currentDeviceId);
-          setIsAuthenticated(true);
-
-          // Update saved session with device ID
-          //   if (!currentDeviceId) {
-          //     localStorage.setItem(
-          //       "real_estate_matrix_session",
-          //       JSON.stringify({
-          //         accessToken: token,
-          //         userId,
-          //         homeserver,
-          //         deviceId: currentDeviceId,
-          //       })
-          //     );
-          //   }
+      return () => {
+        console.log("🛑 Stopping client...");
+        try {
+          client.stopClient();
+        } catch (err) {
+          console.error("Error stopping client:", err);
         }
-      } catch (error) {
-        console.error("Failed to restore session:", error);
-        localStorage.removeItem("real_estate_matrix_session");
+      };
+    }
+  }, [client, isAuthenticated, setupEventListeners]);
+
+  // Auto-login to Matrix using backend auth credentials
+  useEffect(() => {
+    const autoLogin = async () => {
+      // If already authenticated, skip
+      if (isAuthenticated || !authUser) {
+        setIsRestoringSession(false);
+        return;
+      }
+
+      // Check if we have Matrix credentials from backend
+      if (!authUser.matrix?.matrixUserId || !authUser.matrix?.matrixAccessToken) {
+        console.log("⚠️ No Matrix credentials in authUser");
+        setIsRestoringSession(false);
+        return;
+      }
+
+      try {
+        console.log("🔐 Connecting to Matrix using backend credentials...");
+        console.log("Matrix User ID:", authUser.matrix.matrixUserId);
+        console.log("Homeserver:", authUser.matrix.matrixHomeserver);
+
+        setLoading(true);
+        const sdk = await getMatrixSdk();
+        const homeserverUrl = authUser.matrix.matrixHomeserver || getHomeserver();
+        const deviceId = getOrCreateDeviceId();
+
+        // Create authenticated client directly using the access token
+        const authenticatedClient = sdk.createClient({
+          baseUrl: homeserverUrl,
+          accessToken: authUser.matrix.matrixAccessToken,
+          userId: authUser.matrix.matrixUserId,
+          deviceId: deviceId,
+        });
+
+        // Store credentials
+        setMatrixUserId(authUser.matrix.matrixUserId);
+        setAccessToken(authUser.matrix.matrixAccessToken);
+        setDeviceId(deviceId);
+
+        // Save to localStorage for future sessions
+        localStorage.setItem("matrix_user_id", authUser.matrix.matrixUserId);
+        localStorage.setItem("matrix_access_token", authUser.matrix.matrixAccessToken);
+        localStorage.setItem("matrix_device_id", deviceId);
+        localStorage.setItem("matrix_homeserver", homeserverUrl);
+
+        setClient(authenticatedClient);
+        setIsAuthenticated(true);
+
+        console.log("✅ Matrix client initialized successfully");
+      } catch (err: any) {
+        console.error("❌ Matrix connection error:", err);
+        setError(err.message || "Failed to connect to Matrix");
       } finally {
+        setLoading(false);
         setIsRestoringSession(false);
       }
     };
 
-    restoreSession();
-  }, [authUser]);
+    autoLogin();
+  }, [authUser, isAuthenticated]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (client) {
-        client.stopClient();
-        client.removeAllListeners();
-      }
-      // Cleanup call resources
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-      }
-    };
-  }, [client]);
-
-  // Handle authentication
-  //   const handleAuth = async () => {
-  //     if (!username || !password) {
-  //       setError("Please fill in all fields");
-  //       return;
-  //     }
-
-  //     if (authMode === "register" && password !== confirmPassword) {
-  //       setError("Passwords don't match");
-  //       return;
-  //     }
-
-  //     setLoading(true);
-  //     setError("");
-
-  //     try {
-  //       const homeserver = getHomeserver();
-  //       const sdk = await getMatrixSdk();
-  //       const currentDeviceId = getOrCreateDeviceId();
-
-  //       const tempClient = sdk.createClient({
-  //         baseUrl: homeserver,
-  //         deviceId: currentDeviceId,
-  //       });
-
-  //       let result;
-  //       if (authMode === "register") {
-  //         result = await tempClient.register(username, password);
-  //       } else {
-  //         result = await tempClient.login("m.login.password", {
-  //           user: username,
-  //           password: password,
-  //           device_id: currentDeviceId,
-  //         });
-  //       }
-
-  //       const authenticatedClient = sdk.createClient({
-  //         baseUrl: homeserver,
-  //         accessToken: result.access_token,
-  //         userId: result.user_id,
-  //         deviceId: result.device_id || currentDeviceId,
-  //       }) as MatrixClientType;
-
-  //       localStorage.setItem(
-  //         "real_estate_matrix_session",
-  //         JSON.stringify({
-  //           accessToken: result.access_token,
-  //           userId: result.user_id,
-  //           homeserver,
-  //           deviceId: result.device_id || currentDeviceId,
-  //         })
-  //       );
-
-  //       setupClientListeners(authenticatedClient);
-  //       await authenticatedClient.startClient();
-
-  //       setClient(authenticatedClient);
-  //       setMatrixUserId(result.user_id);
-  //       setAccessToken(result.access_token);
-  //       setDeviceId(result.device_id || currentDeviceId);
-  //       setIsAuthenticated(true);
-  //       setUsername("");
-  //       setPassword("");
-  //       setConfirmPassword("");
-  //     } catch (err: any) {
-  //       console.error("Auth error:", err);
-  //       setError(err.message || "Authentication failed");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      if (client) {
-        await client.logout();
-        client.stopClient();
-        client.removeAllListeners();
-      }
-      localStorage.removeItem("real_estate_matrix_session");
-      setClient(null);
-      setIsAuthenticated(false);
-      setMatrixUserId("");
-      setAccessToken("");
-      setDeviceId("");
-      setRooms([]);
-      setInvites([]);
-      setSelectedRoom(null);
-      setMessages([]);
-      setIsChatOpen(false);
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
-
-  // Switch to a different room
-  const switchRoom = async (room: any) => {
-    setSelectedRoom(room);
-    await loadMessages(room);
-  };
-
-  // Send a message
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedRoom || !client) return;
-
-    setSending(true);
-    try {
-      await client.sendTextMessage(selectedRoom.roomId, newMessage);
-      setNewMessage("");
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  //   // Handle contact seller
-  //   const handleContactSeller = async () => {
+  // Create room via API - COMMENTED OUT
+  //   const handleCreateRoom = async () => {
   //     if (!targetUserId.trim()) {
-  //       setError("Please enter a seller username");
+  //       setError("Please enter a valid user ID");
   //       return;
   //     }
-
+  //
   //     setCreatingRoom(true);
   //     setError("");
-
+  //
   //     try {
   //       const formattedUserId = formatUserId(targetUserId.trim(), getHomeserver());
-  //       console.log("Creating room with seller:", formattedUserId);
-
-  //       const roomName = selectedProperty
-  //         ? `${selectedProperty.title}`
-  //         : "Property Inquiry";
-  //       const topic = selectedProperty
-  //         ? `Discussion about ${selectedProperty.address}`
-  //         : "Property discussion";
-
+  //       console.log("Creating room with user:", formattedUserId);
+  //
+  //       // Extract username for room name
+  //       const username = extractUsername(targetUserId.trim());
+  //       const roomName = `Chat with ${username}`;
+  //       const topic = `Direct conversation`;
+  //
   //       const result = await createRoomViaAPI(
   //         accessToken,
   //         roomName,
   //         topic,
   //         formattedUserId,
-  //         false
+  //         true
   //       );
-
+  //
   //       console.log("Room created:", result.roomId);
-
+  //
   //       setShowContactModal(false);
   //       setTargetUserId("");
   //       setIsChatOpen(true);
-
+  //
   //       setTimeout(() => {
   //         if (client) {
   //           const allRooms = client.getRooms();
@@ -1022,19 +1136,19 @@ const MatrixChat = () => {
   //     setError("Please enter a valid user ID");
   //     return;
   //   }
-
+  //
   //   setCreatingDirectChat(true);
   //   setError("");
-
+  //
   //   try {
   //     //   const formattedUserId = formatUserId(directChatUserId.trim(), getHomeserver());
   //     //   console.log("Creating direct chat with user:", formattedUserId);
-
+  //
   //     // Extract username for room name
   //     //   const username = extractUsername(directChatUserId.trim());
   //     const roomName = `Chat with ${username}`;
   //     const topic = `Direct conversation`;
-
+  //
   //     const result = await createRoomViaAPI(
   //       accessToken,
   //       roomName,
@@ -1042,13 +1156,13 @@ const MatrixChat = () => {
   //       formattedUserId,
   //       true
   //     );
-
+  //
   //     console.log("Direct chat room created:", result.roomId);
-
+  //
   //     setShowDirectChatModal(false);
   //     setDirectChatUserId("");
   //     setIsChatOpen(true);
-
+  //
   //     setTimeout(() => {
   //       if (client) {
   //         const allRooms = client.getRooms();
@@ -1133,7 +1247,6 @@ const MatrixChat = () => {
     try {
       console.log("Leaving room:", roomToLeave.roomId);
       console.log("accessToken", accessToken);
-      
 
       await leaveRoomViaAPI(accessToken, roomToLeave.roomId);
 
@@ -1164,14 +1277,141 @@ const MatrixChat = () => {
   //     const { propertyAddress } = getRoomDisplayInfo(selectedRoom);
   //     return propertyAddress;
   //   };
+
+  // Show loading state while checking for existing session or auto-logging in
+  if (isRestoringSession || loading) {
+    return (
+      <div className="chat_matrix_container">
+        <button className="matrix_chat_Btn" disabled>
+          <MessageCircle size={24} className="icon_msg" />
+        </button>
+      </div>
+    );
+  }
+
+  // Show error state if auto-login failed and no authUser
+  if (!isAuthenticated && !authUser) {
+    return (
+      <div className="chat_matrix_container">
+        <button
+          className="matrix_chat_Btn"
+          onClick={() => setIsChatOpen(!isChatOpen)}
+        >
+          <MessageCircle size={24} className="icon_msg" />
+        </button>
+        
+        {isChatOpen && (
+          <div className="matrix_chat_window">
+            <div className="matrix_chat_window_header_wrapper">
+              <h3 className="header_title">Matrix Chat</h3>
+              <button
+                className="matrix_chat_close_Btn"
+                onClick={() => setIsChatOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ padding: "20px", textAlign: "center" }}>
+              <p>Please log in to your account to use chat.</p>
+              {error && (
+                <div
+                  style={{
+                    padding: "10px",
+                    marginTop: "15px",
+                    backgroundColor: "#fee",
+                    color: "#c00",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Show error state if authUser exists but Matrix login failed
+  if (!isAuthenticated && authUser && error) {
+    return (
+      <div className="chat_matrix_container">
+        <button
+          className="matrix_chat_Btn"
+          onClick={() => setIsChatOpen(!isChatOpen)}
+        >
+          <MessageCircle size={24} className="icon_msg" />
+        </button>
+        
+        {isChatOpen && (
+          <div className="matrix_chat_window">
+            <div className="matrix_chat_window_header_wrapper">
+              <h3 className="header_title">Matrix Connection Error</h3>
+              <button
+                className="matrix_chat_close_Btn"
+                onClick={() => setIsChatOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ padding: "20px" }}>
+              <div
+                style={{
+                  padding: "10px",
+                  backgroundColor: "#fee",
+                  color: "#c00",
+                  borderRadius: "4px",
+                  marginBottom: "15px",
+                }}
+              >
+                {error}
+              </div>
+              <p style={{ fontSize: "14px", color: "#666" }}>
+                Unable to connect to Matrix chat. Please try refreshing the page or contact support if the problem persists.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Main authenticated chat UI
   return (
     <div className="chat_matrix_container">
       {!isChatOpen && (
         <button
           className="matrix_chat_Btn"
           onClick={() => setIsChatOpen(!isChatOpen)}
+          style={{ position: "relative" }}
         >
           <MessageCircle size={24} className="icon_msg" />
+          {/* Show badge when there are pending invites */}
+          {invites.length > 0 && (
+            <span
+              style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                backgroundColor: "#ff4444",
+                color: "white",
+                borderRadius: "50%",
+                width: "20px",
+                height: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                fontWeight: "bold",
+                border: "2px solid white",
+              }}
+            >
+              {invites.length}
+            </span>
+          )}
         </button>
       )}
       {isChatOpen && (
@@ -1181,7 +1421,24 @@ const MatrixChat = () => {
             <div className="">
               <h3 className="header_title">Messaging</h3>
             </div>
-            <div className="">
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <span style={{ fontSize: "12px", color: "#666" }}>
+                {matrixUserId}
+              </span>
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: "5px 10px",
+                  fontSize: "12px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Logout
+              </button>
               <button
                 className="matrix_chat_close_Btn"
                 onClick={() => setIsChatOpen(!isChatOpen)}
