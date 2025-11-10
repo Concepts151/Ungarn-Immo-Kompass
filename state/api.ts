@@ -7,8 +7,8 @@ const supabase = createClient();
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
-    // baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "3002",
-    baseUrl: "http://localhost:3005",
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
+    // baseUrl: "http://localhost:3005",
     prepareHeaders: async (headers) => {
       const {
         data: { session },
@@ -44,14 +44,14 @@ export const api = createApi({
               ? `/seller/${user?.id}`
               : "";
           console.log("endpoint:", endpoint);
-          
+
           let userDetailsResponse = await fetchWithBQ(endpoint);
           console.log("user:", user);
           console.log("userDetailsResponse:", userDetailsResponse);
 
           if (!userDetailsResponse.data) {
             userDetailsResponse = await createNewUserInDatabase(
-              user, 
+              user,
               idToken,
               userRole,
               fetchWithBQ
@@ -60,18 +60,21 @@ export const api = createApi({
 
           // Get Matrix credentials if user has a matrixUserId
           let matrixCredentials = null;
-          const userData = userDetailsResponse.data as { matrixUserId?: string; matrixPassword?: string };
+          const userData = userDetailsResponse.data as {
+            matrixUserId?: string;
+            matrixPassword?: string;
+          };
           if (userData?.matrixUserId && userData?.matrixPassword) {
             try {
               const matrixResponse = await fetchWithBQ({
-                url: 'auth/matrix-token',  // Remove leading slash
-                method: 'POST',
+                url: "auth/matrix-token", // Remove leading slash
+                method: "POST",
                 body: {
                   matrixUserId: userData.matrixUserId,
-                  matrixPassword: userData.matrixPassword
-                }
+                  matrixPassword: userData.matrixPassword,
+                },
               });
-              
+
               if (matrixResponse.data) {
                 matrixCredentials = matrixResponse.data;
               }
