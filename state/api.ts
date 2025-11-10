@@ -27,6 +27,9 @@ export const api = createApi({
   endpoints: (build) => ({
     getAuthUser: build.query<any, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
+
+        console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
+        
         try {
           const {
             data: { session },
