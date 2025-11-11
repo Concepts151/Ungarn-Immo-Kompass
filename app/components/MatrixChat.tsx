@@ -1422,23 +1422,7 @@ const MatrixChat = () => {
               <h3 className="header_title">Messaging</h3>
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <span style={{ fontSize: "12px", color: "#666" }}>
-                {matrixUserId}
-              </span>
-              <button
-                onClick={handleLogout}
-                style={{
-                  padding: "5px 10px",
-                  fontSize: "12px",
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Logout
-              </button>
+             
               <button
                 className="matrix_chat_close_Btn"
                 onClick={() => setIsChatOpen(!isChatOpen)}

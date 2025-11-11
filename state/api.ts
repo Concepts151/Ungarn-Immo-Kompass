@@ -2,6 +2,7 @@ import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { log } from "console";
 
 const supabase = createClient();
 
@@ -27,13 +28,19 @@ export const api = createApi({
   endpoints: (build) => ({
     getAuthUser: build.query<any, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
-
         console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
-        
+
         try {
           const {
             data: { session },
           } = await supabase.auth.getSession();
+
+          const { data: supabaseUserData } = await supabase
+            .from("user")
+            .select("*")
+            .eq("id", session?.user.id)
+            .single();
+          console.log("supabaseUserData:", supabaseUserData);
 
           const idToken = session?.access_token;
           const user = session?.user;
@@ -48,13 +55,16 @@ export const api = createApi({
               : "";
           console.log("endpoint:", endpoint);
 
+          const userNewData = { ...user, ...supabaseUserData };
+          console.log("userNewData:", userNewData);
+
           let userDetailsResponse = await fetchWithBQ(endpoint);
           console.log("user:", user);
           console.log("userDetailsResponse:", userDetailsResponse);
 
           if (!userDetailsResponse.data) {
             userDetailsResponse = await createNewUserInDatabase(
-              user,
+              userNewData,
               idToken,
               userRole,
               fetchWithBQ
