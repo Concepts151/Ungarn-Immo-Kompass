@@ -40,7 +40,9 @@ interface AuthUser {
 }
 
 const MatrixChat = () => {
-  const { data: authUser } = useGetAuthUserQuery() as { data: AuthUser | undefined };
+  const { data: authUser } = useGetAuthUserQuery() as {
+    data: AuthUser | undefined;
+  };
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -130,9 +132,9 @@ const MatrixChat = () => {
 
   // Request notification permission on mount
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        console.log('Notification permission:', permission);
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().then((permission) => {
+        console.log("Notification permission:", permission);
       });
     }
   }, []);
@@ -167,52 +169,55 @@ const MatrixChat = () => {
   }, []);
 
   // Update rooms and invites from client
-  const updateRoomsAndInvites = useCallback((matrixClient: MatrixClientType) => {
-    const allRooms = matrixClient.getRooms();
+  const updateRoomsAndInvites = useCallback(
+    (matrixClient: MatrixClientType) => {
+      const allRooms = matrixClient.getRooms();
 
-    // Separate rooms by membership status
-    const joinedRooms = allRooms.filter((room) => {
-      const membership = room.getMyMembership();
-      return membership === "join";
-    });
+      // Separate rooms by membership status
+      const joinedRooms = allRooms.filter((room) => {
+        const membership = room.getMyMembership();
+        return membership === "join";
+      });
 
-    const invitedRooms = allRooms.filter((room) => {
-      const membership = room.getMyMembership();
-      return membership === "invite";
-    });
+      const invitedRooms = allRooms.filter((room) => {
+        const membership = room.getMyMembership();
+        return membership === "invite";
+      });
 
-    console.log(
-      `Found ${joinedRooms.length} joined rooms and ${invitedRooms.length} invites`
-    );
-    
-    // Check for new invites using ref
-    const previousInviteCount = prevInviteCountRef.current;
-    const newInviteCount = invitedRooms.length;
-    
-    // Update the ref
-    prevInviteCountRef.current = newInviteCount;
-    
-    // Show notification for new invites
-    if (newInviteCount > previousInviteCount) {
-      const newInvitesReceived = newInviteCount - previousInviteCount;
-      console.log(`🔔 ${newInvitesReceived} new invite(s) received!`);
-      
-      // Show browser notification if permission granted
-      if ('Notification' in window && Notification.permission === 'granted') {
-        const latestInvite = invitedRooms[invitedRooms.length - 1];
-        const roomName = latestInvite?.name || 'Unknown Room';
-        new Notification('New Chat Invite', {
-          body: `You've been invited to ${roomName}`,
-          icon: '/favicon.ico',
-          tag: 'matrix-invite',
-        });
+      console.log(
+        `Found ${joinedRooms.length} joined rooms and ${invitedRooms.length} invites`
+      );
+
+      // Check for new invites using ref
+      const previousInviteCount = prevInviteCountRef.current;
+      const newInviteCount = invitedRooms.length;
+
+      // Update the ref
+      prevInviteCountRef.current = newInviteCount;
+
+      // Show notification for new invites
+      if (newInviteCount > previousInviteCount) {
+        const newInvitesReceived = newInviteCount - previousInviteCount;
+        console.log(`🔔 ${newInvitesReceived} new invite(s) received!`);
+
+        // Show browser notification if permission granted
+        if ("Notification" in window && Notification.permission === "granted") {
+          const latestInvite = invitedRooms[invitedRooms.length - 1];
+          const roomName = latestInvite?.name || "Unknown Room";
+          new Notification("New Chat Invite", {
+            body: `You've been invited to ${roomName}`,
+            icon: "/favicon.ico",
+            tag: "matrix-invite",
+          });
+        }
       }
-    }
-    
-    // Update state
-    setRooms(joinedRooms);
-    setInvites(invitedRooms);
-  }, []); // NO dependencies - this function is now stable
+
+      // Update state
+      setRooms(joinedRooms);
+      setInvites(invitedRooms);
+    },
+    []
+  ); // NO dependencies - this function is now stable
 
   // Initialize WebRTC peer connection
   const createPeerConnection = useCallback(() => {
@@ -561,10 +566,7 @@ const MatrixChat = () => {
       const content = event.getContent();
       const answer = content.answer;
 
-      if (
-        !peerConnectionRef.current ||
-        content.call_id !== callIdRef.current
-      ) {
+      if (!peerConnectionRef.current || content.call_id !== callIdRef.current) {
         console.log("Ignoring answer for different call");
         return;
       }
@@ -608,16 +610,14 @@ const MatrixChat = () => {
       }
 
       if (!peerConnectionRef.current) {
-        console.log("No peer connection, storing candidates for later"); 
+        console.log("No peer connection, storing candidates for later");
         pendingCandidatesRef.current.push(...content.candidates);
         return;
       }
 
       // Check if we have a remote description
       if (!peerConnectionRef.current.remoteDescription) {
-        console.log(
-          "No remote description yet, storing candidates for later"
-        );
+        console.log("No remote description yet, storing candidates for later");
         pendingCandidatesRef.current.push(...content.candidates);
         return;
       }
@@ -712,7 +712,10 @@ const MatrixChat = () => {
 
       console.log("✅ Login successful!");
       console.log("User ID:", loginResponse.user_id);
-      console.log("Access Token:", loginResponse.access_token?.substring(0, 20) + "...");
+      console.log(
+        "Access Token:",
+        loginResponse.access_token?.substring(0, 20) + "..."
+      );
       console.log("Device ID:", loginResponse.device_id);
 
       // Store credentials
@@ -783,7 +786,10 @@ const MatrixChat = () => {
 
       console.log("✅ Registration successful!");
       console.log("User ID:", registerResponse.user_id);
-      console.log("Access Token:", registerResponse.access_token?.substring(0, 20) + "...");
+      console.log(
+        "Access Token:",
+        registerResponse.access_token?.substring(0, 20) + "..."
+      );
       console.log("Device ID:", registerResponse.device_id);
 
       // Store credentials
@@ -793,7 +799,10 @@ const MatrixChat = () => {
 
       // Save to localStorage
       localStorage.setItem("matrix_user_id", registerResponse.user_id);
-      localStorage.setItem("matrix_access_token", registerResponse.access_token);
+      localStorage.setItem(
+        "matrix_access_token",
+        registerResponse.access_token
+      );
       localStorage.setItem(
         "matrix_device_id",
         registerResponse.device_id || storedDeviceId
@@ -873,7 +882,9 @@ const MatrixChat = () => {
         // Verify the room exists in our client
         const knownRoom = (matrixClient as any).getRoom(roomId);
         if (!knownRoom) {
-          console.log(`⚠️ Received event for room ${roomId} not in client state, ignoring`);
+          console.log(
+            `⚠️ Received event for room ${roomId} not in client state, ignoring`
+          );
           return;
         }
 
@@ -905,9 +916,15 @@ const MatrixChat = () => {
         updateRoomsAndInvites(matrixClient);
       };
 
-      const myMembershipHandler = (room: any, membership: string, prevMembership: string) => {
-        console.log(`🔔 My membership changed in room ${room.roomId}: ${prevMembership} → ${membership}`);
-        
+      const myMembershipHandler = (
+        room: any,
+        membership: string,
+        prevMembership: string
+      ) => {
+        console.log(
+          `🔔 My membership changed in room ${room.roomId}: ${prevMembership} → ${membership}`
+        );
+
         // Log what type of change this is
         if (membership === "invite") {
           console.log("📩 NEW INVITE RECEIVED in real-time!");
@@ -918,7 +935,7 @@ const MatrixChat = () => {
         } else if (prevMembership === "join" && membership === "leave") {
           console.log("🚪 LEFT ROOM");
         }
-        
+
         // Immediately update the UI - no delay needed since the client state has changed
         console.log("🔄 Updating room lists from myMembership event");
         updateRoomsAndInvites(matrixClient);
@@ -928,12 +945,16 @@ const MatrixChat = () => {
         console.log("🆕 New room detected:", room.roomId);
         const membership = room.getMyMembership();
         console.log(`Room membership: ${membership}`);
-        
+
         // Update immediately when a new room appears (including invites)
         updateRoomsAndInvites(matrixClient);
       };
 
-      const syncHandler = (state: string, prevState: string | null, data: any) => {
+      const syncHandler = (
+        state: string,
+        prevState: string | null,
+        data: any
+      ) => {
         console.log("🔄 Sync state:", state);
         setSyncState(state);
 
@@ -969,12 +990,24 @@ const MatrixChat = () => {
       // Return cleanup function
       return () => {
         console.log("🧹 Cleaning up event listeners...");
-        matrixClient.removeListener("Room.timeline" as any, timelineHandler);
-        matrixClient.removeListener("RoomMember.membership" as any, membershipHandler);
-        matrixClient.removeListener("Room.myMembership" as any, myMembershipHandler);
-        matrixClient.removeListener("Room" as any, roomHandler);
-        matrixClient.removeListener("sync" as any, syncHandler);
-        matrixClient.removeListener("RoomState.events" as any, roomStateHandler);
+        (matrixClient as any).removeListener(
+          "Room.timeline" as any,
+          timelineHandler
+        );
+        (matrixClient as any).removeListener(
+          "RoomMember.membership" as any,
+          membershipHandler
+        );
+        (matrixClient as any).removeListener(
+          "Room.myMembership" as any,
+          myMembershipHandler
+        );
+        (matrixClient as any).removeListener("Room" as any, roomHandler);
+        (matrixClient as any).removeListener("sync" as any, syncHandler);
+        (matrixClient as any).removeListener(
+          "RoomState.events" as any,
+          roomStateHandler
+        );
       };
     },
     [
@@ -1032,7 +1065,10 @@ const MatrixChat = () => {
       }
 
       // Check if we have Matrix credentials from backend
-      if (!authUser.matrix?.matrixUserId || !authUser.matrix?.matrixAccessToken) {
+      if (
+        !authUser.matrix?.matrixUserId ||
+        !authUser.matrix?.matrixAccessToken
+      ) {
         console.log("⚠️ No Matrix credentials in authUser");
         setIsRestoringSession(false);
         return;
@@ -1045,7 +1081,8 @@ const MatrixChat = () => {
 
         setLoading(true);
         const sdk = await getMatrixSdk();
-        const homeserverUrl = authUser.matrix.matrixHomeserver || getHomeserver();
+        const homeserverUrl =
+          authUser.matrix.matrixHomeserver || getHomeserver();
         const deviceId = getOrCreateDeviceId();
 
         // Create authenticated client directly using the access token
@@ -1063,7 +1100,10 @@ const MatrixChat = () => {
 
         // Save to localStorage for future sessions
         localStorage.setItem("matrix_user_id", authUser.matrix.matrixUserId);
-        localStorage.setItem("matrix_access_token", authUser.matrix.matrixAccessToken);
+        localStorage.setItem(
+          "matrix_access_token",
+          authUser.matrix.matrixAccessToken
+        );
         localStorage.setItem("matrix_device_id", deviceId);
         localStorage.setItem("matrix_homeserver", homeserverUrl);
 
@@ -1213,14 +1253,13 @@ const MatrixChat = () => {
       console.log("🎯 Accepting invite for room:", roomId);
       await client.joinRoom(roomId);
       console.log("✅ Join request sent successfully");
-      
+
       // The Room.myMembership event listener will fire when the sync completes
       // But we'll also force an immediate update after a brief delay
       setTimeout(() => {
         console.log("🔄 Forcing room list update after accept");
         updateRoomsAndInvites(client);
       }, 200);
-      
     } catch (err: any) {
       console.error("❌ Failed to accept invite:", err);
       setError(err.message || "Failed to accept invite");
@@ -1235,14 +1274,13 @@ const MatrixChat = () => {
       console.log("🎯 Rejecting invite for room:", roomId);
       await client.leave(roomId);
       console.log("✅ Leave request sent successfully");
-      
+
       // The Room.myMembership event listener will fire when the sync completes
       // But we'll also force an immediate update after a brief delay
       setTimeout(() => {
         console.log("🔄 Forcing room list update after reject");
         updateRoomsAndInvites(client);
       }, 200);
-      
     } catch (err: any) {
       console.error("❌ Failed to reject invite:", err);
       setError(err.message || "Failed to reject invite");
@@ -1317,7 +1355,7 @@ const MatrixChat = () => {
         >
           <MessageCircle size={24} className="icon_msg" />
         </button>
-        
+
         {isChatOpen && (
           <div className="matrix_chat_window">
             <div className="matrix_chat_window_header_wrapper">
@@ -1329,7 +1367,7 @@ const MatrixChat = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div style={{ padding: "20px", textAlign: "center" }}>
               <p>Please log in to your account to use chat.</p>
               {error && (
@@ -1362,7 +1400,7 @@ const MatrixChat = () => {
         >
           <MessageCircle size={24} className="icon_msg" />
         </button>
-        
+
         {isChatOpen && (
           <div className="matrix_chat_window">
             <div className="matrix_chat_window_header_wrapper">
@@ -1374,7 +1412,7 @@ const MatrixChat = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div style={{ padding: "20px" }}>
               <div
                 style={{
@@ -1388,7 +1426,8 @@ const MatrixChat = () => {
                 {error}
               </div>
               <p style={{ fontSize: "14px", color: "#666" }}>
-                Unable to connect to Matrix chat. Please try refreshing the page or contact support if the problem persists.
+                Unable to connect to Matrix chat. Please try refreshing the page
+                or contact support if the problem persists.
               </p>
             </div>
           </div>
@@ -1440,7 +1479,6 @@ const MatrixChat = () => {
               <h3 className="header_title">Messaging</h3>
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-             
               <button
                 className="matrix_chat_close_Btn"
                 onClick={() => setIsChatOpen(!isChatOpen)}
