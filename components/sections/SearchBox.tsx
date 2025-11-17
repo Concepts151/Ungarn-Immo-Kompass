@@ -71,12 +71,11 @@ export default function SearchBox() {
     });
 
     const queryString = searchParams.toString();
-    router.push(queryString ? `${pathname}?${queryString}` : pathname);
-
+    
     if (isHomepage) {
-      alert("Search functionality is not implemented yet.");
       router.push("/search" + (queryString ? `?${queryString}` : ""));
     }
+    router.push(queryString ? `${pathname}?${queryString}` : pathname);
   }, 500);
 
   const handleInputChange = (field: keyof FiltersState, value: any) => {
