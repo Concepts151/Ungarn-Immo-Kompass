@@ -1,5 +1,4 @@
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
-import { getSellerProperties } from "./../../server/src/controllers/sellerController";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
