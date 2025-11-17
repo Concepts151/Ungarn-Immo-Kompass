@@ -25,9 +25,9 @@ export default function Home() {
         <Category1 />
         {/* <Properties1 /> */}
         <PropertyLocation1 />
-        <Team1 />
+        {/* <Team1 /> */}
         <Testimonial1 />
-        <Blog1 />
+        {/* <Blog1 /> */}
         <LoginModal />
         <RegisterModal />
       </Layout>
