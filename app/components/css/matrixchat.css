@@ -310,3 +310,102 @@
 .bg-black-50 {
   background-color: rgba(0, 0, 0, 0.5);
 }
+
+
+/* Room Invites Section */
+.room-invites-section {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.invites-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.invites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invite-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #fff8e6;
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.invite-item:hover {
+  background-color: #fff4d6;
+}
+
+.invite-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.invite-room-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invite-from {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.invite-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.accept-invite-btn,
+.reject-invite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.accept-invite-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.accept-invite-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.reject-invite-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.reject-invite-btn:hover {
+  background-color: #da190b;
+  transform: scale(1.05);
+}

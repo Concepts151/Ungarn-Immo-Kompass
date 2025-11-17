@@ -19,7 +19,7 @@ const swiperOptions = {
     delay: 3500,
   },
   pagination: {
-    el: ".swiper-pagination",
+    el: ".swiper-pagination", 
     clickable: true,
   },
   navigation: {

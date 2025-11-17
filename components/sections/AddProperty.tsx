@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Upload } from "lucide-react";
-import { uploadImage } from "@/utils/supabase/storage/client";
+import { uploadImage, uploadVideo } from "@/utils/supabase/storage/client";
 import cities from "@/data/hu.json";
 import AddPropertyProgress from "@/app/(dashboard)/add-property/components/add-property-progress";
 import "@/app/(dashboard)/add-property/components/css/add-property.css";
@@ -176,6 +176,9 @@ export default function AddProperty() {
   const router = useRouter();
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [floorPlanFiles, setFloorPlanFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [isloading, setIsLoading] = useState(false);
 
   // redux user
   const { data: authUser } = useGetAuthUserQuery();
@@ -216,6 +219,14 @@ export default function AddProperty() {
     setImageUrls(imageUrls.filter((imageUrl) => imageUrl !== url));
   };
 
+  const handleDeleteVideo = (url: string) => {
+    console.log("🎯 Deleting video URL:", url);
+
+    setVideoUrls(videoUrls.filter((videoUrl) => videoUrl !== url));
+    setVideoFiles(
+      videoFiles.filter((file) => URL.createObjectURL(file) !== url)
+    );
+  };
   // Handler for details tab input changes
   const handleDetailsChange = (
     e: React.ChangeEvent<
@@ -258,6 +269,30 @@ export default function AddProperty() {
       setImageUrls([...imageUrls, ...newImageUrls]);
     }
   };
+  // handle video selection
+  const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const filesArray = Array.from(event.target.files);
+
+      console.log("🎯 Selected video files:", filesArray);
+
+      console.log(
+        "🎯 Current video files before adding:",
+        videoFiles.length + filesArray.length > 2
+      );
+
+      if (videoFiles.length + filesArray.length > 2) {
+        toast.error("You can only upload up to 2 videos in total.");
+        return;
+      }
+      // Store actual files for upload
+      setVideoFiles([...videoFiles, ...filesArray]);
+
+      // Create preview URLs
+      const newVideoUrls = filesArray.map((file) => URL.createObjectURL(file));
+      setVideoUrls([...videoUrls, ...newVideoUrls]);
+    }
+  };
 
   // Upload images to Supabase Storage
   const uploadImagesToSupabase = async (): Promise<string[]> => {
@@ -281,6 +316,30 @@ export default function AddProperty() {
         }
       } catch (error) {
         console.error("Error uploading image:", error);
+      }
+    }
+
+    return uploadedUrls;
+  };
+
+  const uploadVideosToSupabase = async (): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    for (const file of videoFiles) {
+      try {
+        const { videoUrl, error } = await uploadVideo({
+          file: file,
+          bucket: "videos",
+          folder: `property_${Date.now()}`,
+        });
+        if (error) {
+          console.error("Error uploading video:", error);
+          continue;
+        }
+        if (videoUrl) {
+          uploadedUrls.push(videoUrl);
+        }
+      } catch (error) {
+        console.error("Error uploading video:", error);
       }
     }
 
@@ -352,21 +411,45 @@ export default function AddProperty() {
       currency,
     } = listingFormData;
 
-    if (!address || !postalCode || !price || !city) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
+    // if (!address || !postalCode || !price || !city) {
+    //   toast.error("Please fill in all required fields.");
+    //   return;
+    // }
 
-    if (!authUser?.user?.id) {
-      toast.error("You must be logged in to create a property.");
-      return;
-    }
+    // if (!authUser?.user?.id) {
+    //   toast.error("You must be logged in to create a property.");
+    //   return;
+    // }
 
     startTransition(async () => {
       try {
         // First, upload images to Supabase Storage
         const uploadedMediaUrls = await uploadImagesToSupabase();
         const uploadedFloorPlanUrls = await uploadFloorPlansToSupabase();
+
+        const uploadedVideoUrls = await uploadVideosToSupabase();
+
+        console.log("🎯 Uploaded image URLs:", uploadedMediaUrls);
+        console.log("🎯 Uploaded floor plan URLs:", uploadedFloorPlanUrls);
+        console.log("🎯 Uploaded video URLs:", uploadedVideoUrls);
+
+        const allMediaUrls = [
+          ...uploadedMediaUrls,
+          ...uploadedVideoUrls,
+        ];
+
+        const mediaEntries = allMediaUrls.map((url: string) => {
+          const isVideo = uploadedVideoUrls.includes(url);
+          return {
+            mediaType: isVideo ? "VIDEO" : "PHOTO",
+            url: url,
+            thumbnailUrl: url, // Using same URL for now
+          };
+        });
+
+      console.log("🎯 Prepared media entries for property:", mediaEntries);
+      
+        
 
         // Prepare the property data
         const propertyData = {
@@ -429,11 +512,7 @@ export default function AddProperty() {
                   longitude: parseFloat(locationData.longitude),
                 }
               : undefined,
-          media: uploadedMediaUrls.map((url: string) => ({
-            mediaType: "PHOTO",
-            url: url,
-            thumbnailUrl: url, // Using same URL for now
-          })),
+          media: mediaEntries,
           floorplans: uploadedFloorPlanUrls.map((url: string) => ({
             url: url,
           })),
@@ -442,7 +521,7 @@ export default function AddProperty() {
         // Call the API to create the property
         const result = await createProperty(propertyData).unwrap();
 
-        // toast.success("Property created successfully!");
+        toast.success("Property created successfully!");
 
         // Redirect to the property listing or dashboard
         // setTimeout(() => {
@@ -498,11 +577,14 @@ export default function AddProperty() {
                       <MediaForm
                         imageUrls={imageUrls}
                         handleImageChange={handleImageChange}
+                        videoUrls={videoUrls}
+                        handleVideoChange={handleVideoChange}
                         onNext={handleNext}
                         onBack={handleBack}
                         steps={steps}
                         currentStep={currentStep}
                         handleDeleteImage={handleDeleteImage}
+                        handleDeleteVideo={handleDeleteVideo}
                       />
                     )}
 

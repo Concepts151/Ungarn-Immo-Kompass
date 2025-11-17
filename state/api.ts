@@ -1,3 +1,5 @@
+import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
+import { getSellerProperties } from "./../../server/src/controllers/sellerController";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
@@ -163,6 +165,12 @@ export const api = createApi({
         { type: "Properties", id: result?.id },
       ],
     }),
+    getSellerProperties: build.query<GetSellerPropertiesResponse, string>({
+      query: (sellerId) => `seller/${sellerId}/properties`,
+      providesTags: (result, error, sellerId) => [
+        { type: "Properties", id: sellerId },
+      ],
+    }),
   }),
 });
 
@@ -171,4 +179,5 @@ export const {
   useGetAuthUserQuery,
   useCreatePropertyMutation,
   useGetPropertyQuery,
+  useGetSellerPropertiesQuery,
 } = api;

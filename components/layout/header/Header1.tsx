@@ -28,7 +28,6 @@ export default function Header1({
   const { data: authUser } = useGetAuthUserQuery();
 
   console.log("authUser in header:", authUser);
-  
 
   async function getUserDetails() {
     const { data, error } = await supabase.from("user").select("*").single();
@@ -156,26 +155,34 @@ export default function Header1({
                           <li>
                             <Link href="/dashboard">{t("Dashboard")}</Link>
                           </li>
-                          <li>
-                            <Link href="/my-property">{t("MyProperties")}</Link>
-                          </li>
+
                           <li>
                             <Link href="/message">{t("Message")}</Link>
                           </li>
                           <li>
                             <Link href="/my-favorites">{t("MyFavorites")}</Link>
                           </li>
-                          <li>
+                          {/* <li>
                             <Link href="/reviews">{t("Review")}</Link>
-                          </li>
+                          </li> */}
                           <li>
                             <Link href="/my-profile">{t("MyProfile")}</Link>
                           </li>
-                          <li>
-                            <Link href="/add-property?new=0">
-                              {t("AddProperty")}
-                            </Link>
-                          </li>
+
+                          {authUser?.userRole === "SELLER" && (
+                            <>
+                              <li>
+                                <Link href="/my-property">
+                                  {t("MyProperties")}
+                                </Link>
+                              </li>
+                              <li>
+                                <Link href="/add-property">
+                                  {t("AddProperty")}
+                                </Link>
+                              </li>
+                            </>
+                          )}
                         </ul>
                       </li>
                     )}
@@ -189,7 +196,7 @@ export default function Header1({
                 display: "flex",
                 justifyContent: "end",
                 alignItems: "center",
-                gap:"10px"
+                gap: "10px",
               }}
             >
               <LanguageToggle />

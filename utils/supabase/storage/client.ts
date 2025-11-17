@@ -25,7 +25,7 @@ export async function uploadImage({ file, bucket, folder }: UploadProps) {
     return { imageUrl: "", error: "Image compression failed" };
   }
 
-  const storage = getStorage();
+  const storage = getStorage(); 
   const { data, error } = await storage.from(bucket).upload(path, file);
 
   if (error) {
@@ -35,4 +35,21 @@ export async function uploadImage({ file, bucket, folder }: UploadProps) {
 
   const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${data?.path}`;
   return { imageUrl, error: null };
+}
+
+export async function uploadVideo({file, bucket, folder}: UploadProps) {
+  const filename = file.name;
+  const fileExtension = filename.slice(filename.lastIndexOf(".") + 1);
+  const path = `${folder ? `${folder}/` : ""}${uuidv4()}.${fileExtension}`;
+
+  const storage = getStorage();
+  const { data, error } = await storage.from(bucket).upload(path, file);
+
+  if (error) {
+    console.error("Error uploading video:", error);
+    return { videoUrl: "", error: error.message || "Upload failed" };
+  }
+
+  const videoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${data?.path}`;
+  return { videoUrl, error: null };
 }

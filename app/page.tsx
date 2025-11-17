@@ -23,7 +23,7 @@ export default function Home() {
         <About1 />
         <Property1 />
         <Category1 />
-        <Properties1 />
+        {/* <Properties1 /> */}
         <PropertyLocation1 />
         <Team1 />
         <Testimonial1 />

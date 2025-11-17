@@ -1,5 +1,6 @@
-import { Check, Mail, X } from "lucide-react";
 import React from "react";
+import "./css/matrixchat.css";
+import { Check, X, Mail } from "lucide-react";
 
 interface RoomInvitesProps {
   invites: any[];
@@ -12,65 +13,51 @@ const RoomInvites = ({
   onAcceptInvite,
   onRejectInvite,
 }: RoomInvitesProps) => {
-  if (invites.length === 0) return null;
-  return (
-    <div className="room_invites_wrapper">
-      <div className="room_invites_header">
-        <Mail size={16} /> Invites ({invites.length})
-      </div>
-      <div className="space-y-5">
-        {invites.map((invite) => {
-          const inviter = invite.getDMInviter?.() || "Unknown";
-          const roomName = invite.name || "Chat Room";
-          return (
-            <div className="invite_wrapper" key={invite.roomId}>
-              <div className="invite_card">
-                <div className="" style={{ flex: 1, minWidth: "0px" }}>
-                  <p
-                    className=""
-                    style={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      margin: "0px",
-                    }}
-                  >
-                    {roomName}
-                  </p>
-                  <p
-                    className=""
-                    style={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      margin: "0px",
-                    }}
-                  >
-                    From: {inviter.split(":")[0]?.substring(1) || inviter}
-                  </p>
-                </div>
-                <div
-                  className=""
-                  style={{
-                    display: "flex",
-                    gap: "5px",
-                  }}
-                >
-                  <button
-                    className="btn btn-success"
-                    onClick={() => onAcceptInvite(invite.roomId)}
-                  >
-                    {" "}
-                    <Check size={16} />
-                  </button>
+  if (invites.length === 0) {
+    return null;
+  }
 
-                  <button
-                    onClick={() => onRejectInvite(invite.roomId)}
-                    className="btn btn-danger"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
+  return (
+    <div className="room-invites-section">
+      <div className="invites-header">
+        <Mail size={16} />
+        <span>Invites ({invites.length})</span>
+      </div>
+      
+      <div className="invites-list">
+        {invites.map((invite) => {
+          const roomName = invite.name || "Unnamed Room";
+          const inviter = invite.getDMInviter?.() || "Someone";
+          
+          return (
+            <div key={invite.roomId} className="invite-item">
+              <div className="invite-info">
+                <p className="invite-room-name">{roomName}</p>
+                <p className="invite-from">From: {inviter}</p>
+              </div>
+              
+              <div className="invite-actions">
+                <button
+                  onClick={() => {
+                    console.log("🎯 Accept button clicked for room:", invite.roomId);
+                    onAcceptInvite(invite.roomId);
+                  }}
+                  className="accept-invite-btn"
+                  title="Accept invite"
+                >
+                  <Check size={16} />
+                </button>
+                
+                <button
+                  onClick={() => {
+                    console.log("🎯 Reject button clicked for room:", invite.roomId);
+                    onRejectInvite(invite.roomId);
+                  }}
+                  className="reject-invite-btn"
+                  title="Reject invite"
+                >
+                  <X size={16} />
+                </button>
               </div>
             </div>
           );

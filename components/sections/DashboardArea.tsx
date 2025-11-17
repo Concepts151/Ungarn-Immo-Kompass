@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Modal from "../custom-comp/listing-edit-modal";
+import { useGetAuthUserQuery, useGetSellerPropertiesQuery } from "@/state/api";
+import { SellerProperty } from "@/app/(dashboard)/my-property/types";
 
 export default function DashboardArea() {
   const supabase = createClient();
@@ -17,6 +19,15 @@ export default function DashboardArea() {
 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
   const [selectedListing, setSelectedListing] = useState<any>(null); // Selected listing data
+
+  // new code from redux
+  const { data: authUser } = useGetAuthUserQuery();
+
+  const { data: sellerProperties } = useGetSellerPropertiesQuery(
+    authUser?.user?.id
+  );
+
+  console.log("sellerProperties from redux:", sellerProperties);
 
   const totalPages = Math.ceil(expose.length / listingsPerPage);
 
@@ -76,98 +87,8 @@ export default function DashboardArea() {
     }
   };
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
 
-      if (!user) {
-        toast.error("No session user found. Redirecting to the home page.");
-        router.push("/");
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  const fetchListings = async () => {
-    const { data: userdata, error } = await supabase
-      .from("user")
-      .select("*")
-      .single();
-    if (!userdata) {
-      // No user found, do not fetch listings
-      return;
-    }
-    try {
-      const { data: listingsData, error: listingsError } = await supabase
-        .from("expose")
-        .select("*")
-        .eq("sellerId", userdata.id);
-
-      if (listingsError) {
-        console.error("Error fetching listings:", listingsError);
-        return;
-      }
-
-      const enrichedListings = await Promise.all(
-        listingsData.map(async (listing) => {
-          const { data: imagesData, error: imagesError } = await supabase
-            .from("expose_media")
-            .select("url")
-            .eq("expose_id", listing.id)
-            .eq("media_type", "image");
-
-          if (imagesError) {
-            console.error(
-              `Error fetching images for listing ${listing.id}:`,
-              imagesError
-            );
-            return { ...listing, images: [] };
-          }
-
-          const { data: basicDetails, error: basicDetailsError } =
-            await supabase
-              .from("expose_basic")
-              .select("*")
-              .eq("exposeid", listing.id);
-
-          if (basicDetailsError) {
-            console.error(
-              `Error fetching basic details for listing ${listing.id}:`,
-              basicDetailsError
-            );
-            return {
-              ...listing,
-              images: imagesData.map((img) => img.url),
-              basicDetails: null,
-            };
-          }
-
-          return {
-            ...listing,
-            images: imagesData.map((img) => img.url),
-            basicDetails: basicDetails[0] || null,
-          };
-        })
-      );
-
-      console.log("Enriched Listings with Basic Details:", enrichedListings);
-      setExpose(enrichedListings);
-    } catch (err) {
-      console.error("Unexpected error fetching listings or images:", err);
-    }
-  };
-
-  useEffect(() => {
-    getUserDetails();
-    fetchListings();
-  }, []);
-
-  // function fetchListings(): void {
-  //   throw new Error("Function not implemented.");
-  // }
+ 
 
   return (
     <>
@@ -177,9 +98,9 @@ export default function DashboardArea() {
             <div className="col-lg-12">
               <div className="space30" />
               <div className="dashboad-all-details-section">
-                <h3>New Listing</h3>
+                <h3>My Listings</h3>
                 <div className="row">
-                  <div className="col-lg-4 col-md-6">
+                  {/* <div className="col-lg-4 col-md-6">
                     <div className="input-area">
                       <form>
                         <input type="text" placeholder="Search" />
@@ -194,15 +115,15 @@ export default function DashboardArea() {
                         </button>
                       </form>
                     </div>
-                  </div>
-                  <div className="col-lg-4 col-md-6">
+                  </div> */}
+                  {/* <div className="col-lg-4 col-md-6">
                     <div className="input-area">
                       <form>
                         <input type="date" />
                       </form>
                     </div>
-                  </div>
-                  <div className="col-lg-4 col-md-6">
+                  </div> */}
+                  {/* <div className="col-lg-4 col-md-6">
                     <div className="input-area">
                       <div className="nice-select" tabIndex={0}>
                         <span className="current">Select</span>
@@ -216,9 +137,9 @@ export default function DashboardArea() {
                         </ul>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="space28" />
-                  <h4 className="found">{expose.length} Result Found</h4>
+                  <h4 className="found">{sellerProperties?.pagination?.totalCount} Result Found</h4>
                   <div className="space20" />
                   <div className="table-container">
                     {/* Header */}
@@ -227,7 +148,7 @@ export default function DashboardArea() {
                       <div className="w-25">Action</div>
                     </div>
                     {/* Row 1 */}
-                    {paginatedListings.map((item) => (
+                    {sellerProperties?.data.map((item:SellerProperty) => (
                       <div className="table-row" key={item.id}>
                         <div className="property-tab-boxarea w-lg-75">
                           <div className="row align-items-center">
@@ -236,7 +157,7 @@ export default function DashboardArea() {
                               <div className="img1 image-anime">
                                 <img
                                   src={
-                                    item.images[0] ||
+                                    item.media[0].url ||
                                     "/assets/img/all-images/properties/property-img1.png"
                                   }
                                   alt="housa"
@@ -248,13 +169,13 @@ export default function DashboardArea() {
                                 <div className="property-price">
                                   <div className="text">
                                     <Link href="#" className="title">
-                                      {item.basicDetails?.title || "n/a"}
+                                      {item.basic?.title|| "n/a"}
                                     </Link>
                                     <div className="space16" />
-                                    <p>{item.basicDetails?.address || "n/a"}</p>
+                                    <p>{item.basic?.address || "n/a"}</p>
                                   </div>
                                   <Link href="#" className="price">
-                                    ${item.basicDetails?.price || "N/a"}
+                                    ${item.basic?.price || "N/a"}
                                   </Link>
                                 </div>
                                 <div className="space20" />
@@ -283,7 +204,7 @@ export default function DashboardArea() {
                                           />
                                         </svg>
                                       </span>
-                                      {item.basicDetails?.living_area} sqft
+                                      {item.basic?.livingArea} sqft
                                     </li>
                                     <li>
                                       <span>
@@ -322,7 +243,7 @@ export default function DashboardArea() {
                                           />
                                         </svg>
                                       </span>
-                                      {item.basicDetails?.bedroom} Beds
+                                      {item.basic?.bedrooms} Beds
                                     </li>
                                     <li>
                                       <span>
@@ -366,7 +287,7 @@ export default function DashboardArea() {
                                           />
                                         </svg>
                                       </span>
-                                      {item.basicDetails?.bathroom} Baths
+                                      {item.basic?.bathrooms} Baths
                                     </li>
                                   </ul>
                                   <div className="space24" />
@@ -383,12 +304,12 @@ export default function DashboardArea() {
                                       </div>
                                       <div className="text">
                                         <Link href="#">
-                                          {user.firstName + " " + user.lastName}
+                                          {authUser?.user.firstName + " " + authUser?.user.lastName}
                                         </Link>
                                       </div>
                                     </div>
                                     <div className="love-share">
-                                      <Link
+                                      {/* <Link
                                         href="javascript:void(0)"
                                         className="heart"
                                       >
@@ -416,7 +337,7 @@ export default function DashboardArea() {
                                             fill="#ED8438"
                                           />
                                         </svg>
-                                      </Link>
+                                      </Link> */}
                                     </div>
                                   </div>
                                 </div>
@@ -533,14 +454,14 @@ export default function DashboardArea() {
         </div>
       </div>
       {/* Modal for Editing Listing */}
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <Modal
           listing={selectedListing}
           onClose={handleModalClose}
           onUpdate={handleUpdateListing}
           fetchListing={fetchListings}
         />
-      )}
+      )} */}
     </>
   );
 }
