@@ -14,45 +14,49 @@ export default function SearchBox() {
   const router = useRouter();
   const pathname = usePathname();
   const filters = useAppSelector((state) => state.global.filters);
-  
+
   const [localFilters, setLocalFilters] = useState<FiltersState>(filters);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  const isHomepage = pathname === "/";
+
   // Property types from schema
   const propertyTypes = [
-    { value: 'any', label: 'All Types' },
-    { value: 'HOUSE', label: 'House' },
-    { value: 'APARTMENT', label: 'Apartment' },
-    { value: 'FARMHOUSE', label: 'Farmhouse' },
-    { value: 'LAND', label: 'Land' },
-    { value: 'COMMERCIAL', label: 'Commercial' }
+    { value: "any", label: "All Types" },
+    { value: "HOUSE", label: "House" },
+    { value: "APARTMENT", label: "Apartment" },
+    { value: "FARMHOUSE", label: "Farmhouse" },
+    { value: "LAND", label: "Land" },
+    { value: "COMMERCIAL", label: "Commercial" },
   ];
 
   // Bed and bath options
   const bedOptions = [
-    { value: 'any', label: 'Any' },
-    { value: '1', label: '1+' },
-    { value: '2', label: '2+' },
-    { value: '3', label: '3+' },
-    { value: '4', label: '4+' },
-    { value: '5', label: '5+' }
+    { value: "any", label: "Any" },
+    { value: "1", label: "1+" },
+    { value: "2", label: "2+" },
+    { value: "3", label: "3+" },
+    { value: "4", label: "4+" },
+    { value: "5", label: "5+" },
   ];
 
   const bathOptions = [
-    { value: 'any', label: 'Any' },
-    { value: '1', label: '1+' },
-    { value: '2', label: '2+' },
-    { value: '3', label: '3+' },
-    { value: '4', label: '4+' }
+    { value: "any", label: "Any" },
+    { value: "1", label: "1+" },
+    { value: "2", label: "2+" },
+    { value: "3", label: "3+" },
+    { value: "4", label: "4+" },
   ];
 
   // Update URL with debounce
   const updateURL = debounce((newFilters: FiltersState) => {
     const params = cleanParams({
-      location: newFilters.location !== 'Budapest' ? newFilters.location : undefined,
-      beds: newFilters.beds !== 'any' ? newFilters.beds : undefined,
-      baths: newFilters.baths !== 'any' ? newFilters.baths : undefined,
-      propertyType: newFilters.propertyType !== 'any' ? newFilters.propertyType : undefined,
+      location:
+        newFilters.location !== "Budapest" ? newFilters.location : undefined,
+      beds: newFilters.beds !== "any" ? newFilters.beds : undefined,
+      baths: newFilters.baths !== "any" ? newFilters.baths : undefined,
+      propertyType:
+        newFilters.propertyType !== "any" ? newFilters.propertyType : undefined,
       priceMin: newFilters.priceRange[0],
       priceMax: newFilters.priceRange[1],
       areaMin: newFilters.squareFeet[0],
@@ -61,13 +65,18 @@ export default function SearchBox() {
 
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      if (value !== undefined && value !== null && value !== "") {
         searchParams.set(key, value.toString());
       }
     });
 
     const queryString = searchParams.toString();
     router.push(queryString ? `${pathname}?${queryString}` : pathname);
+
+    if (isHomepage) {
+      alert("Search functionality is not implemented yet.");
+      router.push("/search" + (queryString ? `?${queryString}` : ""));
+    }
   }, 500);
 
   const handleInputChange = (field: keyof FiltersState, value: any) => {
@@ -105,10 +114,10 @@ export default function SearchBox() {
 
   // Format price display
   const formatPrice = (price: number | null) => {
-    if (!price) return '';
-    return new Intl.NumberFormat('hu-HU', {
-      style: 'currency',
-      currency: 'HUF',
+    if (!price) return "";
+    return new Intl.NumberFormat("hu-HU", {
+      style: "currency",
+      currency: "HUF",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -265,16 +274,23 @@ export default function SearchBox() {
                             className="keyword-input"
                             placeholder="Enter location (city, county, or address)..."
                             value={localFilters.location}
-                            onChange={(e) => handleInputChange('location', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("location", e.target.value)
+                            }
                           />
                         </div>
 
-                        <div className="filter-group" style={{ minWidth: '150px' }}>
-                          <select 
+                        <div
+                          className="filter-group"
+                          style={{ minWidth: "150px" }}
+                        >
+                          <select
                             value={localFilters.propertyType}
-                            onChange={(e) => handleInputChange('propertyType', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("propertyType", e.target.value)
+                            }
                           >
-                            {propertyTypes.map(type => (
+                            {propertyTypes.map((type) => (
                               <option key={type.value} value={type.value}>
                                 {type.label}
                               </option>
@@ -282,12 +298,17 @@ export default function SearchBox() {
                           </select>
                         </div>
 
-                        <div className="filter-group" style={{ minWidth: '100px' }}>
+                        <div
+                          className="filter-group"
+                          style={{ minWidth: "100px" }}
+                        >
                           <select
                             value={localFilters.beds}
-                            onChange={(e) => handleInputChange('beds', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("beds", e.target.value)
+                            }
                           >
-                            {bedOptions.map(option => (
+                            {bedOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label} Beds
                               </option>
@@ -295,12 +316,17 @@ export default function SearchBox() {
                           </select>
                         </div>
 
-                        <div className="filter-group" style={{ minWidth: '100px' }}>
+                        <div
+                          className="filter-group"
+                          style={{ minWidth: "100px" }}
+                        >
                           <select
                             value={localFilters.baths}
-                            onChange={(e) => handleInputChange('baths', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("baths", e.target.value)
+                            }
                           >
-                            {bathOptions.map(option => (
+                            {bathOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label} Baths
                               </option>
@@ -311,7 +337,11 @@ export default function SearchBox() {
                     </div>
 
                     {/* Advanced Filters */}
-                    <div className={`advanced-filters ${showAdvanced ? 'show' : ''}`}>
+                    <div
+                      className={`advanced-filters ${
+                        showAdvanced ? "show" : ""
+                      }`}
+                    >
                       {/* Price Range */}
                       <div className="filter-section">
                         <h4>Price Range (HUF)</h4>
@@ -319,20 +349,30 @@ export default function SearchBox() {
                           <input
                             type="number"
                             placeholder="Min price"
-                            value={localFilters.priceRange[0] || ''}
+                            value={localFilters.priceRange[0] || ""}
                             onChange={(e) => {
-                              const value = e.target.value ? parseInt(e.target.value) : null;
-                              handleInputChange('priceRange', [value, localFilters.priceRange[1]]);
+                              const value = e.target.value
+                                ? parseInt(e.target.value)
+                                : null;
+                              handleInputChange("priceRange", [
+                                value,
+                                localFilters.priceRange[1],
+                              ]);
                             }}
                           />
                           <span className="range-separator">—</span>
                           <input
                             type="number"
                             placeholder="Max price"
-                            value={localFilters.priceRange[1] || ''}
+                            value={localFilters.priceRange[1] || ""}
                             onChange={(e) => {
-                              const value = e.target.value ? parseInt(e.target.value) : null;
-                              handleInputChange('priceRange', [localFilters.priceRange[0], value]);
+                              const value = e.target.value
+                                ? parseInt(e.target.value)
+                                : null;
+                              handleInputChange("priceRange", [
+                                localFilters.priceRange[0],
+                                value,
+                              ]);
                             }}
                           />
                         </div>
@@ -345,20 +385,30 @@ export default function SearchBox() {
                           <input
                             type="number"
                             placeholder="Min m²"
-                            value={localFilters.squareFeet[0] || ''}
+                            value={localFilters.squareFeet[0] || ""}
                             onChange={(e) => {
-                              const value = e.target.value ? parseInt(e.target.value) : null;
-                              handleInputChange('squareFeet', [value, localFilters.squareFeet[1]]);
+                              const value = e.target.value
+                                ? parseInt(e.target.value)
+                                : null;
+                              handleInputChange("squareFeet", [
+                                value,
+                                localFilters.squareFeet[1],
+                              ]);
                             }}
                           />
                           <span className="range-separator">—</span>
                           <input
                             type="number"
                             placeholder="Max m²"
-                            value={localFilters.squareFeet[1] || ''}
+                            value={localFilters.squareFeet[1] || ""}
                             onChange={(e) => {
-                              const value = e.target.value ? parseInt(e.target.value) : null;
-                              handleInputChange('squareFeet', [localFilters.squareFeet[0], value]);
+                              const value = e.target.value
+                                ? parseInt(e.target.value)
+                                : null;
+                              handleInputChange("squareFeet", [
+                                localFilters.squareFeet[0],
+                                value,
+                              ]);
                             }}
                           />
                         </div>
@@ -380,21 +430,29 @@ export default function SearchBox() {
                               </span>
                             </button>
                           </div>
-                          
+
                           <span
-                            className={`d-flex align-items-center gap-2 advance-button ${showAdvanced ? 'active' : ''}`}
+                            className={`d-flex align-items-center gap-2 advance-button ${
+                              showAdvanced ? "active" : ""
+                            }`}
                             onClick={() => setShowAdvanced(!showAdvanced)}
                           >
-                            {showAdvanced ? 'Hide Filters' : 'More Filters'}
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            {showAdvanced ? "Hide Filters" : "More Filters"}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              width="20"
+                              height="20"
+                            >
                               <path d="M6.17071 18C6.58254 16.8348 7.69378 16 9 16C10.3062 16 11.4175 16.8348 11.8293 18H22V20H11.8293C11.4175 21.1652 10.3062 22 9 22C7.69378 22 6.58254 21.1652 6.17071 20H2V18H6.17071ZM12.1707 11C12.5825 9.83481 13.6938 9 15 9C16.3062 9 17.4175 9.83481 17.8293 11H22V13H17.8293C17.4175 14.1652 16.3062 15 15 15C13.6938 15 12.5825 14.1652 12.1707 13H2V11H12.1707ZM6.17071 4C6.58254 2.83481 7.69378 2 9 2C10.3062 2 11.4175 2.83481 11.8293 4H22V6H11.8293C11.4175 7.16519 10.3062 8 9 8C7.69378 8 6.58254 7.16519 6.17071 6H2V4H6.17071Z" />
                             </svg>
                           </span>
 
-                          {(localFilters.location !== 'Budapest' || 
-                            localFilters.propertyType !== 'any' || 
-                            localFilters.beds !== 'any' || 
-                            localFilters.baths !== 'any' ||
+                          {(localFilters.location !== "Budapest" ||
+                            localFilters.propertyType !== "any" ||
+                            localFilters.beds !== "any" ||
+                            localFilters.baths !== "any" ||
                             localFilters.priceRange[0] !== null ||
                             localFilters.priceRange[1] !== null) && (
                             <button
@@ -426,7 +484,6 @@ export default function SearchBox() {
     </>
   );
 }
-
 
 // "use client";
 
@@ -502,8 +559,6 @@ export default function SearchBox() {
 //     setLocalFilters(newFilters);
 //     setFilters(newFilters);
 //   };
-
- 
 
 //   useEffect(() => {
 //     console.log(localFilters);
@@ -755,7 +810,7 @@ export default function SearchBox() {
 //                         </div>
 
 //                        <div className="filter-group" style={{ minWidth: '180px' }}>
-//                           <select 
+//                           <select
 //                             value={localFilters.propertyType || ''}
 //                             onChange={(e) => handleInputChange('propertyType', e.target.value || undefined)}
 //                           >
@@ -767,7 +822,6 @@ export default function SearchBox() {
 //                             ))}
 //                           </select>
 //                         </div>
-                        
 
 //                         <div className="filter-group">
 //                           {/* <label>Status</label> */}
