@@ -234,6 +234,7 @@ export default function SearchBox() {
           overflow: hidden;
           transition: max-height 0.5s ease-out;
           margin-top: 20px;
+          padding: 0 30px;
         }
 
         .advanced-filters.show {

@@ -2,7 +2,12 @@ import Link from "next/link";
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import { Property, PropertyBasic, PropertyMedia } from "@/types/api";
+import {
+  Property,
+  PropertyBasic,
+  PropertyMedia,
+  SellerDatails,
+} from "@/types/api";
 
 const swiperOptions = {
   modules: [Autoplay, Pagination, Navigation],
@@ -36,10 +41,13 @@ function formatCurrency(value: number): string {
 const LandingPropertyCard = ({
   basic,
   media,
+  seller,
 }: {
   basic: PropertyBasic;
   media: PropertyMedia[];
+  seller: SellerDatails[];
 }) => {
+  const sellerAvatarUrl = ` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
   return (
     <div className="col-lg-4 col-md-6">
       <div className="property-single-boxarea">
@@ -52,7 +60,7 @@ const LandingPropertyCard = ({
               <SwiperSlide key={m.id}>
                 <Link href="/property-details-v1">
                   <div className="img1 image-anime">
-                    <img src={m.url} alt="housa" style={{height:"300px"}}/>
+                    <img src={m.url} alt="housa" style={{ height: "300px" }} />
                   </div>
                 </Link>
               </SwiperSlide>
@@ -83,7 +91,7 @@ const LandingPropertyCard = ({
               {basic.address}, {basic.city}{" "}
             </p>
           </div>
-          <Link href={`/property/${basic.exposeId}`}className="price">
+          <Link href={`/property/${basic.exposeId}`} className="price">
             {basic.currency} {formatCurrency(basic.price)}
           </Link>
         </div>
@@ -113,7 +121,7 @@ const LandingPropertyCard = ({
                   />
                 </svg>
               </span>
-              2150 sqft
+              {basic.livingArea} sqft
             </li>
             <li>
               <span>
@@ -152,7 +160,7 @@ const LandingPropertyCard = ({
                   />
                 </svg>
               </span>
-              5 Beds
+              {basic.bedrooms} Beds
             </li>
             <li>
               <span>
@@ -196,7 +204,7 @@ const LandingPropertyCard = ({
                   />
                 </svg>
               </span>
-              3 Baths
+              {basic.bathrooms} Baths
             </li>
           </ul>
           <div className="space24" />
@@ -204,12 +212,12 @@ const LandingPropertyCard = ({
             <div className="name-area">
               <div className="img">
                 <img
-                  src="/assets/img/all-images/others/others-img1.png"
+                  src={sellerAvatarUrl}
                   alt="housa"
                 />
               </div>
               <div className="text">
-                <Link href="#">Santiago Towne</Link>
+                <Link href="#">{seller[0].firstName + " " + seller[0].lastName}</Link>
               </div>
             </div>
             <div className="love-share">
@@ -263,8 +271,7 @@ const LandingPropertyCard = ({
                 d="M12 7.39995C12 8.75995 10.96 9.79995 9.6 9.79995C8.24 9.79995 7.2 8.75995 7.2 7.39995C7.2 6.03995 8.24 4.99995 9.6 4.99995C10.96 4.99995 12 6.03995 12 7.39995ZM16 3.39995V12.2C16 13.08 15.28 13.8 14.4 13.8H1.6C0.72 13.8 0 13.08 0 12.2V3.39995C0 2.51995 0.72 1.79995 1.6 1.79995V0.999951H4.8V1.79995H6.4L7.2 0.199951H12L12.8 1.79995H14.4C15.28 1.79995 16 2.51995 16 3.39995ZM4.4 4.99995C4.4 4.35995 3.84 3.79995 3.2 3.79995C2.56 3.79995 2 4.35995 2 4.99995C2 5.63995 2.56 6.19995 3.2 6.19995C3.84 6.19995 4.4 5.63995 4.4 4.99995ZM13.6 7.39995C13.6 5.15995 11.84 3.39995 9.6 3.39995C7.36 3.39995 5.6 5.15995 5.6 7.39995C5.6 9.63995 7.36 11.4 9.6 11.4C11.84 11.4 13.6 9.63995 13.6 7.39995Z"
                 fill="#1B1B1B"
               />
-            </svg>
-            {" "}
+            </svg>{" "}
             {media.length}
           </Link>
         </div>

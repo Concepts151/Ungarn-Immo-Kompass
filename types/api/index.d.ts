@@ -18,6 +18,7 @@ export interface Property {
   basic: PropertyBasic;
   location: PropertyLocation;
   media: PropertyMedia[];
+  seller: SellerDatails[];
 }
 
 export interface PropertyBasic {
@@ -51,6 +52,13 @@ export interface PropertyMedia {
   url: string;
   thumbnailUrl: string;
   uploadedAt: string; // ISO date string
+}
+
+export interface SellerDatails{
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
 }
 
 // For your array:
