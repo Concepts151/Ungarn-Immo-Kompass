@@ -1,3 +1,4 @@
+import { getProperty } from "./../../server/src/controllers/propertyController";
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
@@ -170,6 +171,10 @@ export const api = createApi({
         { type: "Properties", id: sellerId },
       ],
     }),
+    getPropertyTypes: build.query<any, void>({
+      query: () => `property-type/stats`,
+      providesTags: (result) => [{ type: "Properties", id: "PROPERTY_TYPES" }],
+    }),
   }),
 });
 
@@ -179,4 +184,5 @@ export const {
   useCreatePropertyMutation,
   useGetPropertyQuery,
   useGetSellerPropertiesQuery,
+  useGetPropertyTypesQuery,
 } = api;

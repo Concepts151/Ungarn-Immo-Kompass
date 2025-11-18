@@ -27,6 +27,7 @@ export default function Home() {
         <PropertyLocation1 />
         {/* <Team1 /> */}
         <Testimonial1 />
+        <div className="space30"></div>
         {/* <Blog1 /> */}
         <LoginModal />
         <RegisterModal />
