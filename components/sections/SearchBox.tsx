@@ -49,34 +49,66 @@ export default function SearchBox() {
   ];
 
   // Update URL with debounce
-  const updateURL = debounce((newFilters: FiltersState) => {
-    const params = cleanParams({
-      location:
-        newFilters.location !== "Budapest" ? newFilters.location : undefined,
-      beds: newFilters.beds !== "any" ? newFilters.beds : undefined,
-      baths: newFilters.baths !== "any" ? newFilters.baths : undefined,
-      propertyType:
-        newFilters.propertyType !== "any" ? newFilters.propertyType : undefined,
-      priceMin: newFilters.priceRange[0],
-      priceMax: newFilters.priceRange[1],
-      areaMin: newFilters.squareFeet[0],
-      areaMax: newFilters.squareFeet[1],
-    });
+  // const updateURL = debounce((newFilters: FiltersState) => {
+  //   const params = cleanParams({
+  //     location:
+  //       newFilters.location !== "Budapest" ? newFilters.location : undefined,
+  //     beds: newFilters.beds !== "any" ? newFilters.beds : undefined,
+  //     baths: newFilters.baths !== "any" ? newFilters.baths : undefined,
+  //     propertyType:
+  //       newFilters.propertyType !== "any" ? newFilters.propertyType : undefined,
+  //     priceMin: newFilters.priceRange[0],
+  //     priceMax: newFilters.priceRange[1],
+  //     areaMin: newFilters.squareFeet[0],
+  //     areaMax: newFilters.squareFeet[1],
+  //   });
 
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        searchParams.set(key, value.toString());
-      }
-    });
+  //   const searchParams = new URLSearchParams();
+  //   Object.entries(params).forEach(([key, value]) => {
+  //     if (value !== undefined && value !== null && value !== "") {
+  //       searchParams.set(key, value.toString());
+  //     }
+  //   });
 
-    const queryString = searchParams.toString();
+  //   const queryString = searchParams.toString();
     
-    if (isHomepage) {
-      router.push("/search" + (queryString ? `?${queryString}` : ""));
+  //   if (isHomepage) {
+  //     router.push("/search" + (queryString ? `?${queryString}` : ""));
+  //   }
+  //   router.push(queryString ? `${pathname}?${queryString}` : pathname);
+  // }, 500);
+
+  const updateURL = debounce((newFilters: FiltersState) => {
+  const params = cleanParams({
+    location: newFilters.location !== "Budapest" ? newFilters.location : undefined,
+    beds: newFilters.beds !== "any" ? newFilters.beds : undefined,
+    baths: newFilters.baths !== "any" ? newFilters.baths : undefined,
+    propertyType: newFilters.propertyType !== "any" ? newFilters.propertyType : undefined,
+    priceMin: newFilters.priceRange[0],
+    priceMax: newFilters.priceRange[1],
+    areaMin: newFilters.squareFeet[0],
+    areaMax: newFilters.squareFeet[1],
+  });
+
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, value.toString());
     }
-    router.push(queryString ? `${pathname}?${queryString}` : pathname);
-  }, 500);
+  });
+
+  const queryString = searchParams.toString();
+  const url = queryString ? `?${queryString}` : "";
+
+  // homepage → redirect to /search
+  if (isHomepage) {
+    router.push("/search" + url);
+    return;
+  }
+
+  // other pages → stay on current route
+  router.push(`${pathname}${url}`);
+}, 500);
 
   const handleInputChange = (field: keyof FiltersState, value: any) => {
     const newFilters = { ...localFilters, [field]: value };
