@@ -48,6 +48,12 @@ const LandingPropertyCard = ({
   seller: SellerDatails[];
 }) => {
   const sellerAvatarUrl = ` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
+  const photos = media.filter(
+    (mediaItem: any) => mediaItem.mediaType === "PHOTO"
+  );
+
+  console.log("photos:", photos);
+  
   return (
     <div className="col-lg-4 col-md-6">
       <div className="property-single-boxarea">
@@ -55,8 +61,8 @@ const LandingPropertyCard = ({
           {...swiperOptions}
           className="property-list-img-area owl-carousel"
         >
-          {media.length > 0 ? (
-            media.map((m) => (
+          {photos.length > 0 ? (
+            photos.map((m) => (
               <SwiperSlide key={m.id}>
                 <Link href="/property-details-v1">
                   <div className="img1 image-anime">
@@ -276,7 +282,7 @@ const LandingPropertyCard = ({
           </Link>
         </div>
         <div className="btn-area1 text-center">
-          <Link href="/property-details-v1" className="vl-btn1">
+          <Link href={`/property/${basic.exposeId}`} className="vl-btn1">
             View Property Details
             <span className="arrow1 ms-2">
               <i className="fa-solid fa-arrow-right" />
