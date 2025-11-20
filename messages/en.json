@@ -2,24 +2,28 @@
   "localeSwitcher": {
     "label": "Languages"
   },
-  "tabTitle":{
-    "home":"Home | Ungarn-immo"
+  "tabTitle": {
+    "home": "Home | Ungarn-immo"
   },
-  "navbar":{
-    "Listings":"Listings",
-    "AboutUs":"About Us",
-    "OurServices":"Our Services",
-    "ContactUs":"Contact Us",
-    "Dashboard":"Dashboard",
-    "MyProperties":"My Properties",
-    "AddProperty":"Add Property",
-    "Message":"Message",
-    "MyProfile":"My Profile",
-    "MyFavorites":"My Favorites",
-    "Review":"Reviews"
+  "navbar": {
+    "Listings": "Listings",
+    "AboutUs": "About Us",
+    "OurServices": "Our Services",
+    "ContactUs": "Contact Us",
+    "Dashboard": "Dashboard",
+    "MyProperties": "My Properties",
+    "AddProperty": "Add Property",
+    "Message": "Message",
+    "MyProfile": "My Profile",
+    "MyFavorites": "My Favorites",
+    "Review": "Reviews"
   },
   "HomePage": {
     "Hero_h1": "Making Your Homeownership Dream a Reality",
-    "Hero_p": "Whether you're looking to buy, sell, or rent, Housa connects you with the best properties and expert advice. Explore homes that fit your vision and budget with ease and confidence."
+    "Hero_p": "Whether you're looking to buy, sell, or rent, Housa connects you with the best properties and expert advice. Explore homes that fit your vision and budget with ease and confidence.",
+    "add-listing-btn": "Add Listing",
+    "Hero_bp": "Buying Property",
+    "Hero_pa": "Property Available",
+    "Hero_sp": "Selling Property"
   }
 }

@@ -20,6 +20,10 @@
   },
   "HomePage": {
     "Hero_h1": "Az otthontulajdonlási álom megvalósítása",
-    "Hero_p": "Akár vásárolni, eladni vagy bérelni szeretne, a Housa összeköti Önt a legjobb ingatlanokkal és szakértői tanácsokkal. Fedezze fel azokat az otthonokat, amelyek illeszkednek az elképzeléseihez és a költségvetéséhez, könnyedén és magabiztosan."
+    "Hero_p": "Akár vásárolni, eladni vagy bérelni szeretne, a Housa összeköti Önt a legjobb ingatlanokkal és szakértői tanácsokkal. Fedezze fel azokat az otthonokat, amelyek illeszkednek az elképzeléseihez és a költségvetéséhez, könnyedén és magabiztosan.",
+    "add-listing-btn": "Hirdetés hozzáadása",
+    "Hero_bp": "Ingatlan vásárlás",
+    "Hero_pa": "Ingatlan elérhető",
+    "Hero_sp": "Ingatlan eladása"
   }
 }

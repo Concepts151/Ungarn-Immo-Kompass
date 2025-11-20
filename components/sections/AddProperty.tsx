@@ -433,10 +433,7 @@ export default function AddProperty() {
         console.log("🎯 Uploaded floor plan URLs:", uploadedFloorPlanUrls);
         console.log("🎯 Uploaded video URLs:", uploadedVideoUrls);
 
-        const allMediaUrls = [
-          ...uploadedMediaUrls,
-          ...uploadedVideoUrls,
-        ];
+        const allMediaUrls = [...uploadedMediaUrls, ...uploadedVideoUrls];
 
         const mediaEntries = allMediaUrls.map((url: string) => {
           const isVideo = uploadedVideoUrls.includes(url);
@@ -447,15 +444,14 @@ export default function AddProperty() {
           };
         });
 
-      console.log("🎯 Prepared media entries for property:", mediaEntries);
-      
-        
+        console.log("🎯 Prepared media entries for property:", mediaEntries);
 
         // Prepare the property data
         const propertyData = {
           sellerId: authUser.user.id,
           basic: {
             title: title,
+            description: description,
             propertyType: mapCategoryToPropertyType(category),
             address: address,
             postalCode: postalCode,

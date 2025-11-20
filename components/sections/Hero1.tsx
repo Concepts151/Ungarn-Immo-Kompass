@@ -29,7 +29,7 @@ export default async function Hero1() {
                   data-aos-duration={1000}
                 >
                   <Link href="/add-property" className="vl-btn1">
-                    Add Listing
+                    {t('add-listing-btn')}
                     <span className="arrow1 ms-2">
                       <i className="fa-solid fa-arrow-right" />
                     </span>
@@ -56,7 +56,7 @@ export default async function Hero1() {
                           +
                         </h1>
                         <div className="space10" />
-                        <p>Selling Property</p>
+                        <p>{t('Hero_bp')}</p>
                       </div>
                     </div>
                     <div
@@ -73,7 +73,7 @@ export default async function Hero1() {
                           +
                         </h1>
                         <div className="space10" />
-                        <p>Buying Property</p>
+                        <p>{t('Hero_sp')}</p>
                       </div>
                     </div>
                     <div
@@ -91,7 +91,7 @@ export default async function Hero1() {
                           +
                         </h1>
                         <div className="space10" />
-                        <p>Property Available</p>
+                        <p>{t('Hero_pa')}</p>
                       </div>
                     </div>
                   </div>

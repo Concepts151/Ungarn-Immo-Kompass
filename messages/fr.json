@@ -20,6 +20,10 @@
   },
   "HomePage": {
     "Hero_h1": "Réaliser votre rêve de propriété",
-    "Hero_p": "Que vous souhaitiez acheter, vendre ou louer, Housa vous met en relation avec les meilleures propriétés et des conseils d’experts. Découvrez facilement et en toute confiance des maisons qui correspondent à votre vision et à votre budget."
+    "Hero_p": "Que vous souhaitiez acheter, vendre ou louer, Housa vous met en relation avec les meilleures propriétés et des conseils d’experts. Découvrez facilement et en toute confiance des maisons qui correspondent à votre vision et à votre budget.",
+    "add-listing-btn": "Ajouter une annonce",
+    "Hero_bp": "Acheter une propriété",
+    "Hero_pa": "Propriété disponible",
+    "Hero_sp": "Vente de propriété"
   }
 }
