@@ -52,7 +52,7 @@ const Overview = ({
      {/* page data */}
      {descriptionData && (
         <div className="desc_data_wrapper">
-            <h3 className="Desc_data_header">Description</h3>
+            {/* <h3 className="Desc_data_header">Description</h3> */}
             <hr />
             <div className="">
                 <p className="Desc_data_text">

@@ -55,8 +55,9 @@ export default function DashboardArea() {
   }
 
   const handleEditClick = (listing: any) => {
-    setSelectedListing(listing); // Set the selected listing data
-    setIsModalOpen(true); // Open the modal
+    // setSelectedListing(listing); // Set the selected listing data
+    // setIsModalOpen(true); // Open the modal
+    router.push(`/property/update/${listing.id}`);
   };
 
   const handleModalClose = () => {
@@ -86,9 +87,6 @@ export default function DashboardArea() {
       toast.error("An unexpected error occurred.");
     }
   };
-
-
- 
 
   return (
     <>
@@ -139,7 +137,9 @@ export default function DashboardArea() {
                     </div>
                   </div> */}
                   <div className="space28" />
-                  <h4 className="found">{sellerProperties?.pagination?.totalCount} Result Found</h4>
+                  <h4 className="found">
+                    {sellerProperties?.pagination?.totalCount} Result Found
+                  </h4>
                   <div className="space20" />
                   <div className="table-container">
                     {/* Header */}
@@ -148,7 +148,7 @@ export default function DashboardArea() {
                       <div className="w-25">Action</div>
                     </div>
                     {/* Row 1 */}
-                    {sellerProperties?.data.map((item:SellerProperty) => (
+                    {sellerProperties?.data.map((item: SellerProperty) => (
                       <div className="table-row" key={item.id}>
                         <div className="property-tab-boxarea w-lg-75">
                           <div className="row align-items-center">
@@ -169,7 +169,7 @@ export default function DashboardArea() {
                                 <div className="property-price">
                                   <div className="text">
                                     <Link href="#" className="title">
-                                      {item.basic?.title|| "n/a"}
+                                      {item.basic?.title || "n/a"}
                                     </Link>
                                     <div className="space16" />
                                     <p>{item.basic?.address || "n/a"}</p>
@@ -304,7 +304,9 @@ export default function DashboardArea() {
                                       </div>
                                       <div className="text">
                                         <Link href="#">
-                                          {authUser?.user.firstName + " " + authUser?.user.lastName}
+                                          {authUser?.user.firstName +
+                                            " " +
+                                            authUser?.user.lastName}
                                         </Link>
                                       </div>
                                     </div>

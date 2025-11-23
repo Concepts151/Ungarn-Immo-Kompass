@@ -1,4 +1,5 @@
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
+import { updateProperty } from "@/features/property/propertySlice";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
@@ -125,6 +126,23 @@ export const api = createApi({
         });
       },
     }),
+    updateProperty: build.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `properties/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Properties", id },
+        { type: "Properties", id: "LIST" },
+      ],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Property updated successfully!",
+          error: "Failed to update property.",
+        });
+      },
+    }),
     getProperties: build.query<
       Property[],
       Partial<FiltersState & { favoriteIds?: number[] }>
@@ -183,4 +201,5 @@ export const {
   useGetPropertyQuery,
   useGetSellerPropertiesQuery,
   useGetPropertyTypesQuery,
+  useUpdatePropertyMutation
 } = api;
