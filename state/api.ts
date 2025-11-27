@@ -4,7 +4,7 @@ import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
+ 
 const supabase = createClient();
 
 export const api = createApi({
