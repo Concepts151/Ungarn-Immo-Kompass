@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 const MapView = () => {
   return (
     <div>
-      {/* <Map
+      <Map
         mapboxAccessToken="REMOVED_MAPBOX_SECRET"
         initialViewState={{
           longitude: 3.387,
@@ -21,7 +21,7 @@ const MapView = () => {
           color="red"
           anchor="bottom"
         ></Marker>
-      </Map> */}
+      </Map>
     </div>
   );
 };

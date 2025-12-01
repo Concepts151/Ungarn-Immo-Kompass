@@ -25,6 +25,7 @@ const steps = [
   "Description",
   "Media",
   "Details",
+  "Location",
   "Condition & Floor Plan",
   "Overview",
 ];
@@ -594,15 +595,18 @@ export default function AddProperty() {
                         currentStep={currentStep}
                       />
                     )}
-                    {/* {currentStep === 4 && (
-                      <AmenitiesForm
+                    {currentStep === 4 && (
+                      <LocationInfoForm
+                        propertyData={listingFormData}
+                        data={locationData}
+                        onDataChange={handleLocationChange}
                         onNext={handleNext}
                         onBack={handleBack}
                         steps={steps}
                         currentStep={currentStep}
                       />
-                    )} */}
-                    {currentStep === 4 && (
+                    )}
+                    {currentStep === 5 && (
                       <Conditions
                         data={conditionData}
                         onConditionData={setConditionData}
@@ -616,7 +620,7 @@ export default function AddProperty() {
                         currentStep={currentStep}
                       />
                     )}
-                    {currentStep === 5 && (
+                    {currentStep === 6 && (
                       <Overview
                         descriptionData={listingFormData}
                         mediaData={imageUrls}
