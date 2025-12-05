@@ -4,7 +4,7 @@ import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
- 
+
 const supabase = createClient();
 
 export const api = createApi({
@@ -25,7 +25,7 @@ export const api = createApi({
     },
   }),
   reducerPath: "api",
-  tagTypes: ["Properties"],
+  tagTypes: ["Properties", "Favorites"],
   endpoints: (build) => ({
     getAuthUser: build.query<any, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
@@ -191,6 +191,106 @@ export const api = createApi({
       query: () => `property-type/stats`,
       providesTags: (result) => [{ type: "Properties", id: "PROPERTY_TYPES" }],
     }),
+
+    // ==================== FAVORITES ENDPOINTS ====================
+
+    // Get all favorite properties for a user (full property data)
+    getFavorites: build.query<Property[], string>({
+      query: (userId) => `buyer/${userId}/favorites`,
+      providesTags: (result, error, userId) => [
+        { type: "Favorites", id: userId },
+        { type: "Favorites", id: "LIST" },
+      ],
+    }),
+    // Get only favorite property IDs (lightweight)
+    getFavoriteIds: build.query<{ favoriteIds: string[] }, string>({
+      query: (userId) => `buyer/${userId}/favorites/ids`,
+      providesTags: (result, error, userId) => [
+        { type: "Favorites", id: `${userId}-IDS` },
+      ],
+    }),
+
+    // Check if a specific property is favorited
+    checkFavorite: build.query<
+      { isLiked: boolean; propertyId: string },
+      { userId: string; propertyId: string }
+    >({
+      query: ({ userId, propertyId }) =>
+        `buyer/${userId}/favorites/${propertyId}/check`,
+      providesTags: (result, error, { userId, propertyId }) => [
+        { type: "Favorites", id: `${userId}-${propertyId}` },
+      ],
+    }),
+    // Toggle favorite (like/unlike)
+    toggleFavorite: build.mutation<
+      { message: string; liked: boolean; propertyId: string },
+      { userId: string; propertyId: string }
+    >({
+      query: ({ userId, propertyId }) => ({
+        url: `buyer/${userId}/favorites/${propertyId}`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, { userId, propertyId }) => [
+        { type: "Favorites", id: userId },
+        { type: "Favorites", id: `${userId}-IDS` },
+        { type: "Favorites", id: `${userId}-${propertyId}` },
+        { type: "Favorites", id: "LIST" },
+      ],
+      async onQueryStarted(
+        { userId, propertyId },
+        { dispatch, queryFulfilled }
+      ) {
+        // Optimistic update for getFavoriteIds
+        const patchResult = dispatch(
+          api.util.updateQueryData("getFavoriteIds", userId, (draft) => {
+            const index = draft.favoriteIds.indexOf(propertyId);
+            if (index > -1) {
+              draft.favoriteIds.splice(index, 1);
+            } else {
+              draft.favoriteIds.push(propertyId);
+            }
+          })
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
+    // Add to favorites
+    addFavorite: build.mutation<
+      { message: string; liked: boolean; propertyId: string },
+      { userId: string; propertyId: string }
+    >({
+      query: ({ userId, propertyId }) => ({
+        url: `buyer/${userId}/favorites/${propertyId}/add`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, { userId, propertyId }) => [
+        { type: "Favorites", id: userId },
+        { type: "Favorites", id: `${userId}-IDS` },
+        { type: "Favorites", id: `${userId}-${propertyId}` },
+        { type: "Favorites", id: "LIST" },
+      ],
+    }),
+    // Remove from favorites
+    removeFavorite: build.mutation<
+      { message: string; liked: boolean; propertyId: string },
+      { userId: string; propertyId: string }
+    >({
+      query: ({ userId, propertyId }) => ({
+        url: `buyer/${userId}/favorites/${propertyId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { userId, propertyId }) => [
+        { type: "Favorites", id: userId },
+        { type: "Favorites", id: `${userId}-IDS` },
+        { type: "Favorites", id: `${userId}-${propertyId}` },
+        { type: "Favorites", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -201,5 +301,12 @@ export const {
   useGetPropertyQuery,
   useGetSellerPropertiesQuery,
   useGetPropertyTypesQuery,
-  useUpdatePropertyMutation
+  useUpdatePropertyMutation,
+  // Favorites hooks
+  useGetFavoritesQuery,
+  useGetFavoriteIdsQuery,
+  useCheckFavoriteQuery,
+  useToggleFavoriteMutation,
+  useAddFavoriteMutation,
+  useRemoveFavoriteMutation,
 } = api;

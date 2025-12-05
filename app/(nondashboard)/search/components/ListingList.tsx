@@ -39,7 +39,7 @@ const ListingList = () => {
             <div className="space32" />
             <div className="row">
                  {Properties?.map((property)=>(
-                    <ListingCard key={property.id} basic={property.basic} media={property.media} seller={property.seller}/>
+                    <ListingCard key={property.id} basic={property.basic} media={property.media} seller={property.seller} propertyId={property.id}/>
                 ))}
             </div>
         </div>

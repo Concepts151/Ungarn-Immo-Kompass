@@ -8,6 +8,11 @@ import {
 } from "@/types/api";
 import { Swiper, SwiperSlide } from "swiper/react";
 import Link from "next/link";
+import {
+  useGetAuthUserQuery,
+  useGetFavoriteIdsQuery,
+  useToggleFavoriteMutation,
+} from "@/state/api";
 
 const swiperOptions = {
   modules: [Autoplay, Pagination, Navigation],
@@ -34,23 +39,65 @@ function formatCurrency(value: number): string {
   } else if (value >= 1_000) {
     return (value / 1_000).toFixed(1).replace(/\.0$/, "") + "k";
   } else {
-    return value.toLocaleString(); // adds commas
+    return value.toLocaleString();
   }
+}
+
+interface ListingCardProps {
+  basic: PropertyBasic;
+  media: PropertyMedia[];
+  seller: SellerDatails[];
+  propertyId: string;
 }
 
 const ListingCard = ({
   basic,
   media,
   seller,
-}: {
-  basic: PropertyBasic;
-  media: PropertyMedia[];
-  seller: SellerDatails[];
-}) => {
-  const sellerAvatarUrl = ` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
+  propertyId,
+}: ListingCardProps) => {
+  const sellerAvatarUrl = `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
   const photos = media.filter(
     (mediaItem: any) => mediaItem.mediaType === "PHOTO"
   );
+
+  // Get authenticated user
+  const { data: authData } = useGetAuthUserQuery();
+  const userId = authData?.user?.id;
+  const userRole = authData?.userRole;
+
+  // Get user's favorite IDs
+  const { data: favoritesData } = useGetFavoriteIdsQuery(userId!, {
+    skip: !userId || userRole !== "BUYER",
+  });
+
+  // Toggle favorite mutation
+  const [toggleFavorite, { isLoading: isToggling }] = useToggleFavoriteMutation();
+
+  // Check if this property is liked
+  const isLiked = favoritesData?.favoriteIds?.includes(propertyId) ?? false;
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!userId) {
+      // Optionally show a login prompt or toast
+      console.log("User must be logged in to like properties");
+      return;
+    }
+
+    if (userRole !== "BUYER") {
+      console.log("Only buyers can like properties");
+      return;
+    }
+
+    try {
+      await toggleFavorite({ userId, propertyId }).unwrap();
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error);
+    }
+  };
 
   return (
     <div className="col-12">
@@ -62,20 +109,20 @@ const ListingCard = ({
           {photos.length > 0 ? (
             photos.map((m) => (
               <SwiperSlide key={m.id}>
-                <Link href="/property-details-v1">
+                <Link href={`/property/${basic.exposeId}`}>
                   <div className="img1 image-anime">
-                    <img src={m.url} alt="housa" style={{ height: "300px" }} />
+                    <img src={m.url} alt="property" style={{ height: "300px" }} />
                   </div>
                 </Link>
               </SwiperSlide>
             ))
           ) : (
             <SwiperSlide>
-              <Link href="/property-details-v1">
+              <Link href={`/property/${basic.exposeId}`}>
                 <div className="img1 image-anime">
                   <img
                     src="/assets/img/all-images/properties/property-img2.png"
-                    alt="housa"
+                    alt="property placeholder"
                   />
                 </div>
               </Link>
@@ -92,7 +139,7 @@ const ListingCard = ({
             </Link>
             <div className="space16" />
             <p>
-              {basic.address}, {basic.city}{" "}
+              {basic.address}, {basic.city}
             </p>
           </div>
           <Link href={`/property/${basic.exposeId}`} className="price">
@@ -215,7 +262,7 @@ const ListingCard = ({
           <div className="btn-area">
             <div className="name-area">
               <div className="img">
-                <img src={sellerAvatarUrl} alt="housa" />
+                <img src={sellerAvatarUrl} alt="seller avatar" />
               </div>
               <div className="text">
                 <Link href="#">
@@ -224,18 +271,56 @@ const ListingCard = ({
               </div>
             </div>
             <div className="love-share">
-              <Link href="javascript:void(0)" className="heart">
-                <img
-                  src="/assets/img/icons/heart2.svg"
-                  alt="housa"
-                  className="heart1"
-                />{" "}
-                {/* <img
-                  src="/assets/img/icons/heart1.svg"
-                  alt="housa"
-                  className="heart2"
-                /> */}
-              </Link>
+              <button
+                onClick={handleToggleFavorite}
+                disabled={isToggling || !userId || userRole !== "BUYER"}
+                className={`heart ${isLiked ? "liked" : ""}`}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: userId && userRole === "BUYER" ? "pointer" : "not-allowed",
+                  padding: 0,
+                  opacity: isToggling ? 0.5 : 1,
+                  transition: "opacity 0.2s ease",
+                }}
+                title={
+                  !userId
+                    ? "Login to save favorites"
+                    : userRole !== "BUYER"
+                    ? "Only buyers can save favorites"
+                    : isLiked
+                    ? "Remove from favorites"
+                    : "Add to favorites"
+                }
+              >
+                {isLiked ? (
+                  // Filled heart when liked
+                  // <svg
+                  //   xmlns="http://www.w3.org/2000/svg"
+                  //   width={20}
+                  //   height={18}
+                  //   viewBox="0 0 20 18"
+                  //   fill="#ED8438"
+                  // >
+                  //   <path
+                  //     d="M10 18C9.74418 18 9.4977 17.9149 9.30214 17.7593C8.49173 17.1139 7.71036 16.5112 7.02114 15.9821L7.01772 15.9795C4.98128 14.4212 3.22017 13.0732 1.98894 11.7523C0.610338 10.2727 0 8.87813 0 7.3493C0 5.86474 0.540242 4.49593 1.52178 3.49026C2.51536 2.47219 3.86314 1.91669 5.32709 1.91669C6.42612 1.91669 7.43203 2.25171 8.3189 2.91231C8.76643 3.24566 9.16614 3.65329 9.50535 4.12734C9.84471 3.65329 10.2443 3.24566 10.6921 2.91231C11.579 2.25171 12.5848 1.91669 13.6839 1.91669C15.1477 1.91669 16.4956 2.47219 17.4893 3.49026C18.4708 4.49593 19.0109 5.86474 19.0109 7.3493C19.0109 8.87813 18.4007 10.2727 17.0221 11.7522C15.7909 13.0732 14.0299 14.4211 11.9937 15.9793C11.3033 16.5094 10.5207 17.1131 9.70885 17.7597C9.51344 17.9149 9.26668 18 9.01086 18H10Z"
+                  //     fill="#ED8438"
+                  //   />
+                  // </svg>
+                 <img
+                    src="/assets/img/icons/heart2.svg"
+                    alt="like"
+                    className="heart1"
+                  />
+                ) : (
+                  // Outline heart when not liked
+                  <img
+                    src="/assets/img/icons/heart1.svg"
+                    alt="like"
+                    className="heart1"
+                  />
+                )}
+              </button>
               <Link href="#" className="share">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
