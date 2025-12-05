@@ -112,6 +112,8 @@ export interface Expose {
     url: string;
     uploadedAt: string;
   }[];
+  village: any
+  
 }
 
 

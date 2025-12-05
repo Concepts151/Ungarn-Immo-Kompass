@@ -11,7 +11,7 @@ const ContactSeller = dynamic(
 
 interface PropertyInnerProps {
   block_extend?: string;
-  property: Expose;
+  property: any;
 }
 
 // Helper function to render star ratings
@@ -51,7 +51,8 @@ export default function PropertyInner({
   const sellerName = `${seller.firstName} ${seller.lastName}`;
 
   // Create property title from basic info
-  const propertyTitle = `${property.basic.title || property.basic.address} in ${property.basic.city}`;
+  const basic = property.basic as any;
+  const propertyTitle = `${basic.title ?? basic.address} in ${basic.city}`;
   const sellerMatrixId = property.seller.matrixUserId;
   const sellerAvatarUrl = `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller.avatarUrl}`;
 
@@ -121,11 +122,11 @@ export default function PropertyInner({
                       <div className="space40" />
                       <div className="padding-side">
                         {/* About This Property */}
-                        {property.basic.description && (
+                        {(property.basic as any).description && (
                           <>
                             <h3>About This Property</h3>
                             <div className="space24" />
-                            <p>{property.basic.description}</p>
+                            <p>{(property.basic as any).description}</p>
                           </>
                         )}
                         <div className="space30" />
@@ -607,8 +608,8 @@ export default function PropertyInner({
                         <div className="space30" />
 
                         {/* Village Section */}
-                        {property.basic.village && (
-                          <VillageSection village={property.basic.village} />
+                        {basic.village && (
+                          <VillageSection village={basic.village} />
                         )}
 
                         {/* Floor Plans */}
