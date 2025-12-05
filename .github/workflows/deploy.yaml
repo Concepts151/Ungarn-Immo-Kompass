@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   deploy:
@@ -31,7 +31,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           source: "./"
-          target: "/srv/projects/immo-ungarn/web"   # 👈 CHANGE PER PROJECT
+          target: "/srv/projects/immo-ungarn/web/client-web" # 👈 CHANGE PER PROJECT
 
       - name: Restart PM2 on VPS
         uses: appleboy/ssh-action@v1.2.0
@@ -41,7 +41,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /srv/projects/immo-ungarn/web
+            cd /srv/projects/immo-ungarn/web/client-web
             npm install --omit=dev
             pm2 restart web || pm2 start "npm start" --name web
             pm2 save
