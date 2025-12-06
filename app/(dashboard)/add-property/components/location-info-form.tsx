@@ -285,7 +285,7 @@ function LocationPickerMap({
   useEffect(() => {
     Promise.all([import("leaflet"), import("react-leaflet")]).then(
       ([leaflet, reactLeaflet]) => {
-        import("leaflet/dist/leaflet.css");
+      
         setL(leaflet);
         setReactLeaflet(reactLeaflet);
         setLeafletLoaded(true);
