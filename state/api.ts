@@ -1,5 +1,7 @@
+// state/api.ts
+// RTK Query API - Updated with Matrix Endpoints
+
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
-import { updateProperty } from "@/features/property/propertySlice";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
@@ -7,10 +9,63 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const supabase = createClient();
 
+// ============================================
+// TYPES
+// ============================================
+
+interface MatrixRoom {
+  id: string;
+  matrixRoomId: string;
+  exposeId: string | null;
+  roomName: string | null;
+  roomType: "PROPERTY_INQUIRY" | "DIRECT_MESSAGE" | "SUPPORT";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  expose?: {
+    id: string;
+    basic?: {
+      title: string;
+      address: string;
+      price: number;
+    };
+    media?: { url: string }[];
+  };
+  participants: {
+    id: string;
+    userId: string;
+    matrixUserId: string;
+    role: string;
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl: string | null;
+    };
+  }[];
+}
+
+interface MatrixRegistrationStats {
+  registration: {
+    usersCreated: number;
+    tokenLimit: number;
+    remaining: number;
+    tokenExpiry: string;
+    isExpired: boolean;
+  };
+  rooms: {
+    total: number;
+    active: number;
+  };
+}
+
+// ============================================
+// API DEFINITION
+// ============================================
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
-    // baseUrl: "http://localhost:3005",
     prepareHeaders: async (headers) => {
       const {
         data: { session },
@@ -25,8 +80,9 @@ export const api = createApi({
     },
   }),
   reducerPath: "api",
-  tagTypes: ["Properties", "Favorites"],
+  tagTypes: ["Properties", "Favorites", "MatrixRooms"],
   endpoints: (build) => ({
+    // ==================== AUTH ENDPOINTS ====================
     getAuthUser: build.query<any, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
         console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
@@ -52,8 +108,8 @@ export const api = createApi({
             userRole === "BUYER"
               ? `/buyer/${user?.id}`
               : userRole === "SELLER"
-              ? `/seller/${user?.id}`
-              : "";
+                ? `/seller/${user?.id}`
+                : "";
           console.log("endpoint:", endpoint);
 
           const userNewData = { ...user, ...supabaseUserData };
@@ -78,10 +134,11 @@ export const api = createApi({
             matrixUserId?: string;
             matrixPassword?: string;
           };
+          
           if (userData?.matrixUserId && userData?.matrixPassword) {
             try {
               const matrixResponse = await fetchWithBQ({
-                url: "auth/matrix-token", // Remove leading slash
+                url: "matrix/token", // Updated endpoint path
                 method: "POST",
                 body: {
                   matrixUserId: userData.matrixUserId,
@@ -94,7 +151,6 @@ export const api = createApi({
               }
             } catch (matrixError) {
               console.error("Failed to get Matrix credentials:", matrixError);
-              // Continue without Matrix credentials
             }
           }
 
@@ -102,7 +158,7 @@ export const api = createApi({
             data: {
               user: userDetailsResponse.data,
               userRole: userRole,
-              matrix: matrixCredentials, // Include Matrix credentials in response
+              matrix: matrixCredentials,
             },
           };
         } catch (error: any) {
@@ -110,8 +166,8 @@ export const api = createApi({
         }
       },
     }),
-    // property related endpoints
-    // Create property endpoint
+
+    // ==================== PROPERTY ENDPOINTS ====================
     createProperty: build.mutation<any, any>({
       query: (propertyData) => ({
         url: "properties",
@@ -126,6 +182,7 @@ export const api = createApi({
         });
       },
     }),
+
     updateProperty: build.mutation<any, { id: string; data: any }>({
       query: ({ id, data }) => ({
         url: `properties/${id}`,
@@ -143,6 +200,7 @@ export const api = createApi({
         });
       },
     }),
+
     getProperties: build.query<
       Property[],
       Partial<FiltersState & { favoriteIds?: number[] }>
@@ -161,8 +219,6 @@ export const api = createApi({
           longitude: filters.coordinates?.[0],
         });
 
-        console.log(params);
-
         return { url: "properties", params };
       },
       providesTags: (result) =>
@@ -175,26 +231,27 @@ export const api = createApi({
         });
       },
     }),
+
     getProperty: build.query<Property, string>({
       query: (id) => `properties/${id}`,
       providesTags: (result, error, id) => [
         { type: "Properties", id: result?.id },
       ],
     }),
+
     getSellerProperties: build.query<GetSellerPropertiesResponse, string>({
       query: (sellerId) => `seller/${sellerId}/properties`,
       providesTags: (result, error, sellerId) => [
         { type: "Properties", id: sellerId },
       ],
     }),
+
     getPropertyTypes: build.query<any, void>({
       query: () => `property-type/stats`,
       providesTags: (result) => [{ type: "Properties", id: "PROPERTY_TYPES" }],
     }),
 
     // ==================== FAVORITES ENDPOINTS ====================
-
-    // Get all favorite properties for a user (full property data)
     getFavorites: build.query<Property[], string>({
       query: (userId) => `buyer/${userId}/favorites`,
       providesTags: (result, error, userId) => [
@@ -202,7 +259,7 @@ export const api = createApi({
         { type: "Favorites", id: "LIST" },
       ],
     }),
-    // Get only favorite property IDs (lightweight)
+
     getFavoriteIds: build.query<{ favoriteIds: string[] }, string>({
       query: (userId) => `buyer/${userId}/favorites/ids`,
       providesTags: (result, error, userId) => [
@@ -210,7 +267,6 @@ export const api = createApi({
       ],
     }),
 
-    // Check if a specific property is favorited
     checkFavorite: build.query<
       { isLiked: boolean; propertyId: string },
       { userId: string; propertyId: string }
@@ -221,7 +277,7 @@ export const api = createApi({
         { type: "Favorites", id: `${userId}-${propertyId}` },
       ],
     }),
-    // Toggle favorite (like/unlike)
+
     toggleFavorite: build.mutation<
       { message: string; liked: boolean; propertyId: string },
       { userId: string; propertyId: string }
@@ -240,7 +296,6 @@ export const api = createApi({
         { userId, propertyId },
         { dispatch, queryFulfilled }
       ) {
-        // Optimistic update for getFavoriteIds
         const patchResult = dispatch(
           api.util.updateQueryData("getFavoriteIds", userId, (draft) => {
             const index = draft.favoriteIds.indexOf(propertyId);
@@ -259,7 +314,7 @@ export const api = createApi({
         }
       },
     }),
-    // Add to favorites
+
     addFavorite: build.mutation<
       { message: string; liked: boolean; propertyId: string },
       { userId: string; propertyId: string }
@@ -275,7 +330,7 @@ export const api = createApi({
         { type: "Favorites", id: "LIST" },
       ],
     }),
-    // Remove from favorites
+
     removeFavorite: build.mutation<
       { message: string; liked: boolean; propertyId: string },
       { userId: string; propertyId: string }
@@ -291,22 +346,118 @@ export const api = createApi({
         { type: "Favorites", id: "LIST" },
       ],
     }),
+
+    // ==================== MATRIX ENDPOINTS ====================
+
+    // Register Matrix account for current user
+    registerMatrixAccount: build.mutation<
+      { success: boolean; matrixUserId: string; accessToken: string },
+      { userId: string }
+    >({
+      query: ({ userId }) => ({
+        url: "matrix/register",
+        method: "POST",
+        body: { userId },
+      }),
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Matrix account created!",
+          error: "Failed to create Matrix account.",
+        });
+      },
+    }),
+
+    // Get user's Matrix chat rooms
+    getMatrixRooms: build.query<{ rooms: MatrixRoom[] }, void>({
+      query: () => "matrix/rooms",
+      providesTags: [{ type: "MatrixRooms", id: "LIST" }],
+    }),
+
+    // Get room by property ID
+    getMatrixRoomByProperty: build.query<
+      { room: MatrixRoom | null },
+      string
+    >({
+      query: (exposeId) => `matrix/rooms/by-property/${exposeId}`,
+      providesTags: (result, error, exposeId) => [
+        { type: "MatrixRooms", id: exposeId },
+      ],
+    }),
+
+    // Create property inquiry room
+    createPropertyInquiryRoom: build.mutation<
+      { success: boolean; roomId: string; matrixRoomId: string; roomName: string },
+      { exposeId: string; buyerId: string }
+    >({
+      query: ({ exposeId, buyerId }) => ({
+        url: "matrix/rooms/property-inquiry",
+        method: "POST",
+        body: { exposeId, buyerId },
+      }),
+      invalidatesTags: [{ type: "MatrixRooms", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Chat room created!",
+          error: "Failed to create chat room.",
+        });
+      },
+    }),
+
+    // Create direct message room
+    createDirectMessageRoom: build.mutation<
+      { success: boolean; roomId: string; matrixRoomId: string; roomName: string },
+      { user1Id: string; user2Id: string }
+    >({
+      query: ({ user1Id, user2Id }) => ({
+        url: "matrix/rooms/direct",
+        method: "POST",
+        body: { user1Id, user2Id },
+      }),
+      invalidatesTags: [{ type: "MatrixRooms", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Chat started!",
+          error: "Failed to start chat.",
+        });
+      },
+    }),
+
+    // Get Matrix registration stats (admin only)
+    getMatrixStats: build.query<MatrixRegistrationStats, void>({
+      query: () => "matrix/admin/stats",
+    }),
   }),
 });
 
+// ============================================
+// EXPORTS
+// ============================================
+
 export const {
-  useGetPropertiesQuery,
+  // Auth
   useGetAuthUserQuery,
+  
+  // Properties
+  useGetPropertiesQuery,
   useCreatePropertyMutation,
   useGetPropertyQuery,
   useGetSellerPropertiesQuery,
   useGetPropertyTypesQuery,
   useUpdatePropertyMutation,
-  // Favorites hooks
+  
+  // Favorites
   useGetFavoritesQuery,
   useGetFavoriteIdsQuery,
   useCheckFavoriteQuery,
   useToggleFavoriteMutation,
   useAddFavoriteMutation,
   useRemoveFavoriteMutation,
+  
+  // Matrix
+  useRegisterMatrixAccountMutation,
+  useGetMatrixRoomsQuery,
+  useGetMatrixRoomByPropertyQuery,
+  useCreatePropertyInquiryRoomMutation,
+  useCreateDirectMessageRoomMutation,
+  useGetMatrixStatsQuery,
 } = api;

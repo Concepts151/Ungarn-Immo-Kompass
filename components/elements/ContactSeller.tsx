@@ -1,16 +1,23 @@
+// components/ContactSeller.tsx
+// Updated to use lazy Matrix registration via backend API
+
 "use client";
 
-import { useGetAuthUserQuery } from "@/state/api";
-import { createRoomViaAPI } from "@/utils/api";
+import {
+  useGetAuthUserQuery,
+  useCreatePropertyInquiryRoomMutation,
+  useGetMatrixRoomByPropertyQuery,
+} from "@/state/api";
+import { useToggleModal } from "@/app/store";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ContactSellerProps {
   sellerName: string;
   sellerImage?: string;
   sellerEmail: string;
   sellerPhone: string;
-  sellerMatrixId: string;
+  sellerMatrixId?: string; // Now optional - may not exist yet (lazy registration)
   propertyId: string;
   propertyTitle: string;
   sellerId: string;
@@ -26,64 +33,112 @@ export default function ContactSeller({
   propertyTitle,
   sellerId,
 }: ContactSellerProps) {
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const { data: authUser } = useGetAuthUserQuery();
-  const isSeller = authUser?.user?.id === sellerId;
+  const { data: authUser, isLoading: isAuthLoading } = useGetAuthUserQuery();
+  
+  // Zustand store for login modal
+  const setLoginModalOpen = useToggleModal((state) => state.isLoginModalOpen);
+  
+  // Check if room already exists for this property
+  const { data: existingRoomData } = useGetMatrixRoomByPropertyQuery(propertyId, {
+    skip: !authUser?.user?.id,
+  });
 
-  console.log("isSeller:", isSeller);
+  // RTK Query mutation for creating property inquiry room
+  const [createRoom, { isLoading: isCreatingRoom }] = useCreatePropertyInquiryRoomMutation();
+
+  const isSeller = authUser?.user?.id === sellerId;
+  const isLoggedIn = !!authUser?.user?.id;
+  const hasExistingRoom = !!existingRoomData?.room;
+
+  // Reset success message after a delay
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
+  const openLoginModal = () => {
+    // Use Zustand store to open login modal
+    useToggleModal.setState({ isLoginModalOpen: true });
+  };
 
   const handleContactSeller = async () => {
     setError(null);
     setSuccess(false);
-    setLoading(true);
 
-    console.log("Contacting seller:", sellerMatrixId);
+    // Check if user is authenticated
+    if (!isLoggedIn) {
+      openLoginModal();
+      setError("Please log in to message the seller");
+      return;
+    }
+
+    // Don't allow seller to message themselves
+    if (isSeller) {
+      setError("You cannot message yourself");
+      return;
+    }
 
     try {
-      // Check if user is authenticated
-      if (!authUser?.matrix?.matrixUserId) {
-        setError("Please log in to message the seller");
-        setLoading(false);
+      // If room already exists, just open the chat
+      if (hasExistingRoom && existingRoomData?.room?.matrixRoomId) {
+        setSuccess(true);
+        // Open the Matrix chat widget and select this room
+        window.dispatchEvent(
+          new CustomEvent("openMatrixChat", {
+            detail: { roomId: existingRoomData.room.matrixRoomId },
+          })
+        );
         return;
       }
 
-      // Prepare room creation data
-      const accessToken = authUser?.matrix?.matrixAccessToken;
-      const roomName = `${propertyTitle}`;
-      const topic = `Inquiry regarding property ID: ${propertyId}`;
-      const formattedUserId = sellerMatrixId;
+      // Create new room via backend API
+      // This will automatically:
+      // 1. Create Matrix accounts for buyer/seller if they don't exist (lazy registration)
+      // 2. Create the Matrix room
+      // 3. Invite both users
+      // 4. Save room to database
+      const result = await createRoom({
+        exposeId: propertyId,
+        buyerId: authUser.user.id,
+      }).unwrap();
 
-      // Create the room via your API
-      const result = await createRoomViaAPI(
-        accessToken,
-        roomName,
-        topic,
-        formattedUserId,
-        true
-      );
-
-      if (result.roomId) {
+      if (result.success && result.matrixRoomId) {
         setSuccess(true);
 
-        // Optional: Redirect to chat after a short delay
-        setTimeout(() => {
-          // window.location.href = `/dashboard/messages?roomId=${result.roomId}`;
-          // Or if using Next.js router:
-          // router.push(`/dashboard/messages?roomId=${result.roomId}`);
-        }, 1500);
+        // Open the Matrix chat widget and select this room
+        window.dispatchEvent(
+          new CustomEvent("openMatrixChat", {
+            detail: { roomId: result.matrixRoomId },
+          })
+        );
       } else {
         setError("Failed to create chat room");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating chat room:", err);
-      setError("An error occurred. Please try again.");
-    } finally {
-      setLoading(false);
+      
+      // Handle specific error messages from backend
+      if (err.data?.error) {
+        setError(err.data.error);
+      } else if (err.data?.details) {
+        setError(err.data.details);
+      } else {
+        setError("An error occurred. Please try again.");
+      }
     }
   };
+
+  const loading = isCreatingRoom || isAuthLoading;
+  const buttonText = hasExistingRoom 
+    ? "Continue Chat" 
+    : loading 
+      ? "Opening Chat..." 
+      : "Message Seller";
 
   return (
     <div className="details-siderbar2">
@@ -148,7 +203,7 @@ export default function ContactSeller({
             borderRadius: "4px",
           }}
         >
-          ✓ Chat opened! You can now message the seller.
+          ✓ {hasExistingRoom ? "Opening your chat..." : "Chat created! You can now message the seller."}
         </div>
       )}
 
@@ -171,22 +226,21 @@ export default function ContactSeller({
         </div>
       )}
 
-      {/* Message Seller Button */}
-
+      {/* Message Seller Button - Hidden for seller viewing their own property */}
       {!isSeller && (
         <div className="input-area">
           <button
             type="button"
             className="vl-btn1"
             onClick={handleContactSeller}
-            // disabled={loading || !isReady}
-            // style={{
-            //   opacity: (loading || !isReady) ? 0.6 : 1,
-            //   cursor: (loading || !isReady) ? 'not-allowed' : 'pointer',
-            //   width: '100%'
-            // }}
+            disabled={loading}
+            style={{
+              opacity: loading ? 0.6 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+              width: "100%",
+            }}
           >
-            {loading ? "Opening Chat..." : "Message Seller"}
+            {buttonText}
             <span className="arrow1 ms-2">
               <i className="fa-solid fa-arrow-right" />
             </span>
@@ -197,15 +251,16 @@ export default function ContactSeller({
         </div>
       )}
 
-      {/* Status Messages */}
-      {/* {!isReady && !loading && (
-        <p 
-          className="text-muted small text-center mt-2" 
-          style={{ fontSize: '12px', color: '#6c757d' }}
+      {/* Login prompt for unauthenticated users */}
+      {!isLoggedIn && !isAuthLoading && (
+        <p
+          className="text-muted small text-center mt-2"
+          style={{ fontSize: "12px", color: "#6c757d", cursor: "pointer" }}
+          onClick={openLoginModal}
         >
-          {isReady === false ? '🔐 Please log in to message sellers' : '⏳ Connecting...'}
+          🔐 Please log in to message sellers
         </p>
-      )} */}
+      )}
     </div>
   );
 }

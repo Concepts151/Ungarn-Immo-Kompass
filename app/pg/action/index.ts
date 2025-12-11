@@ -76,7 +76,14 @@ export async function updateDetails(formData: FormData) {
   return { data, error };
 }
 
+// export const logout = async () => {
+//   const supabase = await createClient();
+//   await supabase.auth.signOut();
+// };
+
 export const logout = async () => {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error("Error logging out:", error);
+  return { error };
 };

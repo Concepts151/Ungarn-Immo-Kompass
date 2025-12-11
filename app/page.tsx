@@ -29,8 +29,7 @@ export default function Home() {
         <Testimonial1 />
         <div className="space30"></div>
         {/* <Blog1 /> */}
-        <LoginModal />
-        <RegisterModal />
+        
       </Layout>
     </>
   );

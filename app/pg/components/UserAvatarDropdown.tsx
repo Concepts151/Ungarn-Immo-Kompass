@@ -9,6 +9,7 @@ export default function UserAvatarDropdown() {
   const user = useSessionStore((s) => s.session?.user)
   const name = useSessionStore((state) => state.name)
   const avatarUrl = useSessionStore((state) => state.avatarUrl)
+  const clearSession = useSessionStore((state) => state.clearSession)
 
 
   // Get initials from the name
@@ -19,6 +20,18 @@ export default function UserAvatarDropdown() {
         .join("")
         .toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? "U"
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      clearSession()
+      localStorage.clear()
+      sessionStorage.clear()
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
+  }
 
   return (
     <div className="dropdown" style={{display:"flex", justifyContent:"end"}}>
@@ -74,10 +87,7 @@ export default function UserAvatarDropdown() {
           <button
             className="dropdown-item text-danger"
             type="button"
-            onClick={async () => {
-              await logout()
-              window.location.reload()
-            }}>
+            onClick={handleLogout}>
             Logout
           </button>
         </li>
