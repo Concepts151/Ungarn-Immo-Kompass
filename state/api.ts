@@ -475,6 +475,30 @@ export const api = createApi({
     getMatrixStats: build.query<MatrixRegistrationStats, void>({
       query: () => "matrix/admin/stats",
     }),
+
+    // Look up users by their Matrix IDs (for displaying names/avatars in chat)
+    lookupMatrixUsers: build.mutation<
+      {
+        users: Record<
+          string,
+          {
+            id: string;
+            firstName: string;
+            lastName: string;
+            fullName: string;
+            avatarUrl: string | null;
+            role: string;
+          }
+        >;
+      },
+      { matrixUserIds: string[] }
+    >({
+      query: ({ matrixUserIds }) => ({
+        url: "matrix/users/lookup",
+        method: "POST",
+        body: { matrixUserIds },
+      }),
+    }),
   }),
 });
 
@@ -509,4 +533,5 @@ export const {
   useCreatePropertyInquiryRoomMutation,
   useCreateDirectMessageRoomMutation,
   useGetMatrixStatsQuery,
+  useLookupMatrixUsersMutation,
 } = api;

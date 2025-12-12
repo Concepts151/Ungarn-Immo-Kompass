@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./css/matrixchat.css";
 import { MessageCircle, X } from "lucide-react";
-import { useGetAuthUserQuery, useRegisterMatrixAccountMutation } from "@/state/api";
+import { useGetAuthUserQuery, useRegisterMatrixAccountMutation, useLookupMatrixUsersMutation } from "@/state/api";
 import { useToggleModal } from "@/app/store";
 import { getMatrixSdk } from "@/utils/matrixSdk";
 import { MatrixClientType } from "@/types/index.t";
@@ -11,6 +11,16 @@ import RoomList from "./RoomList";
 import MessageArea from "./MessageArea";
 import LeaveRoomModal from "./modals/LeaveRoomModal";
 import VideoCallModal from "./VideoCallModal";
+
+// Type for user details lookup
+interface MatrixUserInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  avatarUrl: string | null;
+  role: string;
+}
 
 // Type for authenticated user from backend
 interface AuthUser {
@@ -45,6 +55,12 @@ const MatrixChat = () => {
 
   // RTK Query mutation for lazy Matrix registration
   const [registerMatrix, { isLoading: isRegistering }] = useRegisterMatrixAccountMutation();
+  
+  // RTK Query mutation for looking up users by Matrix ID
+  const [lookupUsers] = useLookupMatrixUsersMutation();
+
+  // User cache - maps Matrix IDs to user details
+  const [userCache, setUserCache] = useState<Record<string, MatrixUserInfo>>({});
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -224,6 +240,101 @@ const MatrixChat = () => {
     setRooms(joinedRooms);
     setInvites(invitedRooms);
   }, []);
+
+  // Track which IDs we've already fetched to prevent duplicate requests
+  const fetchedIdsRef = useRef<Set<string>>(new Set());
+  const isFetchingRef = useRef(false);
+
+  // Fetch user details for Matrix IDs not in cache
+  const fetchUserDetails = useCallback(async (matrixUserIds: string[]) => {
+    // Filter out IDs we already have in cache or already fetched
+    const unknownIds = matrixUserIds.filter(
+      id => !userCache[id] && !fetchedIdsRef.current.has(id)
+    );
+    
+    if (unknownIds.length === 0 || isFetchingRef.current) return;
+
+    // Mark these as being fetched
+    unknownIds.forEach(id => fetchedIdsRef.current.add(id));
+    isFetchingRef.current = true;
+
+    console.log("🔍 Looking up user details for:", unknownIds);
+
+    try {
+      const result = await lookupUsers({ matrixUserIds: unknownIds }).unwrap();
+      
+      if (result.users) {
+        setUserCache(prev => ({
+          ...prev,
+          ...result.users,
+        }));
+        console.log("✅ User cache updated:", Object.keys(result.users));
+      }
+    } catch (error) {
+      console.error("Failed to lookup users:", error);
+      // Remove failed IDs so they can be retried
+      unknownIds.forEach(id => fetchedIdsRef.current.delete(id));
+    } finally {
+      isFetchingRef.current = false;
+    }
+  }, [lookupUsers]); // Removed userCache from dependencies
+
+  // When rooms change, fetch user details for all participants
+  useEffect(() => {
+    if (rooms.length === 0) return;
+
+    // Collect all unique Matrix user IDs from room members
+    const allMatrixIds = new Set<string>();
+    
+    for (const room of rooms) {
+      try {
+        const members = room.getJoinedMembers?.() || [];
+        for (const member of members) {
+          if (member.userId) {
+            allMatrixIds.add(member.userId);
+          }
+        }
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+
+    if (allMatrixIds.size > 0) {
+      fetchUserDetails(Array.from(allMatrixIds));
+    }
+  }, [rooms, fetchUserDetails]);
+
+  // Fetch user details for message senders (separate effect, runs less often)
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    const senderIds = new Set<string>();
+    for (const msg of messages) {
+      const senderId = msg.getSender?.();
+      if (senderId && !userCache[senderId] && !fetchedIdsRef.current.has(senderId)) {
+        senderIds.add(senderId);
+      }
+    }
+
+    if (senderIds.size > 0) {
+      fetchUserDetails(Array.from(senderIds));
+    }
+  }, [messages, fetchUserDetails, userCache]);
+
+  // Helper to get display name for a Matrix user ID
+  const getUserDisplayName = useCallback((matrixUserId: string): string => {
+    const cached = userCache[matrixUserId];
+    if (cached) {
+      return cached.fullName || `${cached.firstName} ${cached.lastName}`.trim();
+    }
+    // Fallback: extract username from Matrix ID (@immo_xxx:domain -> immo_xxx)
+    return matrixUserId.split(":")[0].replace("@", "").replace("immo_", "");
+  }, [userCache]);
+
+  // Helper to get avatar URL for a Matrix user ID
+  const getUserAvatar = useCallback((matrixUserId: string): string | null => {
+    return userCache[matrixUserId]?.avatarUrl || null;
+  }, [userCache]);
 
   // ICE candidate batching
   const iceCandidateBuffer = useRef<RTCIceCandidateInit[]>([]);
@@ -1290,6 +1401,9 @@ const MatrixChat = () => {
               onAcceptInvite={handleAcceptInvite}
               onRejectInvite={handleRejectInvite}
               matrixClient={client}
+              userCache={userCache}
+              getUserDisplayName={getUserDisplayName}
+              getUserAvatar={getUserAvatar}
             />
             <MessageArea
               selectedRoom={selectedRoom}
@@ -1303,6 +1417,9 @@ const MatrixChat = () => {
               onLeaveRoom={() => selectedRoom && confirmLeaveRoom(selectedRoom)}
               onVideoCall={() => startCall(true)}
               onVoiceCall={() => startCall(false)}
+              userCache={userCache}
+              getUserDisplayName={getUserDisplayName}
+              getUserAvatar={getUserAvatar}
             />
           </div>
         </div>

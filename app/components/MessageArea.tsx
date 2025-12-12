@@ -4,6 +4,15 @@ import RoomHeader from "./RoomHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 
+interface MatrixUserInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  avatarUrl: string | null;
+  role: string;
+}
+
 interface MessagesAreaProps {
   selectedRoom: any | null;
   messages: any[];
@@ -16,6 +25,9 @@ interface MessagesAreaProps {
   onLeaveRoom: () => void;
   onVideoCall?: () => void;
   onVoiceCall?: () => void;
+  userCache?: Record<string, MatrixUserInfo>;
+  getUserDisplayName?: (matrixUserId: string) => string;
+  getUserAvatar?: (matrixUserId: string) => string | null;
 }
 
 const MessageArea = ({
@@ -30,6 +42,9 @@ const MessageArea = ({
   onLeaveRoom,
   onVideoCall,
   onVoiceCall,
+  userCache,
+  getUserDisplayName,
+  getUserAvatar,
 }: MessagesAreaProps) => {
   if (!selectedRoom) {
     return (
@@ -56,10 +71,18 @@ const MessageArea = ({
         onLeaveRoom={onLeaveRoom}
         onVideoCall={onVideoCall}
         onVoiceCall={onVoiceCall}
+        getUserDisplayName={getUserDisplayName}
+        getUserAvatar={getUserAvatar}
       />
-        {/* Message List */}
-        <MessageList messages={messages} matrixUserId={matrixUserId}/>
-        <MessageInput
+      {/* Message List */}
+      <MessageList 
+        messages={messages} 
+        matrixUserId={matrixUserId}
+        userCache={userCache}
+        getUserDisplayName={getUserDisplayName}
+        getUserAvatar={getUserAvatar}
+      />
+      <MessageInput
         value={newMessage}
         sending={sending}
         onChange={onMessageChange}

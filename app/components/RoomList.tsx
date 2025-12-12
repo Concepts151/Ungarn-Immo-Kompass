@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./css/matrixchat.css";
+import "./css/roomlist.css";
 import { Hash, Trash2 } from "lucide-react";
 import RoomInvites from "./RoomInvites";
 
@@ -12,6 +12,9 @@ interface RoomListProps {
   onAcceptInvite: (roomId: string) => void;
   onRejectInvite: (roomId: string) => void;
   matrixClient?: any; // Pass the Matrix client for read receipts
+  userCache?: Record<string, { id: string; firstName: string; lastName: string; fullName: string; avatarUrl: string | null; role: string }>;
+  getUserDisplayName?: (matrixUserId: string) => string;
+  getUserAvatar?: (matrixUserId: string) => string | null;
 }
 
 // Helper function to count only actual messages
@@ -93,7 +96,10 @@ const getUnreadCount = (room: any): number => {
 };
 
 // Get last message preview
-const getLastMessagePreview = (room: any): { text: string; sender: string; timestamp: number } | null => {
+const getLastMessagePreview = (
+  room: any, 
+  getUserDisplayName?: (matrixUserId: string) => string
+): { text: string; sender: string; senderId: string; timestamp: number } | null => {
   try {
     const timeline = room.getLiveTimeline?.();
     if (!timeline) return null;
@@ -108,16 +114,22 @@ const getLastMessagePreview = (room: any): { text: string; sender: string; times
     const lastMessage = messages[messages.length - 1];
     const content = lastMessage.getContent?.();
     const body = content?.body || "";
-    const sender = lastMessage.getSender?.() || "";
+    const senderId = lastMessage.getSender?.() || "";
     const timestamp = lastMessage.getTs?.() || 0;
     
-    // Get sender display name
-    const senderMember = room.getMember?.(sender);
-    const senderName = senderMember?.name || sender.split(":")[0].replace("@", "");
+    // Use the getUserDisplayName helper if available, otherwise fallback
+    let senderName: string;
+    if (getUserDisplayName) {
+      senderName = getUserDisplayName(senderId);
+    } else {
+      const senderMember = room.getMember?.(senderId);
+      senderName = senderMember?.name || senderId.split(":")[0].replace("@", "").replace("immo_", "");
+    }
     
     return {
       text: body.length > 25 ? body.substring(0, 25) + "..." : body,
       sender: senderName,
+      senderId,
       timestamp,
     };
   } catch (error) {
@@ -156,6 +168,9 @@ const RoomList = ({
   onAcceptInvite,
   onRejectInvite,
   matrixClient,
+  userCache,
+  getUserDisplayName,
+  getUserAvatar,
 }: RoomListProps) => {
   // Force re-render when rooms update to refresh unread counts
   const [, setUpdateTrigger] = useState(0);
@@ -183,8 +198,8 @@ const RoomList = ({
 
   // Sort rooms by last message timestamp (most recent first)
   const sortedRooms = [...rooms].sort((a, b) => {
-    const aLast = getLastMessagePreview(a);
-    const bLast = getLastMessagePreview(b);
+    const aLast = getLastMessagePreview(a, getUserDisplayName);
+    const bLast = getLastMessagePreview(b, getUserDisplayName);
     return (bLast?.timestamp || 0) - (aLast?.timestamp || 0);
   });
 
@@ -215,13 +230,28 @@ const RoomList = ({
             {sortedRooms.map((room) => {
               const messageCount = getMessageCount(room);
               const unreadCount = getUnreadCount(room);
-              const lastMessage = getLastMessagePreview(room);
+              const lastMessage = getLastMessagePreview(room, getUserDisplayName);
               const isSelected = selectedRoom?.roomId === room.roomId;
               const hasUnread = unreadCount > 0;
               
+              // Get other participant's avatar
+              let otherParticipantAvatar: string | null = null;
+              let otherParticipantName: string = room.name || "Unnamed Room";
+              try {
+                const members = room.getJoinedMembers?.() || [];
+                const myUserId = room.myUserId;
+                const otherMember = members.find((m: any) => m.userId !== myUserId);
+                if (otherMember && getUserAvatar) {
+                  otherParticipantAvatar = getUserAvatar(otherMember.userId);
+                }
+                if (otherMember && getUserDisplayName) {
+                  otherParticipantName = getUserDisplayName(otherMember.userId);
+                }
+              } catch (e) {
+                // Ignore
+              }
+              
               return (
-                <>
-                
                 <div 
                   key={room.roomId} 
                   className={`room-item ${isSelected ? "room-item-selected" : ""} ${hasUnread ? "room-item-unread" : ""}`}
@@ -230,32 +260,47 @@ const RoomList = ({
                     onClick={() => onSelectRoom(room)} 
                     className="room-button"
                   >
-                    <div className="room-button-header">
-                      <p className={`room-name ${hasUnread ? "room-name-unread" : ""}`}>
-                        {room.name || "Unnamed Room"}
-                      </p>
-                      {lastMessage && (
-                        <span className="room-time">
-                          {formatTime(lastMessage.timestamp)}
-                        </span>
+                    {/* Room Avatar */}
+                    <div className="room-avatar">
+                      {otherParticipantAvatar ? (
+                        <img 
+                          src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${otherParticipantAvatar}`} 
+                          alt={otherParticipantName} 
+                          className="room-avatar-img"
+                        />
+                      ) : (
+                        <span>{otherParticipantName.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
                     
-                    <div className="room-button-footer">
-                      {lastMessage ? (
-                        <p className={`room-last-message ${hasUnread ? "room-last-message-unread" : ""}`}>
-                          <span className="room-last-sender">{lastMessage.sender}: </span>
-                          {lastMessage.text}
+                    <div className="room-info">
+                      <div className="room-button-header">
+                        <p className={`room-name ${hasUnread ? "room-name-unread" : ""}`}>
+                          {room.name || "Unnamed Room"}
                         </p>
-                      ) : (
-                        <p className="room-messages">
-                          {messageCount} {messageCount === 1 ? "message" : "messages"}
-                        </p>
-                      )}
+                        {lastMessage && (
+                          <span className="room-time">
+                            {formatTime(lastMessage.timestamp)}
+                          </span>
+                        )}
+                      </div>
                       
-                      {hasUnread && (
-                        <span className="unread-badge">{unreadCount}</span>
-                      )}
+                      <div className="room-button-footer">
+                        {lastMessage ? (
+                          <p className={`room-last-message ${hasUnread ? "room-last-message-unread" : ""}`}>
+                            <span className="room-last-sender">{lastMessage.sender}: </span>
+                            {lastMessage.text}
+                          </p>
+                        ) : (
+                          <p className="room-messages">
+                            {messageCount} {messageCount === 1 ? "message" : "messages"}
+                          </p>
+                        )}
+                        
+                        {hasUnread && (
+                          <span className="unread-badge">{unreadCount}</span>
+                        )}
+                      </div>
                     </div>
                   </button>
 
@@ -270,9 +315,6 @@ const RoomList = ({
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <hr />
-                </>
-
               );
             })}
           </div>

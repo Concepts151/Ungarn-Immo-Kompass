@@ -56,6 +56,9 @@ const ListingCard = ({
   seller,
   propertyId,
 }: ListingCardProps) => {
+
+  console.log("Seller data in ListingCard:", seller);
+  
   const sellerAvatarUrl = `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
   const photos = media.filter(
     (mediaItem: any) => mediaItem.mediaType === "PHOTO"

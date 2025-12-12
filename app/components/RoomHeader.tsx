@@ -8,6 +8,8 @@ interface RoomHeaderProps {
   onLeaveRoom: () => void;
   onVideoCall?: () => void;
   onVoiceCall?: () => void;
+  getUserDisplayName?: (matrixUserId: string) => string;
+  getUserAvatar?: (matrixUserId: string) => string | null;
 }
 
 const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -16,35 +18,57 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
   onLeaveRoom,
   onVideoCall,
   onVoiceCall,
+  getUserDisplayName,
+  getUserAvatar,
 }) => {
   const roomName = room?.name || "Chat";
   
-  // Get other participant's name for display
-  const getOtherParticipant = () => {
+  // Get other participant's info for display
+  const getOtherParticipantInfo = (): { name: string; avatarUrl: string | null } | null => {
     if (!room) return null;
     
     try {
       const members = room.getJoinedMembers?.() || [];
       const myUserId = room.myUserId;
       const otherMember = members.find((m: any) => m.userId !== myUserId);
-      return otherMember?.name || otherMember?.userId?.split(":")[0]?.replace("@", "");
+      
+      if (!otherMember) return null;
+      
+      // Use getUserDisplayName and getUserAvatar if available
+      const name = getUserDisplayName 
+        ? getUserDisplayName(otherMember.userId)
+        : otherMember?.name || otherMember?.userId?.split(":")[0]?.replace("@", "")?.replace("immo_", "");
+      
+      const avatarUrl = getUserAvatar 
+        ? getUserAvatar(otherMember.userId)
+        : null;
+      
+      return { name, avatarUrl };
     } catch {
       return null;
     }
   };
 
-  const otherParticipant = getOtherParticipant();
+  const otherParticipant = getOtherParticipantInfo();
 
   return (
     <div className="room-header">
       <div className="room-header-info">
         <div className="room-header-avatar">
-          {roomName.charAt(0).toUpperCase()}
+          {otherParticipant?.avatarUrl ? (
+            <img 
+              src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${otherParticipant.avatarUrl}`} 
+              alt={otherParticipant.name} 
+              className="room-header-avatar-img"
+            />
+          ) : (
+            <span>{(otherParticipant?.name || roomName).charAt(0).toUpperCase()}</span>
+          )}
         </div>
         <div className="room-header-details">
           <h4 className="room-header-name">{roomName}</h4>
           {otherParticipant && (
-            <p className="room-header-participant">with {otherParticipant}</p>
+            <p className="room-header-participant">with {otherParticipant.name}</p>
           )}
           {propertyAddress && propertyAddress !== "propertyAddress" && (
             <p className="room-header-property">{propertyAddress}</p>
