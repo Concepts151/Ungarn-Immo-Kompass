@@ -104,12 +104,18 @@ export const api = createApi({
           const userRole = user?.user_metadata.role;
           console.log("session:", session);
 
+          // Get avatar URL from Supabase auth user metadata
+          const supabaseAvatarUrl = supabaseUserData?.avatarUrl || null;
+
+          console.log("supabaseAvatarUrl:", supabaseAvatarUrl);
+          
+
           const endpoint =
             userRole === "BUYER"
               ? `/buyer/${user?.id}`
               : userRole === "SELLER"
-                ? `/seller/${user?.id}`
-                : "";
+              ? `/seller/${user?.id}`
+              : "";
           console.log("endpoint:", endpoint);
 
           const userNewData = { ...user, ...supabaseUserData };
@@ -128,13 +134,49 @@ export const api = createApi({
             );
           }
 
-          // Get Matrix credentials if user has a matrixUserId
-          let matrixCredentials = null;
+          // Sync avatar URL if it changed
           const userData = userDetailsResponse.data as {
+            id?: string;
+            avatarUrl?: string | null;
             matrixUserId?: string;
             matrixPassword?: string;
           };
-          
+
+          if (supabaseAvatarUrl && userData?.avatarUrl !== supabaseAvatarUrl) {
+            console.log("🔄 Syncing avatar URL from Supabase to database...");
+            console.log("Current DB avatar:", userData?.avatarUrl);
+            console.log("Supabase avatar:", supabaseAvatarUrl);
+
+            try {
+              const updateEndpoint =
+                userRole === "BUYER"
+                  ? `/buyer/${user?.id}`
+                  : userRole === "SELLER"
+                  ? `/seller/${user?.id}`
+                  : "";
+
+              if (updateEndpoint) {
+                const updateResponse = await fetchWithBQ({
+                  url: updateEndpoint,
+                  method: "PUT",
+                  body: { avatarUrl: supabaseAvatarUrl },
+                });
+
+                if (updateResponse.data) {
+                  console.log("✅ Avatar URL synced successfully");
+                  // Update the local data with the new avatar
+                  (userDetailsResponse.data as any).avatarUrl =
+                    supabaseAvatarUrl;
+                }
+              }
+            } catch (avatarError) {
+              console.error("Failed to sync avatar URL:", avatarError);
+            }
+          }
+
+          // Get Matrix credentials if user has a matrixUserId
+          let matrixCredentials = null;
+
           if (userData?.matrixUserId && userData?.matrixPassword) {
             try {
               const matrixResponse = await fetchWithBQ({
@@ -374,10 +416,7 @@ export const api = createApi({
     }),
 
     // Get room by property ID
-    getMatrixRoomByProperty: build.query<
-      { room: MatrixRoom | null },
-      string
-    >({
+    getMatrixRoomByProperty: build.query<{ room: MatrixRoom | null }, string>({
       query: (exposeId) => `matrix/rooms/by-property/${exposeId}`,
       providesTags: (result, error, exposeId) => [
         { type: "MatrixRooms", id: exposeId },
@@ -386,7 +425,12 @@ export const api = createApi({
 
     // Create property inquiry room
     createPropertyInquiryRoom: build.mutation<
-      { success: boolean; roomId: string; matrixRoomId: string; roomName: string },
+      {
+        success: boolean;
+        roomId: string;
+        matrixRoomId: string;
+        roomName: string;
+      },
       { exposeId: string; buyerId: string }
     >({
       query: ({ exposeId, buyerId }) => ({
@@ -405,7 +449,12 @@ export const api = createApi({
 
     // Create direct message room
     createDirectMessageRoom: build.mutation<
-      { success: boolean; roomId: string; matrixRoomId: string; roomName: string },
+      {
+        success: boolean;
+        roomId: string;
+        matrixRoomId: string;
+        roomName: string;
+      },
       { user1Id: string; user2Id: string }
     >({
       query: ({ user1Id, user2Id }) => ({
@@ -436,7 +485,7 @@ export const api = createApi({
 export const {
   // Auth
   useGetAuthUserQuery,
-  
+
   // Properties
   useGetPropertiesQuery,
   useCreatePropertyMutation,
@@ -444,7 +493,7 @@ export const {
   useGetSellerPropertiesQuery,
   useGetPropertyTypesQuery,
   useUpdatePropertyMutation,
-  
+
   // Favorites
   useGetFavoritesQuery,
   useGetFavoriteIdsQuery,
@@ -452,7 +501,7 @@ export const {
   useToggleFavoriteMutation,
   useAddFavoriteMutation,
   useRemoveFavoriteMutation,
-  
+
   // Matrix
   useRegisterMatrixAccountMutation,
   useGetMatrixRoomsQuery,
