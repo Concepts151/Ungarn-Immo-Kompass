@@ -99,6 +99,7 @@ const MatrixChat = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [remoteName, setRemoteName] = useState("");
+  const [remoteAvatar, setRemoteAvatar] = useState<string | null>(null);
   const [isOutgoingCall, setIsOutgoingCall] = useState(false);
 
   // WebRTC state
@@ -484,6 +485,25 @@ const MatrixChat = () => {
 
     try {
       callRoomIdRef.current = selectedRoomRef.current.roomId;
+      
+      // Get the other participant's info (exclude admin)
+      const members = selectedRoomRef.current.getJoinedMembers?.() || [];
+      const otherMember = members.find((m: any) => {
+        const memberId = m.userId || "";
+        const isMe = memberId === matrixUserId;
+        const isAdmin = memberId.toLowerCase().includes("admin");
+        return !isMe && !isAdmin;
+      });
+      if (otherMember) {
+        const displayName = getUserDisplayName(otherMember.userId);
+        const avatar = getUserAvatar(otherMember.userId);
+        setRemoteName(displayName);
+        setRemoteAvatar(avatar);
+      } else {
+        setRemoteName("Unknown");
+        setRemoteAvatar(null);
+      }
+
       setIsVideoCall(video);
       setIsVideoEnabled(video);
       setShowVideoCall(true);
@@ -569,6 +589,7 @@ const MatrixChat = () => {
     setIsMuted(false);
     setIsVideoEnabled(true);
     setRemoteName("");
+    setRemoteAvatar(null);
     callIdRef.current = "";
     callRoomIdRef.current = "";
     pendingCandidatesRef.current = [];
@@ -701,22 +722,14 @@ const MatrixChat = () => {
 
       console.log("📞 Incoming call from:", senderId);
 
-      const room = clientRef.current?.getRoom(roomId);
-      let callerName = room?.name || "Unknown Room";
-
-      // Try to get caller's display name
-      try {
-        const callerMember = room?.getMember(senderId);
-        if (callerMember?.name) {
-          callerName = callerMember.name;
-        }
-      } catch (e) {
-        // Ignore
-      }
+      // Get caller's display name and avatar from our user cache
+      const callerDisplayName = getUserDisplayName(senderId);
+      const callerAvatar = getUserAvatar(senderId);
 
       callIdRef.current = incomingCallId;
       callRoomIdRef.current = roomId;
-      setRemoteName(callerName);
+      setRemoteName(callerDisplayName);
+      setRemoteAvatar(callerAvatar);
       setIsVideoCall(offer.sdp.includes("m=video"));
       setIsOutgoingCall(false);
 
@@ -739,7 +752,7 @@ const MatrixChat = () => {
       setShowVideoCall(true);
       setCallState("calling");
     },
-    [createPeerConnection, matrixUserId]
+    [createPeerConnection, matrixUserId, getUserDisplayName, getUserAvatar]
   );
 
   const handleCallAnswer = useCallback(async (event: any) => {
@@ -1447,6 +1460,7 @@ const MatrixChat = () => {
         isVideoEnabled={isVideoEnabled}
         isOutgoingCall={isOutgoingCall}
         remoteName={remoteName}
+        remoteAvatar={remoteAvatar}
         localVideoRef={localVideoRef}
         remoteVideoRef={remoteVideoRef}
         onAnswer={answerCall}

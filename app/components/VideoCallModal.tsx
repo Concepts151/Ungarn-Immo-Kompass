@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Phone,
   PhoneOff,
@@ -7,6 +7,7 @@ import {
   Mic,
   MicOff,
   X,
+  PhoneIncoming,
 } from "lucide-react";
 import "./css/videocall.css";
 
@@ -18,6 +19,7 @@ interface VideoCallModalProps {
   isVideoEnabled: boolean;
   isOutgoingCall: boolean;
   remoteName: string;
+  remoteAvatar?: string | null;
   localVideoRef: React.RefObject<HTMLVideoElement>;
   remoteVideoRef: React.RefObject<HTMLVideoElement>;
   onAnswer: () => void;
@@ -35,6 +37,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
   isVideoEnabled,
   isOutgoingCall,
   remoteName,
+  remoteAvatar,
   localVideoRef,
   remoteVideoRef,
   onAnswer,
@@ -43,7 +46,28 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
   onToggleMute,
   onToggleVideo,
 }) => {
+  const [callDuration, setCallDuration] = useState(0);
+
+  // Call duration timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (callState === "connected") {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(interval);
+  }, [callState]);
+
   if (!show) return null;
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const getStatusText = () => {
     switch (callState) {
@@ -52,7 +76,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
       case "connecting":
         return "Connecting...";
       case "connected":
-        return "Connected";
+        return formatDuration(callDuration);
       case "ended":
         return "Call ended";
       default:
@@ -61,75 +85,117 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
   };
 
   const isIncoming = !isOutgoingCall && callState === "calling";
-  const showControls = callState === "connected" || callState === "connecting";
 
   return (
-    <div className="video-call-overlay">
+    <div className={`video-call-overlay ${isIncoming ? "incoming" : ""}`}>
       <div className={`video-call-modal ${isVideoCall ? "video-mode" : "audio-mode"}`}>
-        {/* Header */}
-        <div className="video-call-header">
-          <div className="call-info">
-            <h3>{remoteName || "Unknown"}</h3>
-            <p className={`call-status ${callState}`}>{getStatusText()}</p>
-          </div>
-          <button className="close-btn" onClick={onHangup} title="End call">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Video Area */}
-        <div className="video-call-content">
-          {isVideoCall ? (
-            <>
-              {/* Remote Video (large) */}
-              <div className="remote-video-container">
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  muted={false}
-                  className="remote-video"
-                  onLoadedMetadata={() => console.log("Remote video metadata loaded")}
-                  onPlay={() => console.log("Remote video playing")}
-                />
-                {callState !== "connected" && (
-                  <div className="video-placeholder">
-                    <div className="avatar-circle-large">
-                      {remoteName?.charAt(0)?.toUpperCase() || "?"}
-                    </div>
-                    <p>{getStatusText()}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Local Video (small, picture-in-picture) */}
-              <div className={`local-video-container ${!isVideoEnabled ? "video-off" : ""}`}>
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted={true}
-                  className="local-video"
-                />
-                {!isVideoEnabled && (
-                  <div className="video-off-indicator">
-                    <VideoOff size={24} />
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            /* Audio call - show avatar */
-            <div className="audio-call-content">
-              <div className="avatar-circle-large">
-                {remoteName?.charAt(0)?.toUpperCase() || "?"}
-              </div>
-              <h3>{remoteName || "Unknown"}</h3>
-              <p className={`call-status ${callState}`}>{getStatusText()}</p>
+        
+        {/* Video Call Layout */}
+        {isVideoCall ? (
+          <div className="video-call-container">
+            {/* Remote Video */}
+            <div className="remote-video-wrapper">
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                muted={false}
+                className="remote-video"
+                onLoadedMetadata={() => console.log("Remote video metadata loaded")}
+                onPlay={() => console.log("Remote video playing")}
+              />
               
-              {/* Audio visualizer placeholder */}
+              {/* Placeholder when not connected */}
+              {callState !== "connected" && (
+                <div className="video-placeholder">
+                  <div className="avatar-wrapper">
+                    {remoteAvatar ? (
+                      <img src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${remoteAvatar}`} alt={remoteName} className="avatar-img" />
+                    ) : (
+                      <div className="avatar-fallback">
+                        {remoteName?.charAt(0)?.toUpperCase() || "?"}
+                      </div>
+                    )}
+                    {(callState === "calling" || callState === "connecting") && (
+                      <div className="avatar-pulse"></div>
+                    )}
+                  </div>
+                  <h2 className="remote-name">{remoteName || "Unknown"}</h2>
+                  <p className="call-status-text">{getStatusText()}</p>
+                </div>
+              )}
+
+              {/* Connected info overlay */}
+              {callState === "connected" && (
+                <div className="connected-overlay">
+                  <div className="connected-info">
+                    <span className="live-dot"></span>
+                    <span className="connected-name">{remoteName}</span>
+                    <span className="connected-timer">{formatDuration(callDuration)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Local Video PIP */}
+            <div className={`local-video-wrapper ${!isVideoEnabled ? "camera-off" : ""}`}>
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted={true}
+                className="local-video"
+              />
+              {!isVideoEnabled && (
+                <div className="camera-off-overlay">
+                  <VideoOff size={20} />
+                  <span>Camera off</span>
+                </div>
+              )}
+            </div>
+
+            {/* Close button */}
+            <button className="close-call-btn" onClick={onHangup} title="End call">
+              <X size={20} />
+            </button>
+          </div>
+        ) : (
+          /* Audio Call Layout */
+          <div className="audio-call-container">
+            {/* Animated background */}
+            <div className="audio-bg">
+              <div className="audio-bg-circle"></div>
+              <div className="audio-bg-circle delay-1"></div>
+              <div className="audio-bg-circle delay-2"></div>
+            </div>
+
+            {/* Main content */}
+            <div className="audio-main">
+              <div className="avatar-wrapper large">
+                {remoteAvatar ? (
+                  <img src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${remoteAvatar}`} alt={remoteName} className="avatar-img" />
+                ) : (
+                  <div className="avatar-fallback">
+                    {remoteName?.charAt(0)?.toUpperCase() || "?"}
+                  </div>
+                )}
+                {(callState === "calling" || callState === "connecting") && (
+                  <div className="avatar-pulse"></div>
+                )}
+              </div>
+
+              <h2 className="remote-name">{remoteName || "Unknown"}</h2>
+              
+              <p className="call-status-text">
+                {isIncoming && <PhoneIncoming size={16} className="status-icon" />}
+                {getStatusText()}
+              </p>
+
+              {/* Audio visualizer when connected */}
               {callState === "connected" && (
                 <div className="audio-visualizer">
+                  <span></span>
+                  <span></span>
                   <span></span>
                   <span></span>
                   <span></span>
@@ -138,57 +204,70 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Controls */}
-        <div className="video-call-controls">
+        <div className={`call-controls ${isIncoming ? "incoming-mode" : ""}`}>
           {isIncoming ? (
-            /* Incoming call - show accept/reject */
-            <div className="incoming-call-buttons">
-              <button
-                className="call-btn reject-btn"
-                onClick={onReject}
-                title="Reject call"
-              >
-                <PhoneOff size={24} />
-              </button>
-              <button
-                className="call-btn answer-btn"
-                onClick={onAnswer}
-                title="Answer call"
-              >
-                {isVideoCall ? <Video size={24} /> : <Phone size={24} />}
-              </button>
+            <div className="incoming-buttons">
+              <div className="btn-group">
+                <button
+                  className="call-action-btn decline"
+                  onClick={onReject}
+                  title="Decline"
+                >
+                  <PhoneOff size={26} />
+                </button>
+                <span className="btn-label">Decline</span>
+              </div>
+              <div className="btn-group">
+                <button
+                  className="call-action-btn accept"
+                  onClick={onAnswer}
+                  title="Accept"
+                >
+                  {isVideoCall ? <Video size={26} /> : <Phone size={26} />}
+                </button>
+                <span className="btn-label">Accept</span>
+              </div>
             </div>
           ) : (
-            /* Active call - show mute/video/hangup */
-            <div className="active-call-buttons">
-              <button
-                className={`control-btn ${isMuted ? "active" : ""}`}
-                onClick={onToggleMute}
-                title={isMuted ? "Unmute" : "Mute"}
-              >
-                {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
-              </button>
+            <div className="active-buttons">
+              <div className="btn-group">
+                <button
+                  className={`control-action-btn ${isMuted ? "active" : ""}`}
+                  onClick={onToggleMute}
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
+                </button>
+                <span className="btn-label">{isMuted ? "Unmute" : "Mute"}</span>
+              </div>
 
               {isVideoCall && (
-                <button
-                  className={`control-btn ${!isVideoEnabled ? "active" : ""}`}
-                  onClick={onToggleVideo}
-                  title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
-                >
-                  {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
-                </button>
+                <div className="btn-group">
+                  <button
+                    className={`control-action-btn ${!isVideoEnabled ? "active" : ""}`}
+                    onClick={onToggleVideo}
+                    title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
+                  >
+                    {isVideoEnabled ? <Video size={22} /> : <VideoOff size={22} />}
+                  </button>
+                  <span className="btn-label">{isVideoEnabled ? "Camera" : "Camera off"}</span>
+                </div>
               )}
 
-              <button
-                className="call-btn hangup-btn"
-                onClick={onHangup}
-                title="End call"
-              >
-                <PhoneOff size={24} />
-              </button>
+              <div className="btn-group">
+                <button
+                  className="call-action-btn hangup"
+                  onClick={onHangup}
+                  title="End call"
+                >
+                  <PhoneOff size={26} />
+                </button>
+                <span className="btn-label">End</span>
+              </div>
             </div>
           )}
         </div>

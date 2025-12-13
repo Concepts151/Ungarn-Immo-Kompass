@@ -1,0 +1,211 @@
+/* Message Input Styles */
+
+.message-input-container {
+  padding: 12px 16px 16px;
+  background-color: #fff;
+  border-top: 1px solid #e5e5e5;
+}
+
+.message-input-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  padding: 8px 8px 8px 16px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.message-input-wrapper:focus-within {
+  background-color: #fff;
+  border-color: #31543a;
+  box-shadow: 0 0 0 3px rgba(49, 84, 58, 0.1);
+}
+
+/* Textarea Field */
+.message-input-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a1a;
+  padding: 6px 0;
+  outline: none;
+  min-width: 0;
+  resize: none;
+  max-height: 120px;
+  line-height: 1.4;
+  overflow-y: auto;
+}
+
+.message-input-field::placeholder {
+  color: #999;
+}
+
+/* Hide scrollbar but keep functionality */
+.message-input-field::-webkit-scrollbar {
+  width: 4px;
+}
+
+.message-input-field::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-input-field::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 2px;
+}
+
+/* Input hint text */
+.input-hint {
+  font-size: 11px;
+  color: #999;
+  margin: 6px 0 0 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.message-input-wrapper:focus-within + .input-hint {
+  opacity: 1;
+}
+
+/* Action Buttons (Attachment, Emoji) */
+.input-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.input-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+/* Send Button */
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.send-btn-active {
+  background-color: #31543a;
+  color: white;
+  cursor: pointer;
+}
+
+.send-btn-active:hover {
+  background-color: #264432;
+  transform: scale(1.05);
+}
+
+.send-btn-active:active {
+  transform: scale(0.95);
+}
+
+.send-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Send Spinner */
+.send-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .message-input-container {
+    padding: 10px 12px 14px;
+  }
+
+  .message-input-wrapper {
+    padding: 4px 4px 4px 14px;
+  }
+
+  .message-input-field {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 6px 0;
+  }
+
+  .send-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .input-action-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  /* Uncomment if you want dark mode support
+  .message-input-container {
+    background-color: #1a1a1a;
+    border-top-color: #333;
+  }
+
+  .message-input-wrapper {
+    background-color: #2a2a2a;
+  }
+
+  .message-input-wrapper:focus-within {
+    background-color: #333;
+    border-color: #4a7c59;
+  }
+
+  .message-input-field {
+    color: #fff;
+  }
+
+  .message-input-field::placeholder {
+    color: #666;
+  }
+
+  .input-action-btn {
+    color: #888;
+  }
+
+  .input-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  .send-btn {
+    background-color: #444;
+  }
+  */
+}

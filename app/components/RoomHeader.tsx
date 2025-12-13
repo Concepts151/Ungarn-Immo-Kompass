@@ -23,14 +23,20 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
 }) => {
   const roomName = room?.name || "Chat";
   
-  // Get other participant's info for display
+  // Get other participant's info for display (exclude admin)
   const getOtherParticipantInfo = (): { name: string; avatarUrl: string | null } | null => {
     if (!room) return null;
     
     try {
       const members = room.getJoinedMembers?.() || [];
       const myUserId = room.myUserId;
-      const otherMember = members.find((m: any) => m.userId !== myUserId);
+      // Filter out: current user, and admin users (those with "admin" in their Matrix ID)
+      const otherMember = members.find((m: any) => {
+        const memberId = m.userId || "";
+        const isMe = memberId === myUserId;
+        const isAdmin = memberId.toLowerCase().includes("admin");
+        return !isMe && !isAdmin;
+      });
       
       if (!otherMember) return null;
       

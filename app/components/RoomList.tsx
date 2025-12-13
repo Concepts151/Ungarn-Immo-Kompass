@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./css/roomlist.css";
+import "./css/matrixchat.css";
 import { Hash, Trash2 } from "lucide-react";
 import RoomInvites from "./RoomInvites";
 
@@ -234,13 +234,19 @@ const RoomList = ({
               const isSelected = selectedRoom?.roomId === room.roomId;
               const hasUnread = unreadCount > 0;
               
-              // Get other participant's avatar
+              // Get other participant's avatar (exclude admin users)
               let otherParticipantAvatar: string | null = null;
               let otherParticipantName: string = room.name || "Unnamed Room";
               try {
                 const members = room.getJoinedMembers?.() || [];
                 const myUserId = room.myUserId;
-                const otherMember = members.find((m: any) => m.userId !== myUserId);
+                // Filter out: current user, and admin users (those with "admin" in their Matrix ID)
+                const otherMember = members.find((m: any) => {
+                  const memberId = m.userId || "";
+                  const isMe = memberId === myUserId;
+                  const isAdmin = memberId.toLowerCase().includes("admin");
+                  return !isMe && !isAdmin;
+                });
                 if (otherMember && getUserAvatar) {
                   otherParticipantAvatar = getUserAvatar(otherMember.userId);
                 }
@@ -259,6 +265,7 @@ const RoomList = ({
                   <button 
                     onClick={() => onSelectRoom(room)} 
                     className="room-button"
+                    style={{flexDirection: "row"}}
                   >
                     {/* Room Avatar */}
                     <div className="room-avatar">
