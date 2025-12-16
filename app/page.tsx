@@ -14,10 +14,7 @@ import RegisterModal from "./pg/components/RegisterModal";
 import { Toaster } from "react-hot-toast";
 
 export default function Home() {
-  console.log(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  
 
   return (
     <>

@@ -16,7 +16,8 @@ import toast from "react-hot-toast";
 import "@/app/(dashboard)/add-property/components/css/add-property.css";
 import UpdateDetailsForm from "./update-details-form";
 import UpdateConditions from "./update-conditions-form";
-import Overview from "@/app/(dashboard)/add-property/components/overview";
+import UpdateLocationForm from "./update-location-form";
+import UpdateOverview from "./update-overview";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
 
@@ -24,6 +25,7 @@ const steps = [
   "Description",
   "Media",
   "Details",
+  "Location",
   "Condition & Floor Plan",
   "Overview",
 ];
@@ -196,6 +198,9 @@ const UpdateProperty = () => {
   const [originalFloorPlanUrls, setOriginalFloorPlanUrls] = useState<string[]>(
     []
   );
+  
+  // Loading state for update
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Convert currency format
   const mapCurrency = (currency: string): string => {
@@ -307,6 +312,11 @@ const UpdateProperty = () => {
         behavior: "smooth",
       });
     }
+  };
+
+  // Handle location data changes
+  const handleLocationChange = (newLocationData: Locationdata) => {
+    setLocationData(newLocationData);
   };
 
   // 🔥 MODIFIED: Track when images change
@@ -469,6 +479,7 @@ const UpdateProperty = () => {
     } = listingFormData;
 
     startTransition(async () => {
+      setIsUpdating(true);
       try {
         // 🔥 OPTIMIZED: Only upload if media has changed
         let uploadedMediaUrls = imageUrls.filter(
@@ -607,11 +618,13 @@ const UpdateProperty = () => {
         setImageFiles([]);
         setVideoFiles([]);
         setFloorPlanFiles([]);
+        setIsUpdating(false);
       } catch (error: any) {
         console.error("❌ Error updating property:", error);
         toast.error(
           error?.data?.message || "Failed to update property. Please try again."
         );
+        setIsUpdating(false);
       }
     });
   };
@@ -667,6 +680,18 @@ const UpdateProperty = () => {
                   )}
 
                   {currentStep === 4 && (
+                    <UpdateLocationForm
+                      propertyData={listingFormData}
+                      data={locationData}
+                      onDataChange={handleLocationChange}
+                      onNext={handleNext}
+                      onBack={handleBack}
+                      steps={steps}
+                      currentStep={currentStep}
+                    />
+                  )}
+
+                  {currentStep === 5 && (
                     <UpdateConditions
                       data={conditionData}
                       onConditionData={setConditionData}
@@ -680,14 +705,16 @@ const UpdateProperty = () => {
                       currentStep={currentStep}
                     />
                   )}
-                  {currentStep === 5 && (
-                    <Overview
+                  {currentStep === 6 && (
+                    <UpdateOverview
                       descriptionData={listingFormData}
                       mediaData={imageUrls}
+                      videoData={videoUrls}
                       locationData={locationData}
                       detailsData={details}
                       upload={handleUpdateListing}
                       onBack={handleBack}
+                      isLoading={isUpdating || isPending}
                     />
                   )}
                 </div>

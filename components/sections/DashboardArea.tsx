@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import Modal from "../custom-comp/listing-edit-modal";
 import { useGetAuthUserQuery, useGetSellerPropertiesQuery } from "@/state/api";
 import { SellerProperty } from "@/app/(dashboard)/my-property/types";
+import { User, UserRound } from "lucide-react";
 
 export default function DashboardArea() {
   const supabase = createClient();
@@ -294,13 +295,29 @@ export default function DashboardArea() {
                                   <div className="btn-area">
                                     <div className="name-area">
                                       <div className="img">
-                                        <img
-                                          src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars//${
-                                            user?.avatarUrl ||
-                                            "default-avatar.png"
-                                          }`}
-                                          alt="housa"
-                                        />
+                                        {user?.avatarUrl ? (
+                                          <img
+                                            src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${
+                                              user?.avatarUrl ||
+                                              "default-avatar.png"
+                                            }`}
+                                            alt="housa"
+                                          />
+                                        ) : (
+                                          <div
+                                            style={{
+                                              background: "#d7d7d7",
+                                              height: "30px",
+                                              width: "30px",
+                                              display: "flex",
+                                              justifyContent: "center",
+                                              alignItems: "center",
+                                              borderRadius: "50%",
+                                            }}
+                                          >
+                                            <UserRound size={18}/>
+                                          </div>
+                                        )}
                                       </div>
                                       <div className="text">
                                         <Link href="#">

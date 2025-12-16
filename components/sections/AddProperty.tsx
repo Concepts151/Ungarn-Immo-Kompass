@@ -15,9 +15,10 @@ import MediaForm from "@/app/(dashboard)/add-property/components/media-form";
 import LocationInfoForm from "@/app/(dashboard)/add-property/components/location-info-form";
 import DetailsForm from "@/app/(dashboard)/add-property/components/details-info-form";
 import AmenitiesForm from "@/app/(dashboard)/add-property/components/amenities-info-form";
-import Overview from "@/app/(dashboard)/add-property/components/overview";
+
 import { useCreatePropertyMutation, useGetAuthUserQuery } from "@/state/api";
 import Conditions from "@/app/(dashboard)/add-property/components/conditon-and-plan";
+import AddOverview from "@/app/(dashboard)/add-property/components/add-overview";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
 
@@ -180,6 +181,7 @@ export default function AddProperty() {
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isloading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   // redux user
   const { data: authUser } = useGetAuthUserQuery();
@@ -423,6 +425,7 @@ export default function AddProperty() {
     // }
 
     startTransition(async () => {
+      setIsCreating(true);
       try {
         // First, upload images to Supabase Storage
         const uploadedMediaUrls = await uploadImagesToSupabase();
@@ -519,6 +522,7 @@ export default function AddProperty() {
         const result = await createProperty(propertyData).unwrap();
 
         toast.success("Property created successfully!");
+        setIsCreating(false);
 
         // Redirect to the property listing or dashboard
         // setTimeout(() => {
@@ -529,6 +533,7 @@ export default function AddProperty() {
         toast.error(
           error?.data?.message || "Failed to create property. Please try again."
         );
+        setIsCreating(false);
       }
     });
   };
@@ -621,13 +626,15 @@ export default function AddProperty() {
                       />
                     )}
                     {currentStep === 6 && (
-                      <Overview
+                      <AddOverview
                         descriptionData={listingFormData}
                         mediaData={imageUrls}
+                        videoData={videoUrls}
                         locationData={locationData}
                         detailsData={details}
                         upload={handleSubmitNewListing}
                         onBack={handleBack}
+                        isLoading={isCreating || isPending}
                       />
                     )}
                   </div>
