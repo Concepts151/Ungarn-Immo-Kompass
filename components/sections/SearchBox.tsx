@@ -8,8 +8,11 @@ import { useAppSelector } from "@/state/redux";
 import { setFilters, FiltersState } from "@/state";
 import { debounce } from "lodash";
 import { cleanParams } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function SearchBox() {
+  const t = useTranslations("HomePage");
+  const tc = useTranslations("Common");
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
@@ -22,17 +25,17 @@ export default function SearchBox() {
 
   // Property types from schema
   const propertyTypes = [
-    { value: "any", label: "All Types" },
-    { value: "HOUSE", label: "House" },
-    { value: "APARTMENT", label: "Apartment" },
-    { value: "FARMHOUSE", label: "Farmhouse" },
-    { value: "LAND", label: "Land" },
-    { value: "COMMERCIAL", label: "Commercial" },
+    { value: "any", label: tc("all_types") },
+    { value: "HOUSE", label: tc("house") },
+    { value: "APARTMENT", label: tc("apartment") },
+    { value: "FARMHOUSE", label: tc("farmhouse") },
+    { value: "LAND", label: tc("land") },
+    { value: "COMMERCIAL", label: tc("commercial") },
   ];
 
   // Bed and bath options
   const bedOptions = [
-    { value: "any", label: "Any" },
+    { value: "any", label: tc("any") },
     { value: "1", label: "1+" },
     { value: "2", label: "2+" },
     { value: "3", label: "3+" },
@@ -41,7 +44,7 @@ export default function SearchBox() {
   ];
 
   const bathOptions = [
-    { value: "any", label: "Any" },
+    { value: "any", label: tc("any") },
     { value: "1", label: "1+" },
     { value: "2", label: "2+" },
     { value: "3", label: "3+" },
@@ -292,9 +295,9 @@ export default function SearchBox() {
             <div className="col-lg-12">
               <div className="property-tab-section b-bg1">
                 <form onSubmit={handleSubmit}>
-                  <div className="tab-content1">
+                    <div className="tab-content1">
                     <div className="filters mb-2">
-                      <h2 className="fw-bold">Find your dream property</h2>
+                      <h2 className="fw-bold">{t('Search_title')}</h2>
                     </div>
 
                     {/* Basic Filters */}
@@ -304,7 +307,7 @@ export default function SearchBox() {
                           <input
                             type="text"
                             className="keyword-input"
-                            placeholder="Enter location (city, county, or address)..."
+                            placeholder={t('Search_location_placeholder')}
                             value={localFilters.location}
                             onChange={(e) =>
                               handleInputChange("location", e.target.value)
@@ -342,7 +345,7 @@ export default function SearchBox() {
                           >
                             {bedOptions.map((option) => (
                               <option key={option.value} value={option.value}>
-                                {option.label} Beds
+                                {option.label} {tc('beds')}
                               </option>
                             ))}
                           </select>
@@ -360,7 +363,7 @@ export default function SearchBox() {
                           >
                             {bathOptions.map((option) => (
                               <option key={option.value} value={option.value}>
-                                {option.label} Baths
+                                {option.label} {tc('baths')}
                               </option>
                             ))}
                           </select>
@@ -376,11 +379,11 @@ export default function SearchBox() {
                     >
                       {/* Price Range */}
                       <div className="filter-section">
-                        <h4>Price Range (HUF)</h4>
+                        <h4>{t('Search_price_range')}</h4>
                         <div className="range-inputs">
                           <input
                             type="number"
-                            placeholder="Min price"
+                            placeholder={t('Search_min_price')}
                             value={localFilters.priceRange[0] || ""}
                             onChange={(e) => {
                               const value = e.target.value
@@ -395,7 +398,7 @@ export default function SearchBox() {
                           <span className="range-separator">—</span>
                           <input
                             type="number"
-                            placeholder="Max price"
+                            placeholder={t('Search_max_price')}
                             value={localFilters.priceRange[1] || ""}
                             onChange={(e) => {
                               const value = e.target.value
@@ -412,11 +415,11 @@ export default function SearchBox() {
 
                       {/* Living Area */}
                       <div className="filter-section">
-                        <h4>Living Area (m²)</h4>
+                        <h4>{t('Search_living_area')}</h4>
                         <div className="range-inputs">
                           <input
                             type="number"
-                            placeholder="Min m²"
+                            placeholder={t('Search_min_area')}
                             value={localFilters.squareFeet[0] || ""}
                             onChange={(e) => {
                               const value = e.target.value
@@ -431,7 +434,7 @@ export default function SearchBox() {
                           <span className="range-separator">—</span>
                           <input
                             type="number"
-                            placeholder="Max m²"
+                            placeholder={t('Search_max_area')}
                             value={localFilters.squareFeet[1] || ""}
                             onChange={(e) => {
                               const value = e.target.value
@@ -453,7 +456,7 @@ export default function SearchBox() {
                         <div className="d-flex flex-wrap gap-2 align-items-center">
                           <div className="search-button d-flex align-items-center">
                             <button type="submit">
-                              Search Property
+                              {t('Search_btn')}
                               <span className="arrow1 ms-2">
                                 <i className="fa-solid fa-arrow-right" />
                               </span>
@@ -469,7 +472,7 @@ export default function SearchBox() {
                             }`}
                             onClick={() => setShowAdvanced(!showAdvanced)}
                           >
-                            {showAdvanced ? "Hide Filters" : "More Filters"}
+                            {showAdvanced ? t('Search_hide_filters') : t('Search_more_filters')}
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
@@ -492,7 +495,7 @@ export default function SearchBox() {
                               className="reset-button"
                               onClick={handleReset}
                             >
-                              Reset
+                              {t('Search_reset')}
                             </button>
                           )}
 
@@ -500,7 +503,7 @@ export default function SearchBox() {
                             href="/search"
                             className="text-decoration-none text-primary ms-2"
                           >
-                            View all
+                            {tc('view_all')}
                           </Link>
                         </div>
                       </div>
