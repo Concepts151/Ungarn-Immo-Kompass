@@ -5,9 +5,11 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination, Thumbs } from "swiper/modules";
 import SwiperCore from "swiper";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function Testimonial1() {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperCore | null>(null);
+  const t = useTranslations("HomePage");
 
   return (
     <>
@@ -18,10 +20,10 @@ export default function Testimonial1() {
           <div className="row">
             <div className="col-lg-8 m-auto">
               <div className="heading1 text-center space-margin60">
-                <h5>Testimonials</h5>
+                <h5>{t('Testimonials_subtitle')}</h5>
                 <div className="space16" />
                 <h2 className="text-anime-style-3">
-                  What Our Client Say About Us
+                  {t('Testimonials_title')}
                 </h2>
               </div>
             </div>
@@ -46,9 +48,7 @@ export default function Testimonial1() {
                         <img src="/assets/img/icons/quito1.svg" alt="housa" />
                         <div className="space16" />
                         <p className="text">
-                          "Housa made our home-buying process so smooth! Their
-                          agents were knowledgeable and supportive at every
-                          step. We couldn’t be happier with our new home!"
+                          "{t('Testimonials_quote')}"
                         </p>
                       </div>
                       <div className="bottom">
@@ -73,9 +73,7 @@ export default function Testimonial1() {
                         <img src="/assets/img/icons/quito1.svg" alt="housa" />
                         <div className="space16" />
                         <p className="text">
-                          "Housa made our home-buying process so smooth! Their
-                          agents were knowledgeable and supportive at every
-                          step. We couldn’t be happier with our new home!"
+                          "{t('Testimonials_quote')}"
                         </p>
                       </div>
                       <div className="bottom">
@@ -100,9 +98,7 @@ export default function Testimonial1() {
                         <img src="/assets/img/icons/quito1.svg" alt="housa" />
                         <div className="space16" />
                         <p className="text">
-                          "Housa made our home-buying process so smooth! Their
-                          agents were knowledgeable and supportive at every
-                          step. We couldn’t be happier with our new home!"
+                          "{t('Testimonials_quote')}"
                         </p>
                       </div>
                       <div className="bottom">
@@ -127,9 +123,7 @@ export default function Testimonial1() {
                         <img src="/assets/img/icons/quito1.svg" alt="housa" />
                         <div className="space16" />
                         <p className="text">
-                          "Housa made our home-buying process so smooth! Their
-                          agents were knowledgeable and supportive at every
-                          step. We couldn’t be happier with our new home!"
+                          "{t('Testimonials_quote')}"
                         </p>
                       </div>
                       <div className="bottom">
@@ -154,9 +148,7 @@ export default function Testimonial1() {
                         <img src="/assets/img/icons/quito1.svg" alt="housa" />
                         <div className="space16" />
                         <p className="text">
-                          "Housa made our home-buying process so smooth! Their
-                          agents were knowledgeable and supportive at every
-                          step. We couldn’t be happier with our new home!"
+                          "{t('Testimonials_quote')}"
                         </p>
                       </div>
                       <div className="bottom">
@@ -181,9 +173,7 @@ export default function Testimonial1() {
                         <img src="/assets/img/icons/quito1.svg" alt="housa" />
                         <div className="space16" />
                         <p className="text">
-                          "Housa made our home-buying process so smooth! Their
-                          agents were knowledgeable and supportive at every
-                          step. We couldn’t be happier with our new home!"
+                          "{t('Testimonials_quote')}"
                         </p>
                       </div>
                       <div className="bottom">

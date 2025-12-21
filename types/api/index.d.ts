@@ -76,3 +76,30 @@ export interface FiltersState {
     squareFeet: [number, number] | [null, null];
     coordinates: [number, number] | [null, null];
   }
+export interface Village {
+  id: string;
+  name: string;
+  county: string;
+  population: number;
+  description: string;
+  thumbnailUrl: string | null;
+  latitude: number;
+  longitude: number;
+  createdAt: string;
+  updatedAt: string;
+  status: "IN_REVIEW" | "PUBLISHED" | "REJECTED";
+  _count?: {
+    exposes: number;
+  };
+}
+
+export interface GetVillagesResponse {
+  success: boolean;
+  villages: Village[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

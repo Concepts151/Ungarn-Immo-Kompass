@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-export default function About1() {
+export default async function About1() {
+    const t = await getTranslations("HomePage");
     return (
         <>
             <div className="about1-section-area container-home1">
@@ -14,19 +16,19 @@ export default function About1() {
                         <div className="col-lg-3">
                             <div className="heading1">
                                 <div className="head">
-                                    <h5>About Company</h5>
+                                    <h5>{t('About_subtitle')}</h5>
                                     <div className="space16" />
-                                    <h3 className="text-anime-style-2">Empowering Your Real Estate Journey</h3>
+                                    <h3 className="text-anime-style-2">{t('About_title')}</h3>
                                 </div>
                                 <div className="space20" />
                                 <div className="perag-bg">
                                     <p>
-                                        We are passionate about simplifying the real estate experience. Our expert team combines industry knowledge with a client-first approach to help you achieve your property goals.
+                                        {t('About_description')}
                                     </p>
                                     <div className="space32" />
                                     <div className="btn-area1">
                                         <Link href="/my-property" className="vl-btn1">
-                                            See Properties
+                                            {t('About_btn')}
                                             <span className="arrow1 ms-2">
                                                 <i className="fa-solid fa-arrow-right" />
                                             </span>

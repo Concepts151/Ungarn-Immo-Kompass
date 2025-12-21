@@ -8,6 +8,7 @@ import LandingPropertyCard from "../custom-comp/landing-property-card";
 import { FiltersState } from "@/state";
 import { useState } from "react";
 import LandingTabsFilterPills from "@/app/components/LandingTabsFilter";
+import { useTranslations } from "next-intl";
 
 const swiperOptions = {
   modules: [Autoplay, Pagination, Navigation],
@@ -41,6 +42,7 @@ const initialState: FiltersState = {
 };
 
 export default function Property1() {
+  const t = useTranslations("HomePage");
   const filters = useAppSelector((state) => state.global.filters);
   const [localFilters, setLocalFilters] = useState<FiltersState>(initialState);
   const { data: Properties } = useGetPropertiesQuery(filters);
@@ -56,10 +58,10 @@ export default function Property1() {
           <div className="row">
             <div className="col-lg-9 m-auto">
               <div className="heading1 text-center">
-                <h5>Our Properties</h5>
+                <h5>{t('Properties_subtitle')}</h5>
                 <div className="space16" />
                 <h2 className="text-anime-style-2">
-                  Browse Our Exclusive Properties Listing
+                  {t('Properties_title')}
                 </h2>
               </div>
               <div className="space40" />

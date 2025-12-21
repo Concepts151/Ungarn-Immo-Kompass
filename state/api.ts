@@ -3,7 +3,7 @@
 
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
-import { FiltersState, Property } from "@/types/api";
+import { FiltersState, GetVillagesResponse, Property } from "@/types/api";
 import { createClient } from "@/utils/supabase/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -292,6 +292,13 @@ export const api = createApi({
       query: () => `property-type/stats`,
       providesTags: (result) => [{ type: "Properties", id: "PROPERTY_TYPES" }],
     }),
+    getVillages: build.query<GetVillagesResponse, { county?: string; search?: string; limit?: number }>({
+      query: (params) => {
+        const queryParams = cleanParams(params);
+        return { url: "villages", params: queryParams };
+      },
+      providesTags: (result) => [{ type: "Properties", id: "VILLAGES" }],
+    }),
 
     // ==================== FAVORITES ENDPOINTS ====================
     getFavorites: build.query<Property[], string>({
@@ -517,6 +524,7 @@ export const {
   useGetSellerPropertiesQuery,
   useGetPropertyTypesQuery,
   useUpdatePropertyMutation,
+  useGetVillagesQuery,
 
   // Favorites
   useGetFavoritesQuery,
