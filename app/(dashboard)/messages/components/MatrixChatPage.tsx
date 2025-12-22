@@ -274,7 +274,7 @@ const MatrixChatPage = () => {
     setError("");
 
     try {
-      await leaveRoomViaAPI(roomToLeave.roomId, accessToken);
+      await leaveRoomViaAPI(accessToken, roomToLeave.roomId);
       
       if (selectedRoom?.roomId === roomToLeave.roomId) {
         setSelectedRoom(null);

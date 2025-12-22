@@ -157,7 +157,7 @@ export default function Header1({
                           </li>
 
                           <li>
-                            <Link href="/message">{t("Message")}</Link>
+                            <Link href="/massages">{t("Message")}</Link>
                           </li>
                           <li>
                             <Link href="/my-favorites">{t("MyFavorites")}</Link>
