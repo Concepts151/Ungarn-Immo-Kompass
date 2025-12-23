@@ -21,7 +21,6 @@ import StoreProvider from "@/state/redux";
 const inter = Inter({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
-  // variable: "--ztc-family-font1",
   display: "swap",
 });
 
@@ -62,10 +61,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
- 
+  let messages = {};
+  let locale = "en";
 
-  const messages = await getMessages();
-  const locale = await getLocale();
+  try {
+    messages = await getMessages();
+    locale = await getLocale();
+  } catch (error) {
+    console.error("Error loading locale/messages in RootLayout:", error);
+    // Fallback values already set above
+  }
+
   return (
     <html lang={locale}>
       <body className={`${inter.className} homepage1-body body1`}>
