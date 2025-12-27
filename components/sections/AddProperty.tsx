@@ -46,6 +46,7 @@ interface ListingFormData {
   city: string;
   year: string;
   country: string;
+  villageId?: string;
   category: string;
   listedIn: string;
   propertyStatus: string; // imageUrls: string[];
@@ -82,6 +83,7 @@ interface DetailsFormData {
 interface Locationdata {
   longitude: string;
   latitude: string;
+  villageId: string;
 }
 
 export interface ExposeCondition {
@@ -109,6 +111,7 @@ const initialListingFormData: ListingFormData = {
   city: "",
   year: "",
   country: "Hungary",
+  villageId: "",
   category: "HOUSE",
   listedIn: "Active",
   propertyStatus: "Sale",
@@ -145,6 +148,7 @@ const initialDetailsFormData: DetailsFormData = {
 const initialLocationData: Locationdata = {
   longitude: "0",
   latitude: "0",
+  villageId: "",
 };
 
 const initialConditionData: ExposeCondition = {
@@ -461,6 +465,7 @@ export default function AddProperty() {
             postalCode: postalCode,
             city: city,
             county: country, // Using city as county for now
+            villageId: locationData.villageId,
             price: parseInt(price),
             currency: mapCurrency(currency),
             lotSize: parseInt(lotSize) || 0,

@@ -59,6 +59,63 @@ interface MatrixRegistrationStats {
   };
 }
 
+export interface Village {
+  id: string;
+  name: string;
+  county: string;
+  population: number;
+  latitude: number;
+  longitude: number;
+  thumbnailUrl: string | null;
+  distance_km?: number;
+}
+
+export interface NearestVillageResponse {
+  success: boolean;
+  data: {
+    villages: Village[];
+    nearestMatch: Village | null;
+    searchParams: {
+      latitude: number;
+      longitude: number;
+      county: string | null;
+      radiusKm: number;
+    };
+  };
+}
+
+export interface SearchVillagesResponse {
+  success: boolean;
+  data: Village[];
+}
+
+export interface VillagesByCountyResponse {
+  success: boolean;
+  data: Village[];
+  count: number;
+}
+
+export interface CountiesResponse {
+  success: boolean;
+  data: Array<{
+    name: string;
+    villageCount: number;
+  }>;
+}
+
+export interface FindNearestVillageParams {
+  lat: number;
+  lng: number;
+  county?: string;
+  radius?: number;
+}
+
+export interface SearchVillagesParams {
+  search?: string;
+  county?: string;
+  limit?: number;
+}
+
 // ============================================
 // API DEFINITION
 // ============================================
@@ -108,7 +165,6 @@ export const api = createApi({
           const supabaseAvatarUrl = supabaseUserData?.avatarUrl || null;
 
           console.log("supabaseAvatarUrl:", supabaseAvatarUrl);
-          
 
           const endpoint =
             userRole === "BUYER"
@@ -292,7 +348,10 @@ export const api = createApi({
       query: () => `property-type/stats`,
       providesTags: (result) => [{ type: "Properties", id: "PROPERTY_TYPES" }],
     }),
-    getVillages: build.query<GetVillagesResponse, { county?: string; search?: string; limit?: number }>({
+    getVillages: build.query<
+      GetVillagesResponse,
+      { county?: string; search?: string; limit?: number }
+    >({
       query: (params) => {
         const queryParams = cleanParams(params);
         return { url: "villages", params: queryParams };
@@ -506,6 +565,37 @@ export const api = createApi({
         body: { matrixUserIds },
       }),
     }),
+    // ==================== VILLAGE ENDPOINTS ====================
+    findNearestVillage: build.query<
+      NearestVillageResponse,
+      FindNearestVillageParams
+    >({
+      query: ({ lat, lng, county, radius = 5 }) => ({
+        url: "village/nearest",
+        params: { lat, lng, county, radius },
+      }),
+      providesTags: [{ type: "Properties", id: "NEAREST_VILLAGE" }],
+    }),
+
+    searchVillages: build.query<SearchVillagesResponse, SearchVillagesParams>({
+      query: ({ search, county, limit = 20 }) => ({
+        url: "village/search",
+        params: { search, county, limit },
+      }),
+      providesTags: [{ type: "Properties", id: "SEARCH_VILLAGES" }],
+    }),
+
+    getVillagesByCounty: build.query<VillagesByCountyResponse, string>({
+      query: (county) => `village/by-county/${encodeURIComponent(county)}`,
+      providesTags: (result, error, county) => [
+        { type: "Properties", id: `VILLAGES_${county}` },
+      ],
+    }),
+
+    getCountiesWithVillages: build.query<CountiesResponse, void>({
+      query: () => "village/counties",
+      providesTags: [{ type: "Properties", id: "COUNTIES" }],
+    }),
   }),
 });
 
@@ -542,4 +632,10 @@ export const {
   useCreateDirectMessageRoomMutation,
   useGetMatrixStatsQuery,
   useLookupMatrixUsersMutation,
+
+  // Villages
+  useFindNearestVillageQuery,
+  useSearchVillagesQuery,
+  useGetVillagesByCountyQuery,
+  useGetCountiesWithVillagesQuery,
 } = api;
