@@ -12,6 +12,7 @@ export interface FiltersState {
   priceRange: [number, number] | [null, null];
   squareFeet: [number, number] | [null, null];
   coordinates: [number, number] | [null, null];
+  village?: string; 
 }
 
 interface initialStateTypes {
@@ -39,6 +40,8 @@ export const initialState: initialStateTypes = {
     priceRange: [null, null],
     squareFeet: [null, null],
     coordinates: [null, null],
+    village: undefined, 
+    
   },
   isFiltersFullOpen: false,
   viewMode: "grid",

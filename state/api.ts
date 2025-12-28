@@ -305,7 +305,7 @@ export const api = createApi({
     >({
       query: (filters) => {
         const params = cleanParams({
-          Location: filters.location,
+          location: filters.location,
           priceMin: filters.priceRange?.[0],
           priceMax: filters.priceRange?.[1],
           bedrooms: filters.beds,
@@ -315,6 +315,7 @@ export const api = createApi({
           livingAreaMax: filters.squareFeet?.[1],
           latitude: filters.coordinates?.[1],
           longitude: filters.coordinates?.[0],
+          village: (filters as any).village,
         });
 
         return { url: "properties", params };
@@ -354,7 +355,7 @@ export const api = createApi({
     >({
       query: (params) => {
         const queryParams = cleanParams(params);
-        return { url: "villages", params: queryParams };
+        return { url: "village", params: queryParams };
       },
       providesTags: (result) => [{ type: "Properties", id: "VILLAGES" }],
     }),

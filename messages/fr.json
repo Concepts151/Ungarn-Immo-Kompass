@@ -30,11 +30,15 @@
     "beds": "Chambres",
     "baths": "Salles de bain",
     "properties_count": "{count, plural, =1 {1 Propriété} other {# Propriétés}}",
-    "view_all": "Voir tout"
+    "view_all": "Voir tout",
+    "select_village": "Sélectionner un village",
+    "search_villages": "Rechercher des villages...",
+    "no_villages_found": "Aucun village trouvé",
+    "loading": "Chargement..."
   },
   "HomePage": {
     "Hero_h1": "Réaliser votre rêve de propriété",
-    "Hero_p": "Que vous souhaitiez acheter, vendre ou louer, Ungarn-Immo vous met en relation avec les meilleures propriétés et des conseils d’experts. Découvrez facilement et en toute confiance des maisons qui correspondent à votre vision et à votre budget.",
+    "Hero_p": "Que vous souhaitiez acheter, vendre ou louer, Ungarn-Immo vous met en relation avec les meilleures propriétés et des conseils d'experts. Découvrez facilement et en toute confiance des maisons qui correspondent à votre vision et à votre budget.",
     "add-listing-btn": "Ajouter une annonce",
     "Hero_bp": "Acheter une propriété",
     "Hero_pa": "Propriété disponible",

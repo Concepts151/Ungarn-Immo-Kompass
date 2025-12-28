@@ -30,7 +30,11 @@
     "beds": "Спальни",
     "baths": "Ванные",
     "properties_count": "{count, plural, one {# Объект} few {# Объекта} many {# Объектов} other {# Объектов}}",
-    "view_all": "Посмотреть все"
+    "view_all": "Посмотреть все",
+    "select_village": "Выберите село",
+    "search_villages": "Поиск сёл...",
+    "no_villages_found": "Сёла не найдены",
+    "loading": "Загрузка..."
   },
   "HomePage": {
     "Hero_h1": "Осуществляем мечту о собственном доме",

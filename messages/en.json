@@ -17,7 +17,11 @@
     "beds": "Beds",
     "baths": "Baths",
     "properties_count": "{count, plural, =1 {1 Property} other {# Properties}}",
-    "view_all": "View all"
+    "view_all": "View all",
+    "select_village": "Select Village",
+    "search_villages": "Search villages...",
+    "no_villages_found": "No villages found",
+    "loading": "Loading..."
   },
   "navbar": {
     "Listings": "Listings",
@@ -63,6 +67,6 @@
     "Location_title": "Find Your Properties In These Cities",
     "Testimonials_subtitle": "Testimonials",
     "Testimonials_title": "What Our Client Say About Us",
-    "Testimonials_quote": "Ungarn-Immo made our home-buying process so smooth! Their agents were knowledgeable and supportive at every step. We couldn’t be happier with our new home!"
+    "Testimonials_quote": "Ungarn-Immo made our home-buying process so smooth! Their agents were knowledgeable and supportive at every step. We couldn't be happier with our new home!"
   }
 }

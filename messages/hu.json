@@ -30,7 +30,11 @@
     "beds": "Hálószoba",
     "baths": "Fürdőszoba",
     "properties_count": "{count, plural, =1 {1 Ingatlan} other {# Ingatlan}}",
-    "view_all": "Összes megtekintése"
+    "view_all": "Összes megtekintése",
+    "select_village": "Település kiválasztása",
+    "search_villages": "Települések keresése...",
+    "no_villages_found": "Nem található település",
+    "loading": "Betöltés..."
   },
   "HomePage": {
     "Hero_h1": "Az otthontulajdonlási álom megvalósítása",
