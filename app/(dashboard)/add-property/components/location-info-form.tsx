@@ -244,10 +244,9 @@ function VillageSelector({
   };
 
   // Replace placeholder with a stateful viewMode and setter.
-  // Default to "map" when coordinates are present, otherwise "dropdown".
-  const [viewMode, setViewMode] = useState<"dropdown" | "map">(
-    coordinates ? "map" : "dropdown"
-  );
+  // Default to "dropdown" (list view)
+  const [viewMode, setViewMode] = useState<"dropdown" | "map">("dropdown");
+
   return (
     <div className="village-selector-wrapper">
       {/* Label with Auto-detect badge */}
