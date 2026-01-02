@@ -27,7 +27,8 @@
     "Listings": "Listings",
     "AboutUs": "About Us",
     "OurServices": "Our Services",
-    "ContactUs": "Contact Us",
+    "ForBuyers": "For Buyers",
+     "ForSellers": "For Sellers",
     "Dashboard": "Dashboard",
     "MyProperties": "My Properties",
     "AddProperty": "Add Property",
@@ -37,9 +38,9 @@
     "Review": "Reviews"
   },
   "HomePage": {
-    "Hero_h1": "Making Your Homeownership Dream a Reality",
-    "Hero_p": "Whether you're looking to buy, sell, or rent, Housa connects you with the best properties and expert advice. Explore homes that fit your vision and budget with ease and confidence.",
-    "add-listing-btn": "Add Listing",
+    "Hero_h1": "The fair way to your home in Hungary.",
+    "Hero_p": "Discover the most transparent and honest way to find your home. No commissions, just community and fairness.",
+    "add-listing-btn": "Discover Hungary",
     "Hero_bp": "Buying Property",
     "Hero_pa": "Property Available",
     "Hero_sp": "Selling Property",

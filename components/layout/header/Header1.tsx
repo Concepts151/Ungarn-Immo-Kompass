@@ -8,6 +8,7 @@ import { useSessionStore } from "@/app/store";
 import LanguageToggle from "@/components/custom-comp/toggle-language";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -18,6 +19,7 @@ export default function Header1({
   isMobileMenu,
   handleMobileMenu,
 }: any) {
+  const pathname = usePathname();
   const supabase = createClient();
   const session = useSessionStore((state) => state.session);
   const setSession = useSessionStore((state) => state.setSession);
@@ -127,23 +129,27 @@ export default function Header1({
                 </Link>
               </div>
             </div>
-            <div className="col-lg-6 d-none d-lg-block">
+            <div className="col-lg-8 d-none d-lg-block">
               <div className="vl-main-menu text-center">
                 <nav className="vl-mobile-menu-active">
                   <ul style={{ margin: "0px" }}>
                     <li>
-                      <Link href="/search">{t("Listings")}</Link>
+                      <Link href="/search" className={pathname === "/search" ? "active" : ""}>{t("Listings")}</Link>
                     </li>
                     <li>
-                      <Link href="/about-us">{t("AboutUs")}</Link>
+                      <Link href="/our-service" className={pathname === "/our-service" ? "active" : ""}>{t("OurServices")}</Link>
                     </li>
                     <li>
-                      <Link href="/our-service">{t("OurServices")}</Link>
+                      <Link href="/about-us" className={pathname === "/about-us" ? "active" : ""}>{t("AboutUs")}</Link>
+                    </li>
+
+                    <li>
+                      <Link href="/for-buyers" className={pathname === "/for-buyers" ? "active" : ""}>{t("ForBuyers")}</Link>
                     </li>
                     <li>
-                      <Link href="/contact">{t("ContactUs")}</Link>
+                      <Link href="/for-sellers" className={pathname === "/for-sellers" ? "active" : ""}>{t("ForSellers")}</Link>
                     </li>
-                    {session?.session != null && (
+                    {/* {session?.session != null && (
                       <li>
                         <Link href="#">
                           {t("Dashboard")}
@@ -162,9 +168,7 @@ export default function Header1({
                           <li>
                             <Link href="/my-favorites">{t("MyFavorites")}</Link>
                           </li>
-                          {/* <li>
-                            <Link href="/reviews">{t("Review")}</Link>
-                          </li> */}
+                        
                           <li>
                             <Link href="/my-profile">{t("MyProfile")}</Link>
                           </li>
@@ -185,13 +189,13 @@ export default function Header1({
                           )}
                         </ul>
                       </li>
-                    )}
+                    )} */}
                   </ul>
                 </nav>
               </div>
             </div>
             <div
-              className="col-lg-4 col-md-6 col-6"
+              className="col-lg-2 col-md-6 col-6"
               style={{
                 display: "flex",
                 justifyContent: "end",

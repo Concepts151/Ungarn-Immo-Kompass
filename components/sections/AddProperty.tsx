@@ -19,6 +19,7 @@ import AmenitiesForm from "@/app/(dashboard)/add-property/components/amenities-i
 import { useCreatePropertyMutation, useGetAuthUserQuery } from "@/state/api";
 import Conditions from "@/app/(dashboard)/add-property/components/conditon-and-plan";
 import AddOverview from "@/app/(dashboard)/add-property/components/add-overview";
+import { useNiceSelect } from "@/components/elements/useNiceSelect";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
 
@@ -191,6 +192,9 @@ export default function AddProperty() {
   const { data: authUser } = useGetAuthUserQuery();
   const [createProperty] = useCreatePropertyMutation();
 
+  // Initialize nice-select for dropdowns
+  const { initializeNiceSelect } = useNiceSelect();
+
   // Convert property type category to match backend enum
   const mapCategoryToPropertyType = (category: string): string => {
     const mapping: { [key: string]: string } = {
@@ -213,6 +217,16 @@ export default function AddProperty() {
   useEffect(() => {
     console.log("authUser", authUser);
   }, []);
+
+  // Reinitialize nice-select when step changes
+  useEffect(() => {
+    // Use setTimeout to ensure DOM is updated before initializing
+    const timer = setTimeout(() => {
+      initializeNiceSelect();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [currentStep, initializeNiceSelect]);
 
   const handleNext = () => {
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));

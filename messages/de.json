@@ -1,0 +1,73 @@
+{
+  "localeSwitcher": {
+    "label": "Sprachen"
+  },
+  "tabTitle": {
+    "home": "Startseite | Ungarn-immo"
+  },
+  "Common": {
+    "any": "Beliebig",
+    "all_types": "Alle Typen",
+    "house": "Haus",
+    "apartment": "Wohnung",
+    "holiday_home": "Ferienhaus",
+    "farmhouse": "Bauernhaus",
+    "land": "Grundstück",
+    "commercial": "Gewerbe",
+    "beds": "Schlafzimmer",
+    "baths": "Badezimmer",
+    "properties_count": "{count, plural, =1 {1 Immobilie} other {# Immobilien}}",
+    "view_all": "Alle anzeigen",
+    "select_village": "Dorf auswählen",
+    "search_villages": "Dörfer suchen...",
+    "no_villages_found": "Keine Dörfer gefunden",
+    "loading": "Laden..."
+  },
+  "navbar": {
+    "Listings": "Angebote",
+    "AboutUs": "Über uns",
+    "OurServices": "Unsere Dienstleistungen",
+    "ForBuyers": "Für Käufer",
+    "ForSellers": "Für Verkäufer",
+    "Dashboard": "Dashboard",
+    "MyProperties": "Meine Immobilien",
+    "AddProperty": "Immobilie hinzufügen",
+    "Message": "Nachricht",
+    "MyProfile": "Mein Profil",
+    "MyFavorites": "Meine Favoriten",
+    "Review": "Bewertungen"
+  },
+  "HomePage": {
+    "Hero_h1": "Der faire Weg zu Ihrem Zuhause in Ungarn.",
+    "Hero_p": "Entdecken Sie den transparentesten und ehrlichsten Weg, Ihr Zuhause zu finden. Keine Provisionen, nur Gemeinschaft und Fairness.",
+    "add-listing-btn": "Ungarn entdecken",
+    "Hero_bp": "Immobilie kaufen",
+    "Hero_pa": "Verfügbare Immobilien",
+    "Hero_sp": "Immobilie verkaufen",
+    "Search_title": "Finden Sie Ihre Traumimmobilie",
+    "Search_location_placeholder": "Standort eingeben (Stadt, Bezirk oder Adresse)...",
+    "Search_btn": "Immobilie suchen",
+    "Search_more_filters": "Weitere Filter",
+    "Search_hide_filters": "Filter ausblenden",
+    "Search_reset": "Zurücksetzen",
+    "Search_price_range": "Preisspanne (HUF)",
+    "Search_min_price": "Mindestpreis",
+    "Search_max_price": "Höchstpreis",
+    "Search_living_area": "Wohnfläche (m²)",
+    "Search_min_area": "Min m²",
+    "Search_max_area": "Max m²",
+    "About_subtitle": "Über das Unternehmen",
+    "About_title": "Ihre Immobilienreise ermöglichen",
+    "About_description": "Wir sind leidenschaftlich daran interessiert, die Immobilienerfahrung zu vereinfachen. Unser Expertenteam kombiniert Branchenkenntnisse mit einem kundenorientierten Ansatz, um Ihnen bei der Erreichung Ihrer Immobilienziele zu helfen.",
+    "About_btn": "Immobilien ansehen",
+    "Properties_subtitle": "Unsere Immobilien",
+    "Properties_title": "Durchsuchen Sie unsere exklusiven Immobilienangebote",
+    "Category_subtitle": "Kategorie",
+    "Category_title": "Wählen Sie das Zuhause, das zu Ihnen passt",
+    "Location_subtitle": "Unsere Standorte",
+    "Location_title": "Finden Sie Ihre Immobilien in diesen Städten",
+    "Testimonials_subtitle": "Erfahrungsberichte",
+    "Testimonials_title": "Was unsere Kunden über uns sagen",
+    "Testimonials_quote": "Ungarn-Immo hat unseren Hauskaufprozess so reibungslos gestaltet! Ihre Makler waren kompetent und unterstützend bei jedem Schritt. Wir könnten nicht glücklicher mit unserem neuen Zuhause sein!"
+  }
+}

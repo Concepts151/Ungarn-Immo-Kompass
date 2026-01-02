@@ -73,7 +73,10 @@ export default function MobileMenu({ isMobileMenu, handleMobileMenu }: any) {
                                         <Link href="/our-service">{t("OurServices")}</Link>
                                     </li>
                                     <li>
-                                        <Link href="/contact">{t("ContactUs")}</Link>
+                                        <Link href="/for-sellers">{t("ForSellers")}</Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/for-buyers">{t("ForBuyers")}</Link>
                                     </li>
                                     {session?.session != null && (
                                         <li className={`has-dropdown ${isAccordion == 1 ? "active" : ""}`} onClick={() => handleAccordion(1)}>

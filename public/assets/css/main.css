@@ -29,7 +29,7 @@ Table of contents
     22. 404 Error
     23. Footer
 ==============*/
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
 
 a,
 a:hover {
@@ -478,12 +478,12 @@ img {
 
 :root {
     --ztc-text-text-1: #fff;
-    --ztc-text-text-2: #1b1b1b;
+    --ztc-text-text-2: #436f4d;
     --ztc-text-text-3: #5c5d62;
-    --ztc-text-text-4: #ed8438;
+    --ztc-text-text-4: #ce283f;
     --ztc-bg-bg-1: #fff;
     --ztc-bg-bg-2: #1b1b1b;
-    --ztc-bg-bg-3: #ed8438;
+    --ztc-bg-bg-3: #ce283f;
     --ztc-border-border-1: #e5e7eb;
     --ztc-border-border-2: #dfdcdc;
     --ztc-font-size-font-s10: 10px;
@@ -588,8 +588,8 @@ img {
     --ztc-weight-semibold: 600;
     --ztc-weight-bold: 700;
     --ztc-weight-black: 800;
-    --ztc-family-font1: "Inter", serif;
-    --ztc-family-font2: "Inter", serif;
+    --ztc-family-font1: "Roboto", sans-serif;
+    --ztc-family-font2: "Roboto", sans-serif;
 }
 
 /*
@@ -641,6 +641,12 @@ Location:
     font-weight: var(--ztc-weight-semibold);
     line-height: 75px;
 }
+
+ .no-word-break {
+            word-break: keep-all !important;
+            overflow-wrap: normal !important;
+            white-space: normal !important;
+          }
 
 @media (max-width: 767px) {
     .heading1 h1 {
@@ -1677,7 +1683,7 @@ Location:
     position: relative;
     z-index: 1;
     background: var(--ztc-bg-bg-1);
-    padding: 110px 50px 70px 60px;
+    padding: 110px 50px 45px 60px;
     border-radius: 30px;
 }
 
@@ -6067,10 +6073,9 @@ only screen and (min-width: 768px) and (max-width: 991px),
     justify-content: space-between;
 }
 
-.homepage1-body .vl-main-menu ul>li a.nav-link.active {
-    color: var(--ztc-text-text-2);
+.homepage1-body .vl-main-menu ul>li a.active {
+    color: #ce283f;
     background: none;
-    opacity: 70%;
 }
 
 .vl-main-menu ul>li>a::before {

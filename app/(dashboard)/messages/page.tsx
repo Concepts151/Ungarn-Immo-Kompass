@@ -9,11 +9,11 @@ export default function MessagesPage() {
         <div className="space50"></div>
         <div className="space50"></div>
         <div className="space50"></div>
-        <section className="messages-page-section">
+        {/* <section className="messages-page-section"> */}
           <div className="container">
             <MatrixChatPage />
           </div>
-        </section>
+        {/* </section> */}
         <div className="space30"></div>
       </Layout>
     </>

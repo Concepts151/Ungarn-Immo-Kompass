@@ -4,12 +4,16 @@ import { useSessionStore } from "@/app/store"
 import Link from "next/link"
 import { logout } from "../action"
 import "../avatarDropdown.css"
+import { useTranslations } from "next-intl"
+import { useGetAuthUserQuery } from "@/state/api"
 
 export default function UserAvatarDropdown() {
   const user = useSessionStore((s) => s.session?.user)
   const name = useSessionStore((state) => state.name)
   const avatarUrl = useSessionStore((state) => state.avatarUrl)
   const clearSession = useSessionStore((state) => state.clearSession)
+  const t = useTranslations("navbar")
+  const { data: authUser } = useGetAuthUserQuery()
 
 
   // Get initials from the name
@@ -71,12 +75,48 @@ export default function UserAvatarDropdown() {
         className="dropdown-menu avatar-dropdown-menu dropdown-menu-end shadow"
         aria-labelledby="avatarDropdown">
         <li>
-          <Link className="dropdown-item" href="/my-profile">
-            Profile
+          <Link className="dropdown-item" href="/dashboard">
+            <i className="fa-solid fa-th-large"></i>
+            {t("Dashboard")}
           </Link>
         </li>
         <li>
+          <Link className="dropdown-item" href="/massages">
+            <i className="fa-solid fa-envelope"></i>
+            {t("Message")}
+          </Link>
+        </li>
+        <li>
+          <Link className="dropdown-item" href="/my-favorites">
+            <i className="fa-solid fa-heart"></i>
+            {t("MyFavorites")}
+          </Link>
+        </li>
+        <li>
+          <Link className="dropdown-item" href="/my-profile">
+            <i className="fa-solid fa-user"></i>
+            {t("MyProfile")}
+          </Link>
+        </li>
+        {authUser?.userRole === "SELLER" && (
+          <>
+            <li>
+              <Link className="dropdown-item" href="/my-property">
+                <i className="fa-solid fa-house"></i>
+                {t("MyProperties")}
+              </Link>
+            </li>
+            <li>
+              <Link className="dropdown-item" href="/add-property">
+                <i className="fa-solid fa-plus-circle"></i>
+                {t("AddProperty")}
+              </Link>
+            </li>
+          </>
+        )}
+        <li>
           <Link className="dropdown-item" href="/settings">
+            <i className="fa-solid fa-gear"></i>
             Settings
           </Link>
         </li>
@@ -88,6 +128,7 @@ export default function UserAvatarDropdown() {
             className="dropdown-item text-danger"
             type="button"
             onClick={handleLogout}>
+            <i className="fa-solid fa-right-from-bracket"></i>
             Logout
           </button>
         </li>
