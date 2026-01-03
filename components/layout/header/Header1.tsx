@@ -137,7 +137,7 @@ export default function Header1({
                       <Link href="/search" className={pathname === "/search" ? "active" : ""}>{t("Listings")}</Link>
                     </li>
                     <li>
-                      <Link href="/our-service" className={pathname === "/our-service" ? "active" : ""}>{t("OurServices")}</Link>
+                      <Link href="/our-services" className={pathname === "/our-services" ? "active" : ""}>{t("OurServices")}</Link>
                     </li>
                     <li>
                       <Link href="/about-us" className={pathname === "/about-us" ? "active" : ""}>{t("AboutUs")}</Link>
