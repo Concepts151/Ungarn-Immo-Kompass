@@ -147,5 +147,27 @@
     "Step4_full": "Erst nachdem diese Spende bestätigt wurde, geben wir die endgültigen Abschlussdokumente an beide Parteien frei. Für ausführlichere Informationen zu Steuern, Wohnsitz (Lakcímkártya) und Versorgungsregistrierung lesen Sie unsere Expertenbeiträge auf wir-in-ungarn.hu.",
     "ReadMore_btn": "Mehr lesen",
     "ShowLess_btn": "Weniger anzeigen"
+  },
+  "ForSellersPage": {
+    "title": "Für Verkäufer",
+    "Hero_title": "Mit Integrität verkaufen: Erreichen Sie die richtigen Käufer",
+    "Hero_description": "Ob Sie ein privater Hauseigentümer oder ein Gemeindevertreter sind, Ungarn-Immo bietet Ihnen eine direkte Verbindung zu einem motivierten internationalen Publikum ohne die Kosten eines Vermittlers.",
+    "Honesty_title": "Der Vorteil der Ehrlichkeit",
+    "Honesty_short": "Warum sollten Sie Mängel beschreiben? Weil Käufer nach einem Projekt suchen, dem sie vertrauen können. Durch die ehrliche Beschreibung von Renovierungsbedarf filtern Sie \"Besichtigungstouristen\" heraus und ziehen ernsthafte Käufer an, die auf die Arbeit vorbereitet sind.",
+    "Honesty_full": "Transparenz ist Ihr schnellster Weg zu einem erfolgreichen Abschluss.",
+    "NoCommission_title": "Keine Provision, mehr Wirkung",
+    "NoCommission_short": "Zahlen Sie keine 3–5% Provision mehr an traditionelle Makler. Auf Ungarn-Immo ist das Inserieren kostenlos.",
+    "NoCommission_full": "Ihre einzige Verpflichtung ist die 0,5% Fair-Share-Spende bei einem erfolgreichen Verkauf, die zur Wiederbelebung der Gemeinschaft beiträgt, zu der Ihr Haus gehört.",
+    "Municipalities_title": "Gemeinden & Leerstehende Immobilien (2025 Gesetze)",
+    "Municipalities_short": "Mit den bevorstehenden gesetzlichen Änderungen im Jahr 2025 bezüglich erbenloser Immobilien werden sich viele Dörfer für leerstehende Häuser verantwortlich finden.",
+    "Municipalities_full": "Wir bieten einen spezialisierten Onboarding-Prozess für Gemeinden an, um diese Immobilien zu listen und neues Leben, Familien und Investitionen zurück ins ländliche Ungarn zu bringen.",
+    "Tools_title": "Werkzeuge zur Hand",
+    "Tools_description": "Unser Verkäufer-Dashboard gibt Ihnen alles, was Sie brauchen:",
+    "Tool1_title": "KI-Dorf-Assistent",
+    "Tool1_description": "Wir sammeln öffentliche Daten für Ihr Dorf; Sie beantworten nur ein paar Fragen, und unsere KI schreibt ein professionelles Dorfporträt.",
+    "Tool2_title": "Video-Verbesserung",
+    "Tool2_description": "Für eine kleine Gebühr (5.000–10.000 HUF) untertitelt und übersetzt unser KI-Service Ihre Hausvideos ins Deutsche und Ungarische.",
+    "ReadMore_btn": "Mehr lesen",
+    "ShowLess_btn": "Weniger anzeigen"
   }
 }

@@ -147,5 +147,27 @@
     "Step4_full": "Only after this donation is confirmed do we release the final completion documents to both parties. For more in-depth information on taxes, residency (Lakcímkártya), and utility registration, check out our expert articles on wir-in-ungarn.hu.",
     "ReadMore_btn": "Read More",
     "ShowLess_btn": "Show Less"
+  },
+  "ForSellersPage": {
+    "title": "For Sellers",
+    "Hero_title": "Selling with Integrity: Reach the Right Buyers",
+    "Hero_description": "Whether you are a private homeowner or a municipal representative, Ungarn-Immo offers you a direct line to a motivated international audience without the cost of a middleman.",
+    "Honesty_title": "The Advantage of Honesty",
+    "Honesty_short": "Why describe defects? Because buyers are looking for a project they can trust. By being honest about renovation needs, you filter out \"viewing tourists\" and attract serious buyers who are prepared for the work.",
+    "Honesty_full": "Transparency is your fastest path to a successful closing.",
+    "NoCommission_title": "No Commission, More Impact",
+    "NoCommission_short": "Stop paying 3–5% commission to traditional brokers. On Ungarn-Immo, listing is free.",
+    "NoCommission_full": "Your only obligation is the 0.5% Fair-Share donation upon a successful sale, which helps revitalize the very community your house is part of.",
+    "Municipalities_title": "Municipalities & Empty Properties (2025 Laws)",
+    "Municipalities_short": "With the upcoming legal changes in 2025 regarding heirless properties, many villages will find themselves responsible for vacant homes.",
+    "Municipalities_full": "We offer a specialized onboarding process for municipalities to list these properties, helping to bring new life, families, and investment back into rural Hungary.",
+    "Tools_title": "Tools at Your Fingertips",
+    "Tools_description": "Our Seller Dashboard gives you everything you need:",
+    "Tool1_title": "AI Village Wizard",
+    "Tool1_description": "We pull public data for your village; you just answer a few questions, and our AI writes a professional village portrait.",
+    "Tool2_title": "Video Enhancement",
+    "Tool2_description": "For a small fee (5,000–10,000 HUF), our AI service will subtitle and translate your house videos into German and Hungarian.",
+    "ReadMore_btn": "Read More",
+    "ShowLess_btn": "Show Less"
   }
 }

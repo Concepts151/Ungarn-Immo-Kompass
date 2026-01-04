@@ -147,5 +147,27 @@
     "Step4_full": "Csak miután ez az adomány megerősítésre került, adjuk ki a végső befejezési dokumentumokat mindkét félnek. További részletes információkért az adókról, lakcímkártyáról és közműbejelentésről nézd meg szakértői cikkeinket a wir-in-ungarn.hu oldalon.",
     "ReadMore_btn": "Bővebben",
     "ShowLess_btn": "Kevesebb"
+  },
+  "ForSellersPage": {
+    "title": "Eladóknak",
+    "Hero_title": "Tisztességgel eladni: Érd el a megfelelő vásárlókat",
+    "Hero_description": "Akár magánszemély tulajdonos, akár önkormányzati képviselő vagy, az Ungarn-Immo közvetlen elérést biztosít egy motivált nemzetközi közönséghez, közvetítői költségek nélkül.",
+    "Honesty_title": "Az őszinteség előnye",
+    "Honesty_short": "Miért érdemes leírni a hibákat? Mert a vásárlók olyan projektet keresnek, amiben megbízhatnak. Az őszinte felújítási szükségletek leírásával kiszűröd a \"megtekintő turistákat\", és komoly vásárlókat vonzol, akik felkészültek a munkára.",
+    "Honesty_full": "Az átláthatóság a leggyorsabb út egy sikeres üzlet lezárásához.",
+    "NoCommission_title": "Jutalék nélkül, nagyobb hatás",
+    "NoCommission_short": "Ne fizess többé 3-5% jutalékot a hagyományos ingatlanközvetítőknek. Az Ungarn-Immo-n a hirdetés ingyenes.",
+    "NoCommission_full": "Az egyetlen kötelezettséged a 0,5%-os Fair-Share adomány sikeres eladás esetén, amely ugyanannak a közösségnek az újjáélesztését segíti, amelynek a házad is része.",
+    "Municipalities_title": "Önkormányzatok és üresen álló ingatlanok (2025-ös törvények)",
+    "Municipalities_short": "Az örökös nélküli ingatlanokkal kapcsolatos 2025-ös törvényi változásokkal sok falu felelőssé válik az üresen álló otthonokért.",
+    "Municipalities_full": "Speciális bevezetési folyamatot kínálunk önkormányzatoknak ezen ingatlanok hirdetéséhez, segítve új életet, családokat és befektetéseket visszahozni a vidéki Magyarországra.",
+    "Tools_title": "Eszközök kéznél",
+    "Tools_description": "Az Eladói Irányítópultunk mindent megad, amire szükséged van:",
+    "Tool1_title": "AI Falu Varázsló",
+    "Tool1_description": "Nyilvános adatokat gyűjtünk a faludról; csak válaszolj néhány kérdésre, és az AI-unk professzionális falu portrét ír.",
+    "Tool2_title": "Videó Fejlesztés",
+    "Tool2_description": "Kis díjért (5 000–10 000 HUF) AI szolgáltatásunk felirattal látja el és fordítja a ház videókat németre és magyarra.",
+    "ReadMore_btn": "Bővebben",
+    "ShowLess_btn": "Kevesebb"
   }
 }
