@@ -117,13 +117,8 @@ export default function ContactSeller({
       console.log('[ContactSeller] Room creation result:', result);
 
       // Handle both new room creation and existing room scenarios
-      // Backend may return: { success: true, matrixRoomId: "..." }
-      // OR: { message: "Room already exists", matrixRoomId: "..." }
       if (result.matrixRoomId) {
         console.log('[ContactSeller] Room available:', result.matrixRoomId);
-        if (result.message) {
-          console.log('[ContactSeller] Message:', result.message);
-        }
         setSuccess(true);
 
         // Open the Matrix chat widget and select this room
