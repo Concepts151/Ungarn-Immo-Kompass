@@ -107,8 +107,12 @@ const MatrixChatSimple: React.FC<MatrixChatSimpleProps> = ({ userId }) => {
         <div className="room-list-container">
           <RoomList
             rooms={rooms}
+            invites={[]} // No invites section in simple chat
             selectedRoom={selectedRoom}
             onSelectRoom={handleSelectRoom}
+            onLeaveRoom={() => {}} // Not implemented in simple chat
+            onAcceptInvite={() => {}} // Not needed - auto-join enabled
+            onRejectInvite={() => {}} // Not needed - auto-join enabled
             getUserDisplayName={(matrixUserId) => {
               const user = userCache[matrixUserId];
               return user?.fullName || matrixUserId.split(":")[0].replace("@", "").replace("immo_", "");
