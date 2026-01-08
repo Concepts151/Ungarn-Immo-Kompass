@@ -36,14 +36,20 @@ const RoomInvites: React.FC<RoomInvitesProps> = ({
               
               <div className="invite-actions">
                 <button
-                  onClick={() => onAcceptInvite(roomId)}
+                  onClick={() => {
+                    console.log('[RoomInvites] Accept button clicked, roomId:', roomId);
+                    onAcceptInvite(roomId);
+                  }}
                   className="invite-btn accept-btn"
                   title="Accept invite"
                 >
                   <Check size={16} />
                 </button>
                 <button
-                  onClick={() => onRejectInvite(roomId)}
+                  onClick={() => {
+                    console.log('[RoomInvites] Reject button clicked, roomId:', roomId);
+                    onRejectInvite(roomId);
+                  }}
                   className="invite-btn reject-btn"
                   title="Reject invite"
                 >

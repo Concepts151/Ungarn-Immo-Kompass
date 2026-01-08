@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import "./css/messagelist.css";
+import TranslatableMessage from "@/components/chat/TranslatableMessage";
 
 interface MatrixUserInfo {
   id: string;
@@ -131,7 +132,11 @@ const MessageList = ({
                   isOwnMessage ? "bubble-own" : "bubble-other"
                 }`}
               >
-                <p className="message-text">{body}</p>
+                <TranslatableMessage
+                  text={body}
+                  messageId={message.getId?.() || `${index}`}
+                  className="message-text"
+                />
                 <span className="message-time">
                   {formatMessageTime(timestamp)}
                 </span>

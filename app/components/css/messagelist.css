@@ -9,6 +9,19 @@
   gap: 4px;
 }
 
+/* Translate All Button Container */
+.translate-all-container {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 80%, rgba(255,255,255,0) 100%);
+  z-index: 10;
+}
+
 .message-list-empty {
   flex: 1;
   display: flex;

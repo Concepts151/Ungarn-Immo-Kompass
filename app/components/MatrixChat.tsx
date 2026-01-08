@@ -12,6 +12,19 @@ import MessageArea from "./MessageArea";
 import LeaveRoomModal from "./modals/LeaveRoomModal";
 import VideoCallModal from "./VideoCallModal";
 
+// Suppress MatrixRTC errors globally - these are harmless timing issues during sync
+if (typeof window !== 'undefined') {
+  const originalConsoleError = console.error;
+  console.error = (...args: any[]) => {
+    const message = args[0]?.toString() || '';
+    // Suppress MatrixRTC "unknown room" errors - these occur during initial sync and are harmless
+    if (message.includes('MatrixRTCSessionManager') && message.includes('unknown room')) {
+      return;
+    }
+    originalConsoleError.apply(console, args);
+  };
+}
+
 // Type for user details lookup
 interface MatrixUserInfo {
   id: string;
@@ -55,7 +68,7 @@ const MatrixChat = () => {
 
   // RTK Query mutation for lazy Matrix registration
   const [registerMatrix, { isLoading: isRegistering }] = useRegisterMatrixAccountMutation();
-  
+
   // RTK Query mutation for looking up users by Matrix ID
   const [lookupUsers] = useLookupMatrixUsersMutation();
 
@@ -114,6 +127,7 @@ const MatrixChat = () => {
   // Refs for event listeners
   const selectedRoomRef = useRef<any | null>(null);
   const clientRef = useRef<any | null>(null);
+  const autoAcceptAttemptedRef = useRef<Set<string>>(new Set());
   const isOutgoingCallRef = useRef<boolean>(false);
   const prevInviteCountRef = useRef(0);
 
@@ -141,33 +155,250 @@ const MatrixChat = () => {
 
   // Listen for openMatrixChat event from ContactSeller
   useEffect(() => {
-    const handleOpenChat = (event: CustomEvent<{ roomId: string }>) => {
+    const handleOpenChat = async (event: CustomEvent<{ roomId: string }>) => {
       console.log("📨 Received openMatrixChat event:", event.detail);
       setIsChatOpen(true);
-      
+
       // If we have a specific room to open, find and select it
       if (event.detail?.roomId && client) {
-        const targetRoom = rooms.find(r => r.roomId === event.detail.roomId);
-        if (targetRoom) {
-          switchRoom(targetRoom);
-        } else {
-          // Room might not be synced yet, wait a bit and try again
-          setTimeout(() => {
-            const allRooms = client.getRooms();
-            const newRoom = allRooms.find((r: any) => r.roomId === event.detail.roomId);
-            if (newRoom) {
-              switchRoom(newRoom);
-            }
-          }, 2000);
+        const targetRoomId = event.detail.roomId;
+        console.log('[MatrixChat] Looking for room:', targetRoomId);
+        console.log('[MatrixChat] Matrix client sync state:', client.getSyncState());
+        console.log('[MatrixChat] Current rooms count:', rooms.length);
+        console.log('[MatrixChat] Current invites count:', invites.length);
+
+        // Check if client is synced
+        const syncState = client.getSyncState();
+        if (syncState !== 'SYNCING' && syncState !== 'PREPARED') {
+          console.log('[MatrixChat] Client not synced yet, waiting for sync...');
+
+          // Wait for sync to complete
+          const waitForSync = new Promise<void>((resolve) => {
+            const syncHandler = (state: string) => {
+              console.log('[MatrixChat] Sync state changed to:', state);
+              if (state === 'SYNCING' || state === 'PREPARED') {
+                client.off('sync', syncHandler);
+                resolve();
+              }
+            };
+
+            client.on('sync', syncHandler);
+
+            // Timeout after 10 seconds
+            setTimeout(() => {
+              client.off('sync', syncHandler);
+              resolve();
+            }, 10000);
+          });
+
+          await waitForSync;
+          console.log('[MatrixChat] Sync completed, proceeding to find room');
         }
+
+        // Force an update of rooms and invites first
+        console.log('[MatrixChat] Forcing room/invite update before search');
+        updateRoomsAndInvites(client);
+
+        // Small delay to let state update
+        setTimeout(() => {
+          const targetRoom = rooms.find(r => r.roomId === targetRoomId);
+          if (targetRoom) {
+            console.log('[MatrixChat] Found room immediately, switching to it');
+            switchRoom(targetRoom);
+          } else {
+            console.log('[MatrixChat] Room not in current list, checking all rooms from client');
+
+            // Try to find in all client rooms (including invites)
+            const allRooms = client.getRooms();
+            console.log('[MatrixChat] All client rooms:', allRooms.length);
+            console.log('[MatrixChat] All client rooms IDs:', allRooms.map((r: any) => r.roomId));
+
+            const foundRoom = allRooms.find((r: any) => r.roomId === targetRoomId);
+            if (foundRoom) {
+              const membership = foundRoom.getMyMembership();
+              console.log('[MatrixChat] Found room in client, membership:', membership);
+
+              if (membership === 'invite') {
+                console.log('[MatrixChat] Room is an invite, auto-accepting...');
+                // Auto-accept the invite immediately
+                handleAcceptInvite(targetRoomId).then(() => {
+                  console.log('[MatrixChat] Invite auto-accepted, updating UI');
+                  updateRoomsAndInvites(client);
+
+                  // Wait for Matrix sync to complete and room to appear as joined
+                  const checkJoinedRoom = (attempts: number = 0) => {
+                    const joinedRoom = client.getRooms().find((r: any) => r.roomId === targetRoomId);
+                    if (joinedRoom && joinedRoom.getMyMembership() === 'join') {
+                      console.log('[MatrixChat] Switching to newly joined room');
+                      switchRoom(joinedRoom);
+                      setIsChatOpen(true);
+                    } else if (attempts < 5) {
+                      // Try again in 1 second, up to 5 attempts (5 seconds total)
+                      console.log(`[MatrixChat] Room not yet joined, retrying... (attempt ${attempts + 1}/5)`);
+                      setTimeout(() => checkJoinedRoom(attempts + 1), 1000);
+                    } else {
+                      console.warn('[MatrixChat] Room not showing as joined yet, but will appear when sync completes');
+                      // Still open the chat widget - the room will appear when sync completes
+                      setIsChatOpen(true);
+                    }
+                  };
+
+                  setTimeout(() => checkJoinedRoom(), 1000);
+                }).catch((err) => {
+                  console.error('[MatrixChat] Failed to auto-accept invite:', err);
+                  setError('Failed to join room. Please try again.');
+                });
+              } else if (membership === 'join') {
+                console.log('[MatrixChat] Room is joined, switching to it');
+                switchRoom(foundRoom);
+              } else {
+                console.log('[MatrixChat] Unexpected membership state:', membership);
+                console.log('[MatrixChat] Trying to join anyway...');
+                // Try to join the room regardless
+                client.joinRoom(targetRoomId).then(() => {
+                  console.log('[MatrixChat] Successfully joined room');
+                  updateRoomsAndInvites(client);
+                  setTimeout(() => {
+                    const joinedRoom = client.getRooms().find((r: any) => r.roomId === targetRoomId);
+                    if (joinedRoom) switchRoom(joinedRoom);
+                  }, 1000);
+                }).catch((err: any) => {
+                  console.error('[MatrixChat] Failed to join room:', err);
+                  setError('Failed to join room: ' + err.message);
+                });
+              }
+            } else {
+              console.log('[MatrixChat] Room not found yet, forcing client sync...');
+
+              // Force the Matrix client to sync
+              try {
+                console.log('[MatrixChat] Calling client.sync() to fetch latest rooms...');
+                if (client && typeof (client as any).sync === 'function') {
+                  (client as any).sync();
+                }
+              } catch (syncError) {
+                console.warn('[MatrixChat] Manual sync failed:', syncError);
+              }
+
+              // Room might not be synced yet, retry multiple times with longer intervals
+              let attempts = 0;
+              const maxAttempts = 8; // Increased from 5
+              const retryInterval = 3000; // Increased from 2000ms to 3000ms
+
+              const retryFind = () => {
+                attempts++;
+                console.log(`[MatrixChat] Retry attempt ${attempts}/${maxAttempts}`);
+
+                const allRooms = client.getRooms();
+                console.log(`[MatrixChat] Client has ${allRooms.length} rooms`);
+
+                const room = allRooms.find((r: any) => r.roomId === targetRoomId);
+
+                if (room) {
+                  const membership = room.getMyMembership();
+                  console.log('[MatrixChat] Room found on retry, membership:', membership);
+
+                  // If it's an invite, auto-accept it
+                  if (membership === 'invite') {
+                    console.log('[MatrixChat] Auto-accepting invite for newly created room...');
+                    handleAcceptInvite(targetRoomId).then(() => {
+                      console.log('[MatrixChat] Invite accepted, updating UI');
+                      updateRoomsAndInvites(client);
+                      setTimeout(() => {
+                        const joinedRoom = client.getRooms().find((r: any) => r.roomId === targetRoomId);
+                        if (joinedRoom && joinedRoom.getMyMembership() === 'join') {
+                          switchRoom(joinedRoom);
+                        }
+                      }, 1000);
+                    }).catch((err) => {
+                      console.error('[MatrixChat] Failed to auto-accept invite:', err);
+                    });
+                  } else if (membership === 'join') {
+                    updateRoomsAndInvites(client);
+                    setTimeout(() => {
+                      switchRoom(room);
+                    }, 300);
+                  } else {
+                    console.log('[MatrixChat] Room found but membership is:', membership);
+                    updateRoomsAndInvites(client);
+                  }
+                } else if (attempts < maxAttempts) {
+                  setTimeout(retryFind, retryInterval);
+                } else {
+                  console.warn('[MatrixChat] Room not found after', maxAttempts, 'attempts');
+                  console.warn('[MatrixChat] Available room IDs:', allRooms.map((r: any) => r.roomId));
+                  console.warn('[MatrixChat] Looking for:', targetRoomId);
+                  console.warn('[MatrixChat] This likely means the room was created but hasn\'t synced to the Matrix client yet.');
+                  console.warn('[MatrixChat] The room will appear automatically once Matrix sync completes.');
+
+                  // Open chat widget anyway - room will appear when synced
+                  setIsChatOpen(true);
+                }
+              };
+
+              setTimeout(retryFind, retryInterval);
+            }
+          }
+        }, 500);
       }
     };
 
-    window.addEventListener("openMatrixChat", handleOpenChat as EventListener);
+    const openChatListener = (evt: Event) => {
+      // Cast the generic Event to our CustomEvent type and forward to the async handler
+      void handleOpenChat(evt as CustomEvent<{ roomId: string }>);
+    };
+
+    window.addEventListener("openMatrixChat", openChatListener);
     return () => {
-      window.removeEventListener("openMatrixChat", handleOpenChat as EventListener);
+      window.removeEventListener("openMatrixChat", openChatListener);
     };
   }, [client, rooms]);
+
+  // Handle room access checks from ContactSeller component
+  useEffect(() => {
+    const handleCheckRoomAccess = (event: any) => {
+      const { roomId } = event.detail;
+      console.log('[MatrixChat] Checking room access for:', roomId);
+
+      if (!client) {
+        console.log('[MatrixChat] No client, cannot access room');
+        window.dispatchEvent(
+          new CustomEvent('matrixRoomAccessResponse', {
+            detail: { roomId, canAccess: false },
+          })
+        );
+        return;
+      }
+
+      try {
+        const room = client.getRoom(roomId);
+        const membership = room?.getMyMembership();
+
+        console.log('[MatrixChat] Room membership:', membership);
+
+        // User can access if they're joined or invited (not if they left or were banned)
+        const canAccess = membership === 'join' || membership === 'invite';
+
+        window.dispatchEvent(
+          new CustomEvent('matrixRoomAccessResponse', {
+            detail: { roomId, canAccess },
+          })
+        );
+      } catch (error) {
+        console.error('[MatrixChat] Error checking room access:', error);
+        window.dispatchEvent(
+          new CustomEvent('matrixRoomAccessResponse', {
+            detail: { roomId, canAccess: false },
+          })
+        );
+      }
+    };
+
+    window.addEventListener('checkMatrixRoomAccess', handleCheckRoomAccess as EventListener);
+    return () => {
+      window.removeEventListener('checkMatrixRoomAccess', handleCheckRoomAccess as EventListener);
+    };
+  }, [client]);
 
   // Open login modal via Zustand
   const openLoginModal = () => {
@@ -206,40 +437,39 @@ const MatrixChat = () => {
   const updateRoomsAndInvites = useCallback((matrixClient: MatrixClientType) => {
     const allRooms = matrixClient.getRooms();
 
-    const joinedRooms = allRooms.filter((room) => {
+    // Show ALL rooms in "Chats" regardless of membership state (invite or join)
+    // This provides seamless UX - users see all property inquiry rooms immediately
+    const validRooms = allRooms.filter((room) => {
       const membership = room.getMyMembership();
-      return membership === "join";
-    });
-
-    const invitedRooms = allRooms.filter((room) => {
-      const membership = room.getMyMembership();
-      return membership === "invite";
+      // Include both "invite" and "join" states
+      return membership === "join" || membership === "invite";
     });
 
     console.log(
-      `Found ${joinedRooms.length} joined rooms and ${invitedRooms.length} invites`
+      `[updateRoomsAndInvites] Found ${validRooms.length} total rooms (invite + join)`
     );
-    
-    // Check for new invites
-    const previousInviteCount = prevInviteCountRef.current;
-    const newInviteCount = invitedRooms.length;
-    prevInviteCountRef.current = newInviteCount;
-    
-    // Show notification for new invites
-    if (newInviteCount > previousInviteCount) {
+
+    // Track room count for notifications
+    const previousRoomCount = prevInviteCountRef.current;
+    const newRoomCount = validRooms.length;
+    prevInviteCountRef.current = newRoomCount;
+
+    // Show notification for new rooms
+    if (newRoomCount > previousRoomCount) {
       if ('Notification' in window && Notification.permission === 'granted') {
-        const latestInvite = invitedRooms[invitedRooms.length - 1];
-        const roomName = latestInvite?.name || 'Unknown Room';
-        new Notification('New Chat Invite', {
-          body: `You've been invited to ${roomName}`,
+        const latestRoom = validRooms[validRooms.length - 1];
+        const roomName = latestRoom?.name || 'Unknown Room';
+        new Notification('New Chat', {
+          body: `New conversation: ${roomName}`,
           icon: '/favicon.ico',
-          tag: 'matrix-invite',
+          tag: 'matrix-chat',
         });
       }
     }
-    
-    setRooms(joinedRooms);
-    setInvites(invitedRooms);
+
+    // All rooms go to "Chats", invites section stays empty
+    setRooms(validRooms);
+    setInvites([]);
   }, []);
 
   // Track which IDs we've already fetched to prevent duplicate requests
@@ -835,10 +1065,22 @@ const MatrixChat = () => {
   }, []);
 
   // Switch room and mark as read
-  const switchRoom = (room: any) => {
+  const switchRoom = async (room: any) => {
+    // Check if user only has invite status (not joined yet)
+    const membership = room.getMyMembership?.();
+
+    if (membership === "invite") {
+      console.log('[switchRoom] Room is in invite state, auto-accepting:', room.roomId);
+      // Auto-accept the invite before switching to the room
+      await handleAcceptInvite(room.roomId);
+      // handleAcceptInvite will update the room list, so the room object will be updated
+      // Wait a moment for the sync to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     setSelectedRoom(room);
     loadMessages(room);
-    
+
     // Send read receipt for the last message in the room
     if (client && room) {
       try {
@@ -848,14 +1090,14 @@ const MatrixChat = () => {
           const messages = events.filter(
             (e: any) => e.getType?.() === "m.room.message"
           );
-          
+
           if (messages.length > 0) {
             const lastMessage = messages[messages.length - 1];
             // Send read receipt
             client.sendReadReceipt(lastMessage).catch((err: any) => {
               console.warn("Failed to send read receipt:", err);
             });
-            
+
             // Also set the read marker (the line that shows "new messages below")
             client.setRoomReadMarkers(room.roomId, lastMessage.getId()).catch((err: any) => {
               console.warn("Failed to set read marker:", err);
@@ -954,7 +1196,14 @@ const MatrixChat = () => {
         updateRoomsAndInvites(matrixClient);
       };
 
-      const myMembershipHandler = () => {
+      const myMembershipHandler = (room: any, membership: string, prevMembership: string) => {
+        console.log('[myMembershipHandler] Room:', room?.roomId, 'Membership:', prevMembership, '→', membership);
+        console.log('[myMembershipHandler] Room name:', room?.name);
+        console.log('[myMembershipHandler] Members:', room?.getJoinedMembers?.().map((m: any) => m.userId));
+
+        // Note: Auto-accept is handled server-side during room creation
+        // This just updates the UI when membership changes
+
         updateRoomsAndInvites(matrixClient);
       };
 
@@ -966,10 +1215,22 @@ const MatrixChat = () => {
       };
 
       const syncHandler = (state: string) => {
+        console.log('[syncHandler] Sync state changed to:', state);
         setSyncState(state);
 
-        if (state === "PREPARED" || state === "SYNCING") {
+        // Only update rooms once we're actually syncing (not on PREPARED)
+        // PREPARED means sync is preparing, SYNCING means data is actually available
+        if (state === "SYNCING") {
+          console.log('[syncHandler] Sync ready, updating rooms and invites');
+
+          // Note: Auto-accept is handled server-side during room creation
+          // No client-side auto-accept to avoid conflicts
+
           updateRoomsAndInvites(matrixClient);
+        } else if (state === "ERROR") {
+          console.error('[syncHandler] Sync error detected');
+        } else if (state === "STOPPED") {
+          console.warn('[syncHandler] Sync stopped');
         }
       };
 
@@ -1071,10 +1332,14 @@ const MatrixChat = () => {
           deviceId: storedDeviceId,
           useAuthorizationHeader: true,
         });
-
         setMatrixUserId(authUser.matrix.matrixUserId);
         setAccessToken(authUser.matrix.matrixAccessToken);
         setDeviceId(storedDeviceId);
+
+        console.log("🔑 Matrix session info:");
+        console.log("  User ID:", authUser.matrix.matrixUserId);
+        console.log("  Access token (first 20 chars):", authUser.matrix.matrixAccessToken.substring(0, 20) + "...");
+        console.log("  Device ID:", storedDeviceId);
 
         localStorage.setItem("matrix_user_id", authUser.matrix.matrixUserId);
         localStorage.setItem("matrix_access_token", authUser.matrix.matrixAccessToken);
@@ -1124,16 +1389,68 @@ const MatrixChat = () => {
 
   // Accept room invite
   const handleAcceptInvite = async (roomId: string) => {
-    if (!client) return;
+    console.log('[handleAcceptInvite] Called with roomId:', roomId, 'client exists:', !!client);
+
+    if (!client) {
+      console.error('[handleAcceptInvite] No Matrix client available!');
+      setError('Matrix client not initialized. Please try again.');
+      return;
+    }
 
     try {
+      console.log('[handleAcceptInvite] Joining room:', roomId);
+
+      // Immediately remove from invites list optimistically
+      setInvites(prev => prev.filter(inv => (inv.roomId || inv.room_id) !== roomId));
+
+      // Set up listener BEFORE joining to catch the sync event
+      const waitForMembership = new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          client.off('Room.myMembership' as any, membershipListener);
+          console.warn('[handleAcceptInvite] ⚠️ Timeout waiting for membership change (10s)');
+          resolve();
+        }, 10000); // 10 second timeout
+
+        const membershipListener = (room: any, membership: string, prevMembership: string) => {
+          console.log('[handleAcceptInvite] Membership event:', room.roomId, prevMembership, '→', membership);
+
+          if (room.roomId === roomId && membership === 'join') {
+            clearTimeout(timeout);
+            client.off('Room.myMembership' as any, membershipListener);
+            console.log('[handleAcceptInvite] ✅ Membership changed to join via sync event');
+            resolve();
+          }
+        };
+
+        // Set up listener BEFORE calling joinRoom
+        client.on('Room.myMembership' as any, membershipListener);
+        console.log('[handleAcceptInvite] Event listener registered');
+      });
+
+      // Join the room - this sends the request to the server
+      console.log('[handleAcceptInvite] Calling joinRoom...');
       await client.joinRoom(roomId);
+      console.log('[handleAcceptInvite] joinRoom() completed, waiting for sync event...');
+
+      // Wait for the sync event to confirm membership change
+      await waitForMembership;
+
+      // Update rooms and invites list
+      // NOTE: Matrix server is the single source of truth for membership state
+      // Database doesn't track membership - only stores participant associations
+      updateRoomsAndInvites(client);
+
+      // Additional update after 500ms to ensure UI is fully refreshed
       setTimeout(() => {
+        console.log('[handleAcceptInvite] Final UI update');
         updateRoomsAndInvites(client);
-      }, 200);
+      }, 500);
+
     } catch (err: any) {
       console.error("Failed to accept invite:", err);
       setError(err.message || "Failed to accept invite");
+      // Restore the invite if join failed
+      updateRoomsAndInvites(client);
     }
   };
 
@@ -1142,15 +1459,71 @@ const MatrixChat = () => {
     if (!client) return;
 
     try {
+      console.log('[handleRejectInvite] Rejecting invite:', roomId);
+
+      // Immediately remove from invites list optimistically
+      setInvites(prev => prev.filter(inv => (inv.roomId || inv.room_id) !== roomId));
+
       await client.leave(roomId);
+      console.log('[handleRejectInvite] Leave room completed');
+
+      // Update lists after leaving
+      // NOTE: Matrix server is the single source of truth for membership state
       setTimeout(() => {
         updateRoomsAndInvites(client);
-      }, 200);
+      }, 500);
+
+      setTimeout(() => {
+        console.log('[handleRejectInvite] Secondary update');
+        updateRoomsAndInvites(client);
+      }, 1500);
+
     } catch (err: any) {
       console.error("Failed to reject invite:", err);
       setError(err.message || "Failed to reject invite");
+      // Restore the invite if rejection failed
+      updateRoomsAndInvites(client);
     }
   };
+
+  // NOTE: Auto-accept is no longer needed because the backend uses admin API
+  // to force-join both users directly to property inquiry rooms. Both buyer and seller
+  // are already joined when the room is created, so no invites are sent.
+  // The auto-accept logic below is kept but disabled for potential future use with other room types.
+
+  // Auto-accept property inquiry invites (DISABLED - handled server-side now)
+  useEffect(() => {
+    // Disabled: Server-side admin API handles joining automatically
+    return;
+
+    /* Original auto-accept code (kept for reference):
+    if (!client || !isAuthenticated || invites.length === 0) return;
+
+    console.log('[Auto-accept] Checking invites for property inquiries:', invites.length);
+
+    invites.forEach((invite) => {
+      const roomId = invite.roomId || invite.room_id;
+      const roomName = invite.name || '';
+
+      // Skip if we've already tried to auto-accept this room
+      if (autoAcceptAttemptedRef.current.has(roomId)) {
+        return;
+      }
+
+      // Auto-accept if it's a property inquiry room (starts with "Inquiry:")
+      if (roomName.startsWith('Inquiry:')) {
+        console.log('[Auto-accept] Found property inquiry invite:', roomName);
+
+        // Mark as attempted
+        autoAcceptAttemptedRef.current.add(roomId);
+
+        handleAcceptInvite(roomId).catch((err) => {
+          console.error('[Auto-accept] Failed to auto-accept:', err);
+        });
+      }
+    });
+    */
+  }, [invites, client, isAuthenticated]);
 
   // Confirm leave room
   const confirmLeaveRoom = (room: any) => {

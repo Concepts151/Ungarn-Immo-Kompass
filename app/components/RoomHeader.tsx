@@ -1,6 +1,7 @@
 import React from "react";
 import { Video, Phone, LogOut } from "lucide-react";
 import "./css/roomheader.css";
+import LanguageSelector from "@/components/chat/LanguageSelector";
 
 interface RoomHeaderProps {
   room: any;
@@ -83,6 +84,9 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
       </div>
 
       <div className="room-header-actions">
+        {/* Language Selector */}
+        <LanguageSelector />
+
         {/* Voice Call Button */}
         {onVoiceCall && (
           <button

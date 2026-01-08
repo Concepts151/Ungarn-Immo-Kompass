@@ -84,8 +84,12 @@ export default function ContactSeller({
     }
 
     try {
-      // If room already exists, just open the chat
+      // If room exists in database, just open it directly
+      // The backend already auto-joined both users when the room was created
       if (hasExistingRoom && existingRoomData?.room?.matrixRoomId) {
+        console.log('[ContactSeller] Found existing room in database:', existingRoomData.room.matrixRoomId);
+        console.log('[ContactSeller] Opening existing room without API call');
+
         setSuccess(true);
         // Open the Matrix chat widget and select this room
         window.dispatchEvent(
@@ -99,15 +103,27 @@ export default function ContactSeller({
       // Create new room via backend API
       // This will automatically:
       // 1. Create Matrix accounts for buyer/seller if they don't exist (lazy registration)
-      // 2. Create the Matrix room
-      // 3. Invite both users
+      // 2. Create the Matrix room using ADMIN token
+      // 3. Auto-join both buyer and seller using admin API (no invite acceptance needed)
       // 4. Save room to database
+      // Result: Both users see room immediately in "Chats" section, ready to message
+      console.log('[ContactSeller] Creating new room for property:', propertyId, 'buyer:', authUser.user.id);
+
       const result = await createRoom({
         exposeId: propertyId,
         buyerId: authUser.user.id,
       }).unwrap();
 
-      if (result.success && result.matrixRoomId) {
+      console.log('[ContactSeller] Room creation result:', result);
+
+      // Handle both new room creation and existing room scenarios
+      // Backend may return: { success: true, matrixRoomId: "..." }
+      // OR: { message: "Room already exists", matrixRoomId: "..." }
+      if (result.matrixRoomId) {
+        console.log('[ContactSeller] Room available:', result.matrixRoomId);
+        if (result.message) {
+          console.log('[ContactSeller] Message:', result.message);
+        }
         setSuccess(true);
 
         // Open the Matrix chat widget and select this room
@@ -117,17 +133,34 @@ export default function ContactSeller({
           })
         );
       } else {
+        console.error('[ContactSeller] Room creation failed - no matrixRoomId:', result);
         setError("Failed to create chat room");
       }
     } catch (err: any) {
-      console.error("Error creating chat room:", err);
-      
+      console.error("[ContactSeller] Error creating chat room:", err);
+      console.error("[ContactSeller] Error details:", {
+        data: err.data,
+        status: err.status,
+        message: err.message,
+        originalStatus: err.originalStatus,
+      });
+
       // Handle specific error messages from backend
-      if (err.data?.error) {
+      if (err.data?.error && err.data?.details) {
+        console.error('[ContactSeller] Backend error:', err.data.error);
+        console.error('[ContactSeller] Backend details:', err.data.details);
+        setError(`${err.data.error}: ${err.data.details}`);
+      } else if (err.data?.error) {
+        console.error('[ContactSeller] Backend error:', err.data.error);
         setError(err.data.error);
       } else if (err.data?.details) {
+        console.error('[ContactSeller] Backend details:', err.data.details);
         setError(err.data.details);
+      } else if (err.message) {
+        console.error('[ContactSeller] Error message:', err.message);
+        setError(err.message);
       } else {
+        console.error('[ContactSeller] Unknown error');
         setError("An error occurred. Please try again.");
       }
     }

@@ -233,23 +233,28 @@ export const api = createApi({
           // Get Matrix credentials if user has a matrixUserId
           let matrixCredentials = null;
 
-          if (userData?.matrixUserId && userData?.matrixPassword) {
+          if (userData?.matrixUserId) {
             try {
+              console.log('[getAuthUser] Fetching Matrix credentials for:', userData.matrixUserId);
               const matrixResponse = await fetchWithBQ({
-                url: "matrix/token", // Updated endpoint path
+                url: "matrix/token",
                 method: "POST",
                 body: {
                   matrixUserId: userData.matrixUserId,
-                  matrixPassword: userData.matrixPassword,
                 },
               });
 
               if (matrixResponse.data) {
+                console.log('[getAuthUser] Matrix credentials fetched successfully');
                 matrixCredentials = matrixResponse.data;
+              } else {
+                console.warn('[getAuthUser] No Matrix credentials returned');
               }
             } catch (matrixError) {
               console.error("Failed to get Matrix credentials:", matrixError);
             }
+          } else {
+            console.log('[getAuthUser] User has no Matrix account yet');
           }
 
           return {
@@ -566,6 +571,80 @@ export const api = createApi({
         body: { matrixUserIds },
       }),
     }),
+
+    // ==================== TRANSLATION ENDPOINTS ====================
+    // Translate single message
+    translateMessage: build.mutation<
+      {
+        success: boolean;
+        data: {
+          originalText: string;
+          translatedText: string;
+          detectedLanguage: string;
+          targetLanguage: string;
+        };
+      },
+      { text: string; targetLanguage: string; sourceLanguage?: string }
+    >({
+      query: ({ text, targetLanguage, sourceLanguage }) => ({
+        url: "translation/translate",
+        method: "POST",
+        body: { text, targetLanguage, sourceLanguage },
+      }),
+    }),
+
+    // Translate to multiple languages
+    translateToMultiple: build.mutation<
+      {
+        success: boolean;
+        data: {
+          originalText: string;
+          detectedLanguage: string;
+          translations: Record<string, string>;
+        };
+      },
+      { text: string; targetLanguages: string[]; sourceLanguage?: string }
+    >({
+      query: ({ text, targetLanguages, sourceLanguage }) => ({
+        url: "translation/translate-multiple",
+        method: "POST",
+        body: { text, targetLanguages, sourceLanguage },
+      }),
+    }),
+
+    // Detect language
+    detectLanguage: build.mutation<
+      {
+        success: boolean;
+        data: {
+          text: string;
+          detectedLanguage: string;
+          supportedLanguages: string[];
+        };
+      },
+      { text: string }
+    >({
+      query: ({ text }) => ({
+        url: "translation/detect",
+        method: "POST",
+        body: { text },
+      }),
+    }),
+
+    // Get supported languages
+    getSupportedLanguages: build.query<
+      {
+        success: boolean;
+        data: {
+          languages: string[];
+          languageNames: Record<string, string>;
+        };
+      },
+      void
+    >({
+      query: () => "translation/languages",
+    }),
+
     // ==================== VILLAGE ENDPOINTS ====================
     findNearestVillage: build.query<
       NearestVillageResponse,
@@ -633,6 +712,12 @@ export const {
   useCreateDirectMessageRoomMutation,
   useGetMatrixStatsQuery,
   useLookupMatrixUsersMutation,
+
+  // Translation
+  useTranslateMessageMutation,
+  useTranslateToMultipleMutation,
+  useDetectLanguageMutation,
+  useGetSupportedLanguagesQuery,
 
   // Villages
   useFindNearestVillageQuery,
