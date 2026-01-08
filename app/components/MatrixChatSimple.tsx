@@ -29,6 +29,7 @@ const MatrixChatSimple: React.FC<MatrixChatSimpleProps> = ({ userId }) => {
 
   const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
 
   // Load messages when room is selected
   useEffect(() => {
@@ -42,13 +43,14 @@ const MatrixChatSimple: React.FC<MatrixChatSimpleProps> = ({ userId }) => {
     setSelectedRoom(room);
   };
 
-  const handleSendMessage = async (text: string) => {
-    if (!selectedRoom || !text.trim() || isSending) return;
+  const handleSendMessage = async () => {
+    if (!selectedRoom || !newMessage.trim() || isSending) return;
 
     setIsSending(true);
     try {
-      await sendMessage(selectedRoom.roomId, text);
+      await sendMessage(selectedRoom.roomId, newMessage);
       console.log("[MatrixChatSimple] Message sent successfully");
+      setNewMessage(""); // Clear input after sending
     } catch (err: any) {
       console.error("[MatrixChatSimple] Failed to send message:", err.message);
       alert(`Failed to send message: ${err.message}`);
@@ -153,9 +155,10 @@ const MatrixChatSimple: React.FC<MatrixChatSimpleProps> = ({ userId }) => {
               />
 
               <MessageInput
-                onSendMessage={handleSendMessage}
-                disabled={isSending}
-                placeholder={isSending ? "Sending..." : "Type a message..."}
+                value={newMessage}
+                sending={isSending}
+                onChange={setNewMessage}
+                onSend={handleSendMessage}
               />
             </>
           ) : (
