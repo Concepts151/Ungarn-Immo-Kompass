@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { headers } from "next/headers";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -21,11 +22,23 @@ export async function login(formData: FormData) {
   // Send login notification and enforce single-device login
   if (data?.user?.id && data?.session) {
     try {
+      // Get user's IP and user agent from request headers
+      const headersList = await headers();
+      const userAgent = headersList.get("user-agent") || undefined;
+      const forwardedFor = headersList.get("x-forwarded-for");
+      const realIp = headersList.get("x-real-ip");
+
+      // Use forwarded IP if available, otherwise use real IP
+      const ipAddress = forwardedFor || realIp || undefined;
+
       const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3005';
       const response = await fetch(`${backendUrl}/auth/login-notification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Forward the user's headers to the backend
+          ...(userAgent && { 'X-User-Agent': userAgent }),
+          ...(ipAddress && { 'X-Forwarded-For': ipAddress }),
         },
         body: JSON.stringify({
           userId: data.user.id,
