@@ -26,32 +26,53 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
   
   // Get other participant's info for display (exclude admin)
   const getOtherParticipantInfo = (): { name: string; avatarUrl: string | null } | null => {
-    if (!room) return null;
-    
+    if (!room) {
+      console.log("[RoomHeader] No room object");
+      return null;
+    }
+
     try {
       const members = room.getJoinedMembers?.() || [];
       const myUserId = room.myUserId;
+
+      console.log("[RoomHeader] Room:", room.name);
+      console.log("[RoomHeader] Total members:", members.length);
+      console.log("[RoomHeader] My user ID:", myUserId);
+      console.log("[RoomHeader] All member IDs:", members.map((m: any) => m.userId));
+
       // Filter out: current user, and admin users (those with "admin" in their Matrix ID)
       const otherMember = members.find((m: any) => {
         const memberId = m.userId || "";
         const isMe = memberId === myUserId;
         const isAdmin = memberId.toLowerCase().includes("admin");
+
+        console.log(`[RoomHeader] Checking member: ${memberId}, isMe: ${isMe}, isAdmin: ${isAdmin}`);
+
         return !isMe && !isAdmin;
       });
-      
-      if (!otherMember) return null;
-      
+
+      if (!otherMember) {
+        console.log("[RoomHeader] ⚠️ No other member found after filtering");
+        return null;
+      }
+
+      console.log("[RoomHeader] Other member found:", otherMember.userId);
+
       // Use getUserDisplayName and getUserAvatar if available
-      const name = getUserDisplayName 
+      const name = getUserDisplayName
         ? getUserDisplayName(otherMember.userId)
         : otherMember?.name || otherMember?.userId?.split(":")[0]?.replace("@", "")?.replace("immo_", "");
-      
-      const avatarUrl = getUserAvatar 
+
+      const avatarUrl = getUserAvatar
         ? getUserAvatar(otherMember.userId)
         : null;
-      
+
+      console.log("[RoomHeader] Display name:", name);
+      console.log("[RoomHeader] Avatar URL:", avatarUrl);
+
       return { name, avatarUrl };
-    } catch {
+    } catch (error) {
+      console.error("[RoomHeader] Error getting other participant:", error);
       return null;
     }
   };
