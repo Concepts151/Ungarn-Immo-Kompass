@@ -1,10 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useCmsContent } from "@/hooks/useCmsContent";
+
+// Fallback messages for when CMS is unavailable
+const fallbackMessages: Record<string, string> = {
+    OurSupport_subtitle: "Our Support",
+    OurSupport_title: "A Technical Companion for Your Move",
+    TechMeetsHuman_title: "Technology Meets Human Experience",
+    TechMeetsHuman_p1: "By combining human experience with advanced technology, we ensure your move is safe. From AI-driven document preparation to a vetted network of partners, we are here to support you every step of the way.",
+    TechMeetsHuman_p2: "We are the \"helpful team from next door,\" using modern tools to bring people together fairly.",
+    UneditedTours_title: "Unedited Video Tours",
+    UneditedTours_description: "Every property includes authentic video tours showing the house and surrounding village exactly as they are.",
+    AITranslation_title: "Real-Time AI Translation",
+    AITranslation_description: "Our platform breaks down language barriers, connecting international buyers with local sellers seamlessly.",
+    VillageContext_title: "Complete Village Context",
+    VillageContext_description: "We provide insights into the social structure, infrastructure, and community feeling of each location.",
+    ContactUs_btn: "Contact Us",
+};
 
 export default function Others4() {
-    const t = useTranslations("AboutPage");
+    const { t } = useCmsContent({ pageKey: "AboutPage", fallbackMessages });
     return (
         <>
             {/*===== OTHERS AREA STARTS =======*/}

@@ -478,22 +478,12 @@ const MatrixChat = () => {
 
   // Fetch user details for Matrix IDs not in cache
   const fetchUserDetails = useCallback(async (matrixUserIds: string[]) => {
-    console.log("[fetchUserDetails] Called with:", matrixUserIds);
-    console.log("[fetchUserDetails] Current cache keys:", Object.keys(userCache));
-    console.log("[fetchUserDetails] Already fetched IDs:", Array.from(fetchedIdsRef.current));
-
     // Filter out IDs we already have in cache or already fetched
     const unknownIds = matrixUserIds.filter(
       id => !userCache[id] && !fetchedIdsRef.current.has(id)
     );
 
-    console.log("[fetchUserDetails] Unknown IDs to fetch:", unknownIds);
-    console.log("[fetchUserDetails] Is currently fetching:", isFetchingRef.current);
-
-    if (unknownIds.length === 0 || isFetchingRef.current) {
-      console.log("[fetchUserDetails] Skipping - no unknown IDs or already fetching");
-      return;
-    }
+    if (unknownIds.length === 0 || isFetchingRef.current) return;
 
     // Mark these as being fetched
     unknownIds.forEach(id => fetchedIdsRef.current.add(id));
@@ -504,17 +494,12 @@ const MatrixChat = () => {
     try {
       const result = await lookupUsers({ matrixUserIds: unknownIds }).unwrap();
 
-      console.log("[fetchUserDetails] Lookup result:", result);
-
       if (result.users) {
         setUserCache(prev => ({
           ...prev,
           ...result.users,
         }));
         console.log("✅ User cache updated:", Object.keys(result.users));
-        console.log("✅ Full user cache now:", result.users);
-      } else {
-        console.warn("[fetchUserDetails] No users in result");
       }
     } catch (error) {
       console.error("❌ Failed to lookup users:", error);
@@ -570,20 +555,11 @@ const MatrixChat = () => {
   // Helper to get display name for a Matrix user ID
   const getUserDisplayName = useCallback((matrixUserId: string): string => {
     const cached = userCache[matrixUserId];
-
-    console.log(`[getUserDisplayName] Looking up: ${matrixUserId}`);
-    console.log(`[getUserDisplayName] Cache hit:`, !!cached);
-
     if (cached) {
-      const displayName = cached.fullName || `${cached.firstName} ${cached.lastName}`.trim();
-      console.log(`[getUserDisplayName] Returning from cache: ${displayName}`);
-      return displayName;
+      return cached.fullName || `${cached.firstName} ${cached.lastName}`.trim();
     }
-
     // Fallback: extract username from Matrix ID (@immo_xxx:domain -> immo_xxx)
-    const fallbackName = matrixUserId.split(":")[0].replace("@", "").replace("immo_", "");
-    console.log(`[getUserDisplayName] Using fallback: ${fallbackName}`);
-    return fallbackName;
+    return matrixUserId.split(":")[0].replace("@", "").replace("immo_", "");
   }, [userCache]);
 
   // Helper to get avatar URL for a Matrix user ID

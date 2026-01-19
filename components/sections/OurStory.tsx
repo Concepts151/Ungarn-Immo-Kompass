@@ -1,9 +1,25 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useCmsContent } from "@/hooks/useCmsContent";
+
+// Fallback messages for when CMS is unavailable
+const fallbackMessages: Record<string, string> = {
+    OurStory_subtitle: "Our Vision",
+    OurStory_title: "Transparency Meets Community",
+    OurStory_p1_part1: "We aren't just another real estate portal;",
+    OurStory_p1_bold: "we are your neighbors in Hungary",
+    OurStory_p1_part2: "Many of you already know us through",
+    OurStory_p1_part3: "where we've built a reputation for providing honest and reliable information to the expat community.",
+    OurStory_p2: "Ungarn-Immo was born out of a shared frustration: the traditional real estate market in Hungary often lacks the transparency that international buyers desperately need. We've seen too many \"polished\" photos that hide serious defects and too many buyers left alone with complex legal processes.",
+    OurStory_stat1_value: "1%",
+    OurStory_stat1_label: "Total Fair-Share Donation",
+    OurStory_stat2_value: "100%",
+    OurStory_stat2_label: "Unedited Video Tours",
+    OurStory_stat3_label: "AI Translation",
+};
 
 export default function OurStory() {
-    const t = useTranslations("AboutPage");
+    const { t } = useCmsContent({ pageKey: "AboutPage", fallbackMessages });
     return (
         <>
             <div className="space30" />

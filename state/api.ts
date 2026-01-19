@@ -116,6 +116,92 @@ export interface SearchVillagesParams {
   limit?: number;
 }
 
+// Full village detail response
+export interface VillageDetail {
+  id: string;
+  name: string;
+  county: string;
+  population: number;
+  description: string;
+  thumbnailUrl: string | null;
+  latitude: number;
+  longitude: number;
+  status: 'IN_REVIEW' | 'PUBLISHED' | 'REJECTED';
+  createdAt: string;
+  updatedAt: string;
+  infrastructure?: {
+    villageId: string;
+    hasGroceryStore: boolean;
+    hasSupermarket: boolean;
+    supermarketName: string | null;
+    storeDistanceKm: number | null;
+    hasWeeklyMarket: boolean;
+    hasBaker: boolean;
+    hasButcher: boolean;
+    hasHouseDoctor: boolean;
+    doctorHours: string | null;
+    doctorGerman: boolean;
+    nextSpecialistKm: number | null;
+    nextHospitalKm: number | null;
+    hasPharmacy: boolean;
+    pharmacyHours: string | null;
+    hasDentist: boolean;
+    dentistGerman: boolean;
+    hasPost: boolean;
+    hasAtm: boolean;
+    hasBank: boolean;
+    bankName: string | null;
+    hasKindergarten: boolean;
+    kindergartenInfo: string | null;
+    hasPrimarySchool: boolean;
+    primarySchoolInfo: string | null;
+    hasSecondarySchool: boolean;
+    secondarySchoolInfo: string | null;
+    restaurantsCount: number;
+    restaurantInfo: string | null;
+  };
+  internet?: {
+    villageId: string;
+    typicalSpeed: number;
+    internetTypes: string[];
+    mobileCoverage: string | null;
+  };
+  transport?: {
+    villageId: string;
+    busRoutes: string;
+    busFrequency: string;
+    trainStation: string | null;
+    trainDistanceKm: number | null;
+    motorwayDistanceKm: number | null;
+  };
+  community?: {
+    villageId: string;
+    germanCommunityCount: number;
+    associations: string;
+    festivals: string;
+    atmosphere: string;
+  };
+  leisure?: {
+    villageId: string;
+    nearLakes: boolean;
+    hikingTrails: boolean;
+    bicyclePaths: boolean;
+    spaDistanceKm: number | null;
+    culturalSites: string;
+    nearestTownDistanceKm: number | null;
+  };
+  links?: {
+    id: string;
+    villageId: string;
+    linkType: 'WEBSITE' | 'WIKIPEDIA' | 'YOUTUBE' | 'OTHER';
+    url: string;
+  }[];
+  _translation?: {
+    language: string;
+    applied: boolean;
+  };
+}
+
 // ============================================
 // API DEFINITION
 // ============================================
@@ -305,8 +391,18 @@ export const api = createApi({
     }),
 
     getProperties: build.query<
-      Property[],
-      Partial<FiltersState & { favoriteIds?: number[] }>
+      {
+        data: Property[];
+        pagination: {
+          currentPage: number;
+          itemsPerPage: number;
+          totalItems: number;
+          totalPages: number;
+          hasNextPage: boolean;
+          hasPreviousPage: boolean;
+        };
+      },
+      Partial<FiltersState & { favoriteIds?: number[]; page?: number; limit?: number }>
     >({
       query: (filters) => {
         const params = cleanParams({
@@ -321,13 +417,15 @@ export const api = createApi({
           latitude: filters.coordinates?.[1],
           longitude: filters.coordinates?.[0],
           village: (filters as any).village,
+          page: filters.page || 1,
+          limit: filters.limit || 12,
         });
 
         return { url: "properties", params };
       },
       providesTags: (result) =>
-        result
-          ? [...result.map(({ id }) => ({ type: "Properties" as const, id }))]
+        result?.data
+          ? [...result.data.map(({ id }) => ({ type: "Properties" as const, id }))]
           : [{ type: "Properties", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         await withToast(queryFulfilled, {
@@ -336,11 +434,15 @@ export const api = createApi({
       },
     }),
 
-    getProperty: build.query<Property, string>({
-      query: (id) => `properties/${id}`,
-      providesTags: (result, error, id) => [
-        { type: "Properties", id: result?.id },
+    getProperty: build.query<Property, { id: string; lang?: string }>({
+      query: ({ id, lang }) => ({
+        url: `properties/${id}`,
+        params: lang ? { lang } : undefined,
+      }),
+      providesTags: (result, error, { id, lang }) => [
+        { type: "Properties", id: `${result?.id}_${lang || 'default'}` },
       ],
+      keepUnusedDataFor: 300, // Keep cached translations for 5 minutes
     }),
 
     getSellerProperties: build.query<GetSellerPropertiesResponse, string>({
@@ -360,7 +462,7 @@ export const api = createApi({
     >({
       query: (params) => {
         const queryParams = cleanParams(params);
-        return { url: "village", params: queryParams };
+        return { url: "villages", params: queryParams };
       },
       providesTags: (result) => [{ type: "Properties", id: "VILLAGES" }],
     }),
@@ -672,6 +774,20 @@ export const api = createApi({
       ],
     }),
 
+    getVillage: build.query<
+      { success: boolean; village: VillageDetail },
+      { id: string; lang?: string }
+    >({
+      query: ({ id, lang }) => ({
+        url: `villages/${id}`,
+        params: lang ? { lang } : undefined,
+      }),
+      providesTags: (result, error, { id, lang }) => [
+        { type: "Properties", id: `VILLAGE_${id}_${lang || 'default'}` },
+      ],
+      keepUnusedDataFor: 300, // Keep cached translations for 5 minutes
+    }),
+
     getCountiesWithVillages: build.query<CountiesResponse, void>({
       query: () => "village/counties",
       providesTags: [{ type: "Properties", id: "COUNTIES" }],
@@ -723,5 +839,6 @@ export const {
   useFindNearestVillageQuery,
   useSearchVillagesQuery,
   useGetVillagesByCountyQuery,
+  useGetVillageQuery,
   useGetCountiesWithVillagesQuery,
 } = api;

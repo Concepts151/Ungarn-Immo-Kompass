@@ -95,7 +95,7 @@ export default function UserAvatarDropdown() {
         <li>
           <Link className="dropdown-item" href="/my-profile">
             <i className="fa-solid fa-user"></i>
-            {t("MyProfile")}
+            {t("MyProfile")} 
           </Link>
         </li>
         {authUser?.userRole === "SELLER" && (

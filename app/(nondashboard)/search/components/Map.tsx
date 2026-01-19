@@ -48,7 +48,11 @@ const MapContent = dynamic(() => import("./MapContent"), {
 
 const Map = () => {
   const filters = useAppSelector((state) => state.global.filters);
-  const { data: properties, isLoading, error } = useGetPropertiesQuery(filters);
+  // Get all properties for map without pagination (set high limit)
+  const { data, isLoading, error } = useGetPropertiesQuery({...filters, limit: 1000});
+
+  // Extract the properties array from the paginated response
+  const properties = data?.data || [];
 
   return (
     <div
