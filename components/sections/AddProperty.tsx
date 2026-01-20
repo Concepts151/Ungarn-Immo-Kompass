@@ -236,7 +236,7 @@ export default function AddProperty() {
       const basic = sanitize(extractedData.basic);
       
       // Map currency to form options
-      let currency = prev => prev.currency;
+      let currency: string | null = null;
       if (basic.currency === "EUR") currency = "Euro (EUR)";
       else if (basic.currency === "HUF") currency = "Hungarian forint (HUF)";
       else if (basic.currency === "USD") currency = "US Dollar (USD)";
@@ -244,7 +244,7 @@ export default function AddProperty() {
       setListingFormData((prev) => ({
         ...prev,
         ...basic,
-        currency: typeof currency === 'string' ? currency : prev.currency,
+        currency: currency || prev.currency,
         // Ensure strings for form inputs
         price: basic.price?.toString() || prev.price,
         lotSize: basic.lotSize?.toString() || prev.lotSize,
