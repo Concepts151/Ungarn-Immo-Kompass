@@ -218,6 +218,62 @@ export default function AddProperty() {
     console.log("authUser", authUser);
   }, []);
 
+  // Handle AI Extracted Data
+  const handleDataExtracted = (extractedData: any) => {
+    console.log("🎯 Merging extracted data:", extractedData);
+
+    const sanitize = (obj: any) => {
+      const sanitized = { ...obj };
+      Object.keys(sanitized).forEach(key => {
+        if (sanitized[key] === null || sanitized[key] === undefined) {
+          sanitized[key] = "";
+        }
+      });
+      return sanitized;
+    };
+
+    if (extractedData.basic) {
+      const basic = sanitize(extractedData.basic);
+      
+      // Map currency to form options
+      let currency = prev => prev.currency;
+      if (basic.currency === "EUR") currency = "Euro (EUR)";
+      else if (basic.currency === "HUF") currency = "Hungarian forint (HUF)";
+      else if (basic.currency === "USD") currency = "US Dollar (USD)";
+
+      setListingFormData((prev) => ({
+        ...prev,
+        ...basic,
+        currency: typeof currency === 'string' ? currency : prev.currency,
+        // Ensure strings for form inputs
+        price: basic.price?.toString() || prev.price,
+        lotSize: basic.lotSize?.toString() || prev.lotSize,
+        livingArea: basic.livingArea?.toString() || prev.livingArea,
+        numberOfRooms: basic.rooms?.toString() || prev.numberOfRooms,
+        numberOfBedrooms: basic.bedrooms?.toString() || prev.numberOfBedrooms,
+        numberOfBathrooms: basic.bathrooms?.toString() || prev.numberOfBathrooms,
+        year: basic.buildYear?.toString() || prev.year,
+        category: basic.propertyType ? 
+                  (basic.propertyType.charAt(0) + basic.propertyType.slice(1).toLowerCase()) : 
+                  prev.category,
+      }));
+    }
+
+    if (extractedData.details) {
+      setDetails((prev) => ({
+        ...prev,
+        ...sanitize(extractedData.details),
+      }));
+    }
+
+    if (extractedData.condition) {
+      setConditionData((prev) => ({
+        ...prev,
+        ...sanitize(extractedData.condition),
+      }));
+    }
+  };
+
   // Reinitialize nice-select when step changes
   useEffect(() => {
     // Use setTimeout to ensure DOM is updated before initializing
@@ -226,7 +282,7 @@ export default function AddProperty() {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [currentStep, initializeNiceSelect]);
+  }, [currentStep, initializeNiceSelect, listingFormData.category]); // Re-init if category changes via AI
 
   const handleNext = () => {
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
@@ -592,6 +648,7 @@ export default function AddProperty() {
                         onNext={handleNext}
                         steps={steps}
                         currentStep={currentStep}
+                        onDataExtracted={handleDataExtracted}
                       />
                     )}
                     {currentStep === 2 && (

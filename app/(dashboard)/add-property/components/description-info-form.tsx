@@ -38,12 +38,15 @@ interface ListingDescriptionFormData {
   propertyStatus: string;
 }
 
+import DocumentUploadAid from "./DocumentUploadAid";
+
 interface DescriptionInfoFormProps {
   data: ListingDescriptionFormData;
   onDataChange: (data: any) => void;
   onNext: () => void;
   steps: string[];
   currentStep: number;
+  onDataExtracted?: (data: any) => void;
 }
 
 const DescriptionInfoForm = ({
@@ -52,6 +55,7 @@ const DescriptionInfoForm = ({
   onNext,
   steps,
   currentStep,
+  onDataExtracted,
 }: DescriptionInfoFormProps) => {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -107,6 +111,9 @@ const DescriptionInfoForm = ({
   return (
     <div className="">
       <div className="space48" />
+      {onDataExtracted && (
+        <DocumentUploadAid onDataExtracted={onDataExtracted} />
+      )}
       <h4>Property Description</h4>
       <div className="space28" />
       <h5>Title Your Home*</h5>

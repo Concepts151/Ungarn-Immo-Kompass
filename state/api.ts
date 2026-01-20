@@ -434,6 +434,18 @@ export const api = createApi({
       },
     }),
 
+    extractDocument: build.mutation<any, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("document", file);
+        return {
+          url: "properties/extract-document",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
+
     getProperty: build.query<Property, { id: string; lang?: string }>({
       query: ({ id, lang }) => ({
         url: `properties/${id}`,
@@ -811,6 +823,7 @@ export const {
   useGetPropertyTypesQuery,
   useUpdatePropertyMutation,
   useGetVillagesQuery,
+  useExtractDocumentMutation,
 
   // Favorites
   useGetFavoritesQuery,
