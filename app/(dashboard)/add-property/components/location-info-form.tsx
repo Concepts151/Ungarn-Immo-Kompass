@@ -1218,7 +1218,7 @@ const LocationInfoForm = ({
               <h5>Country</h5>
               <div className="space16" />
               <select
-                className="nice-select"
+                className="form-select"
                 value={propertyData.country}
                 disabled
               >

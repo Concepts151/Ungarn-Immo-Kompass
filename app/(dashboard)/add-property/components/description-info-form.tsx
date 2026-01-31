@@ -226,10 +226,11 @@ const DescriptionInfoForm = ({
             <h5>Country</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.country}
               onChange={(e) => handleInputChange("country", e.target.value)}
             >
+              <option value="">Select Country</option>
               <option value="Hungary">Hungary</option>
               <option value="Nigeria">Nigeria</option>
             </select>
@@ -263,10 +264,11 @@ const DescriptionInfoForm = ({
             <h5>Currency</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.currency}
               onChange={(e) => handleInputChange("currency", e.target.value)}
             >
+              <option value="">Select Currency</option>
               <option value="US Dollar (USD)">US Dollar (USD)</option>
               <option value="Euro (EUR)">Euro (EUR)</option>
               <option value="Hungarian forint (HUF)">
@@ -379,7 +381,7 @@ const DescriptionInfoForm = ({
             <h5>Select Category*</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.category}
               onChange={(e) => handleInputChange("category", e.target.value)}
             >
@@ -400,7 +402,7 @@ const DescriptionInfoForm = ({
             <h5>Listed In*</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.listedIn}
               onChange={(e) => handleInputChange("listedIn", e.target.value)}
             >
@@ -418,7 +420,7 @@ const DescriptionInfoForm = ({
             <h5>Property Status*</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.propertyStatus}
               onChange={(e) =>
                 handleInputChange("propertyStatus", e.target.value)

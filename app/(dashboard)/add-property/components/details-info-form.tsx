@@ -153,7 +153,7 @@ const DetailsForm = ({
               <h5>Roof Condition</h5>
               <div className="space16" />
               <select
-                className="nice-select"
+                className="form-select"
                 name="roofCondition"
                 value={data.roofCondition}
                 onChange={(e) => handleInputChange("roofCondition", e.target.value)}
@@ -220,7 +220,7 @@ const DetailsForm = ({
               <h5>Roller Shutters</h5>
               <div className="space16" />
               <select
-                className="nice-select"
+                className="form-select"
                 name="hasRollerShutters"
                 value={data.hasRollerShutters ? 'true' : 'false'}
                 onChange={(e) => handleBooleanChange("hasRollerShutters", e.target.value)}
@@ -237,7 +237,7 @@ const DetailsForm = ({
               <h5>Heating Type*</h5>
               <div className="space16" />
               <select
-                className={`nice-select ${errors.heatingType ? 'input_error' : ''}`}
+                className={`form-select ${errors.heatingType ? 'input_error' : ''}`}
                 name="heatingType"
                 value={data.heatingType}
                 onChange={(e) => handleInputChange("heatingType", e.target.value)}
@@ -259,7 +259,7 @@ const DetailsForm = ({
               <h5>Heating Condition*</h5>
               <div className="space16" />
               <select
-                className={`nice-select ${errors.heatingCondition ? 'input_error' : ''}`}
+                className={`form-select ${errors.heatingCondition ? 'input_error' : ''}`}
                 name="heatingCondition"
                 value={data.heatingCondition}
                 onChange={(e) => handleInputChange("heatingCondition", e.target.value)}
@@ -283,7 +283,7 @@ const DetailsForm = ({
               <h5>Electric Condition*</h5>
               <div className="space16" />
               <select
-                className={`nice-select ${errors.electricCondition ? 'input_error' : ''}`}
+                className={`form-select ${errors.electricCondition ? 'input_error' : ''}`}
                 name="electricCondition"
                 value={data.electricCondition}
                 onChange={(e) => handleInputChange("electricCondition", e.target.value)}
@@ -306,7 +306,7 @@ const DetailsForm = ({
               <h5>Water Condition*</h5>
               <div className="space16" />
               <select
-                className={`nice-select ${errors.waterCondition ? 'input_error' : ''}`}
+                className={`form-select ${errors.waterCondition ? 'input_error' : ''}`}
                 name="waterCondition"
                 value={data.waterCondition}
                 onChange={(e) => handleInputChange("waterCondition", e.target.value)}
@@ -329,7 +329,7 @@ const DetailsForm = ({
               <h5>Energy Certificate</h5>
               <div className="space16" />
               <select
-                className="nice-select"
+                className="form-select"
                 name="energyCertificate"
                 value={data.energyCertificate ? 'true' : 'false'}
                 onChange={(e) => handleBooleanChange("energyCertificate", e.target.value)}
@@ -347,7 +347,7 @@ const DetailsForm = ({
               <h5>Energy Class</h5>
               <div className="space16" />
               <select
-                className="nice-select"
+                className="form-select"
                 name="energyClass"
                 value={data.energyClass}
                 onChange={(e) => handleInputChange("energyClass", e.target.value)}
@@ -385,7 +385,7 @@ const DetailsForm = ({
               <h5>Internet Type*</h5>
               <div className="space16" />
               <select
-                className={`nice-select ${errors.internetType ? 'input_error' : ''}`}
+                className={`form-select ${errors.internetType ? 'input_error' : ''}`}
                 name="internetType"
                 value={data.internetType}
                 onChange={(e) => handleInputChange("internetType", e.target.value)}

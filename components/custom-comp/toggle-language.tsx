@@ -62,15 +62,17 @@ export default function LanguageToggle({
     if (typeof window !== "undefined") {
       //   localStorage.setItem("preferred-locale", locale);
       setLocale(locale);
-      document.cookie = `UNGARN_IMMO_NEXTAPP_LOCALE=${locale};`;
+      // Set cookie with proper attributes: path for all routes, max-age for 1 year, SameSite for security
+      document.cookie = `UNGARN_IMMO_NEXTAPP_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+      console.log(`Cookie set: UNGARN_IMMO_NEXTAPP_LOCALE=${locale}`);
     }
 
-    console.log(locale);
+    console.log('Selected locale:', locale);
 
     // Optional callback
     // onLanguageChange?.(locale);
     setIsOpen(false);
-    router.refresh();
+    router.refresh(); 
   };
 
   // Close dropdown when clicking outside

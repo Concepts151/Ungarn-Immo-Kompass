@@ -74,6 +74,31 @@ export default function UserAvatarDropdown() {
       <ul
         className="dropdown-menu avatar-dropdown-menu dropdown-menu-end shadow"
         aria-labelledby="avatarDropdown">
+        {/* User Profile Header */}
+        <li className="dropdown-user-header">
+          <div className="user-header-content">
+            {avatarUrl ? (
+              <img
+                src={` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
+                alt="Avatar"
+                className="user-header-avatar"
+              />
+            ) : (
+              <div className="user-header-avatar user-header-initials">{initials}</div>
+            )}
+            <div className="user-header-info">
+              <div className="user-header-name">
+                {authUser?.user?.firstName && authUser?.user?.lastName
+                  ? `${authUser.user.firstName} ${authUser.user.lastName}`
+                  : name || "User"}
+              </div>
+              <div className="user-header-email">{authUser?.user?.email || ""}</div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <hr className="dropdown-divider" />
+        </li>
         <li>
           <Link className="dropdown-item" href="/dashboard">
             <i className="fa-solid fa-th-large"></i>

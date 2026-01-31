@@ -73,7 +73,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${roboto.className} homepage1-body body1`}>
         <NextIntlClientProvider messages={messages}>
           <StoreProvider>

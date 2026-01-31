@@ -208,11 +208,17 @@ export default function Header1({
                 {session?.session != null ? (
                   <UserAvatarDropdown />
                 ) : (
-                  <div className="btn-area1 mt-0 " style={{}}>
+                  <div className="btn-area1" style={{ margin: 0 }}>
                     <button
                       onClick={() => setOpenSignupModal(true)}
-                      className="vl-btn1 mt-0"
-                      style={{ width: "100%" }}
+                      className="vl-btn1"
+                      style={{ 
+                        padding: "16px 10px",
+                        fontSize: "16px",
+                        margin: 0,
+                        whiteSpace: "nowrap"
+                        
+                      }}
                     >
                       Get Started
                       <span className="arrow1 ms-2">

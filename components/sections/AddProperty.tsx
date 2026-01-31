@@ -163,7 +163,7 @@ const initialConditionData: ExposeCondition = {
 };
 
 export default function AddProperty() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(4);
   const supabase = createClient();
   const [listingFormData, setListingFormData] = useState<ListingFormData>(
     initialListingFormData

@@ -9,9 +9,15 @@ export default getRequestConfig(async () => {
     const cookieStore = await cookies();
     const cookieValue = cookieStore.get("UNGARN_IMMO_NEXTAPP_LOCALE")?.value;
 
+    console.log('[i18n/request] Cookie value:', cookieValue);
+    console.log('[i18n/request] All cookies:', cookieStore.getAll().map(c => `${c.name}=${c.value}`));
+
     // Strictly validate the locale - must be one of our supported locales
     if (cookieValue && locales.includes(cookieValue as Locale)) {
       locale = cookieValue as Locale;
+      console.log('[i18n/request] ✅ Locale set to:', locale);
+    } else {
+      console.log('[i18n/request] ⚠️ Using default locale:', defaultLocale);
     }
   } catch (error) {
     console.error("Error reading locale cookie:", error);
