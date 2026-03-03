@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useLocale } from "next-intl";
 import cities from "@/data/hu.json";
 import "./css/location-picker.css";
 import "./css/village-selector.css";
@@ -110,6 +111,8 @@ function VillageSelector({
   disabled = false,
   apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
 }: VillageSelectorProps) {
+  const locale = useLocale(); // Get user's current language
+  
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [villages, setVillages] = useState<Village[]>([]);
@@ -118,8 +121,23 @@ function VillageSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [autoDetectedVillage, setAutoDetectedVillage] =
     useState<Village | null>(null);
+  const [discoveredVillage, setDiscoveredVillage] = useState<any | null>(null);
+  const [showDiscovery, setShowDiscovery] = useState(false);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+  } | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Show notification banner
+  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setNotification({ message, type });
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => setNotification(null), 5000);
+  }, []);
 
   // Fetch all villages from database
   const fetchAllVillages = useCallback(async () => {
@@ -158,6 +176,24 @@ function VillageSelector({
   const autoDetectVillage = useCallback(async () => {
     if (!coordinates) {
       setAutoDetectedVillage(null);
+      setDiscoveredVillage(null);
+      setShowDiscovery(false);
+      return;
+    }
+
+    // Validate coordinates are not (0,0) or invalid
+    if (coordinates.lat === 0 && coordinates.lng === 0) {
+      setAutoDetectedVillage(null);
+      setDiscoveredVillage(null);
+      setShowDiscovery(false);
+      return;
+    }
+
+    // Validate coordinates are within reasonable bounds
+    if (Math.abs(coordinates.lat) > 90 || Math.abs(coordinates.lng) > 180) {
+      setAutoDetectedVillage(null);
+      setDiscoveredVillage(null);
+      setShowDiscovery(false);
       return;
     }
 
@@ -174,6 +210,7 @@ function VillageSelector({
       if (data.success && data.data.nearestMatch) {
         const nearest = data.data.nearestMatch;
         setAutoDetectedVillage(nearest);
+        setShowDiscovery(false);
 
         // Auto-select if no village is currently selected
         if (!value) {
@@ -181,7 +218,9 @@ function VillageSelector({
           onChange(nearest.id, nearest);
         }
       } else {
+        // No village found in database - try AI discovery
         setAutoDetectedVillage(null);
+        await discoverVillageWithAI();
       }
     } catch (err) {
       console.error("Error auto-detecting village:", err);
@@ -198,6 +237,143 @@ function VillageSelector({
   useEffect(() => {
     autoDetectVillage();
   }, [autoDetectVillage]);
+
+  // Discover village using AI when not in database
+  const discoverVillageWithAI = useCallback(async () => {
+    if (!coordinates) return;
+
+    // Validate coordinates are not (0,0) or invalid
+    if (coordinates.lat === 0 && coordinates.lng === 0) {
+      return;
+    }
+
+    // Validate coordinates are within reasonable bounds
+    if (Math.abs(coordinates.lat) > 90 || Math.abs(coordinates.lng) > 180) {
+      return;
+    }
+
+    setIsDiscovering(true);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for AI
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/village/discover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          latitude: coordinates.lat,
+          longitude: coordinates.lng,
+          radius: 10,
+          language: locale, // Send user's current language
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && !data.found) {
+        // AI discovered a new village
+        setDiscoveredVillage(data.data);
+        setShowDiscovery(true);
+      } else if (data.found) {
+        // Found in database (shouldn't happen, but handle it)
+        setShowDiscovery(false);
+      } else {
+        // No village found at all
+        setShowDiscovery(false);
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error("Error discovering village with AI:", err);
+      
+      // Show user-friendly error message
+      if (err.name === 'AbortError') {
+        showNotification('AI discovery timed out due to slow connection. Please try again or select a village manually.', 'warning');
+      } else if (err.message?.includes('Failed to fetch')) {
+        showNotification('Network error. Please check your internet connection and try again.', 'error');
+      } else {
+        showNotification('Unable to discover village. Please select manually from the list.', 'error');
+      }
+      
+      setShowDiscovery(false);
+    } finally {
+      setIsDiscovering(false);
+    }
+  }, [coordinates, apiBaseUrl]);
+
+  // Handle adding discovered village to database
+  const handleAddDiscoveredVillage = async () => {
+    if (!discoveredVillage) return;
+
+    setIsCreating(true);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/village/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: discoveredVillage.name,
+          county: discoveredVillage.county,
+          latitude: discoveredVillage.latitude,
+          longitude: discoveredVillage.longitude,
+          population: discoveredVillage.population || 0,
+          description: discoveredVillage.description || '',
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Add to villages list
+        const newVillage = data.data;
+        setVillages([...villages, newVillage]);
+
+        // Auto-select the new village
+        setSelectedVillage(newVillage);
+        onChange(newVillage.id, newVillage);
+
+        // Hide discovery UI
+        setShowDiscovery(false);
+        setDiscoveredVillage(null);
+
+        // Show success feedback
+        showNotification(`Successfully added ${newVillage.name} to the database!`, 'success');
+      } else {
+        showNotification(`Failed to add village: ${data.message}`, 'error');
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error("Error creating village:", err);
+      
+      // User-friendly error messages
+      if (err.name === 'AbortError') {
+        showNotification('Request timed out due to slow connection. Please try again.', 'warning');
+      } else if (err.message?.includes('Failed to fetch')) {
+        showNotification('Network error. Please check your internet connection and try again.', 'error');
+      } else {
+        showNotification('Failed to add village. Please try again.', 'error');
+      }
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   useEffect(() => {
     if (value && villages.length > 0) {
@@ -249,6 +425,28 @@ function VillageSelector({
 
   return (
     <div className="village-selector-wrapper">
+      {/* Notification Banner */}
+      {notification && (
+        <div className={`notification-banner notification-${notification.type}`}>
+          <div className="notification-content">
+            <i className={`fa-solid ${
+              notification.type === 'success' ? 'fa-circle-check' :
+              notification.type === 'error' ? 'fa-circle-xmark' :
+              notification.type === 'warning' ? 'fa-triangle-exclamation' :
+              'fa-circle-info'
+            }`}></i>
+            <span>{notification.message}</span>
+          </div>
+          <button 
+            className="notification-close"
+            onClick={() => setNotification(null)}
+            aria-label="Close notification"
+          >
+            <i className="fa-solid fa-times"></i>
+          </button>
+        </div>
+      )}
+
       {/* Label with Auto-detect badge */}
       <label className="village-selector-label">
         <h5>Village</h5>
@@ -307,6 +505,92 @@ function VillageSelector({
           </button>
         </div>
       )}
+
+      {/* AI Discovery Card */}
+      {showDiscovery && discoveredVillage && viewMode === "dropdown" && (
+        <div className="village-discovery-card">
+          <div className="discovery-header">
+            <i className="fa-solid fa-sparkles"></i>
+            <h5>Village Discovered by AI</h5>
+          </div>
+
+          <div className="discovery-content">
+            <div className="village-info">
+              <span className="village-name">{discoveredVillage.name}</span>
+              <span className="village-county">{discoveredVillage.county}</span>
+              {discoveredVillage.population && (
+                <span className="village-population">
+                  Pop: ~{discoveredVillage.population.toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            <div className="confidence-badge">
+              <span>
+                Confidence: {(discoveredVillage.confidence * 100).toFixed(0)}%
+              </span>
+            </div>
+
+            {discoveredVillage.description && (
+              <p className="discovery-description">
+                {discoveredVillage.description}
+              </p>
+            )}
+
+            <p className="discovery-message">
+              <strong>Is this the village this property is located in?</strong>
+            </p>
+
+            {discoveredVillage.reasoning && (
+              <p className="discovery-reasoning">
+                <i className="fa-solid fa-lightbulb"></i>
+                {discoveredVillage.reasoning}
+              </p>
+            )}
+
+            <div className="discovery-actions">
+              <button
+                className="btn-yes-village"
+                onClick={handleAddDiscoveredVillage}
+                disabled={isCreating}
+              >
+                {isCreating ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-check"></i>
+                    Yes
+                  </>
+                )}
+              </button>
+              <button
+                className="btn-no-village"
+                onClick={() => setShowDiscovery(false)}
+                disabled={isCreating}
+              >
+                <i className="fa-solid fa-times"></i>
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Discovery Loading State */}
+      {isDiscovering && viewMode === "dropdown" && (
+        <div className="village-discovery-loading">
+          <div className="loading-content">
+            <div className="spinner-ai">
+              <i className="fa-solid fa-sparkles fa-spin"></i>
+            </div>
+            <span>Discovering village with AI...</span>
+          </div>
+        </div>
+      )}
+
 
       {/* Dropdown View */}
       {viewMode === "dropdown" && (
@@ -960,18 +1244,44 @@ function LocationPickerMap({
     loadLeaflet();
   }, []);
 
-  // Reverse geocode function
+  // Reverse geocode function with timeout and error handling
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     setIsLoading(true);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'PropertyListingApp/1.0',
+          },
+        }
       );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       setPinpointAddress(data.display_name || "Unknown location");
-    } catch (error) {
+    } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error("Geocoding error:", error);
-      setPinpointAddress("Unable to get address");
+      
+      // User-friendly error messages
+      if (error.name === 'AbortError') {
+        setPinpointAddress("⚠️ Request timed out - slow connection");
+      } else if (error.message?.includes('Failed to fetch')) {
+        setPinpointAddress("⚠️ Network error - check your connection");
+      } else {
+        setPinpointAddress("⚠️ Unable to get address");
+      }
     } finally {
       setIsLoading(false);
     }

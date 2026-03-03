@@ -60,6 +60,8 @@ export async function login(formData: FormData) {
   return { data, error };
 }
 
+import { detailsSchema, signupSchema } from "../schema";
+
 export async function signup(formData: {
   email: string;
   password: string;
@@ -67,22 +69,21 @@ export async function signup(formData: {
 }) {
   const supabase = await createClient();
 
-  console.log("role:", formData.role);
+  // Validate input with Zod
+  const validation = signupSchema.safeParse(formData);
+  if (!validation.success) {
+    console.error("Validation error:", validation.error.format());
+    return { data: null, error: { message: validation.error.issues[0].message } };
+  }
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  // const form = {
-  //   email: formData.email,
-  //   password: formData.password,
-  //   option: {
-  //     data: { role: formData.role },
-  //   },
-  // };
+  const { email, password, role } = validation.data;
+
+  console.log("role:", role);
 
   const { data, error } = await supabase.auth.signUp({
-    email: formData.email,
-    password: formData.password,
-    options: { data: { role: formData.role } },
+    email,
+    password,
+    options: { data: { role } },
   });
   if (error) console.error("Error signing up:", error);
 
@@ -92,25 +93,36 @@ export async function signup(formData: {
 export async function updateDetails(formData: FormData) {
   const supabase = await createClient();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const form = {
+  const rawData = {
     firstName: formData.get("firstName") as string,
     lastName: formData.get("lastName") as string,
     phone: formData.get("phone") as string,
     userid: formData.get("userId") as string,
   };
-  // update th .eq to fetch the correct user id
+
+  // Validate input with Zod (excluding userid as it's not in the details schema)
+  const validation = detailsSchema.safeParse({
+    firstName: rawData.firstName,
+    lastName: rawData.lastName,
+    phone: rawData.phone,
+  });
+
+  if (!validation.success) {
+    console.error("Validation error:", validation.error.format());
+    return { data: null, error: { message: validation.error.issues[0].message } };
+  }
+
+  const { firstName, lastName, phone } = validation.data;
 
   const { data, error } = await supabase
     .from("user")
     .update({
-      firstName: form.firstName,
-      lastName: form.lastName,
-      phone: form.phone,
+      firstName,
+      lastName,
+      phone,
       iscomplete: true,
     })
-    .eq("id", form.userid)
+    .eq("id", rawData.userid)
     .select();
 
   if (error) console.error("Error updating user details:", error);

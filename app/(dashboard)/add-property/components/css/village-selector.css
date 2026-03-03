@@ -3,6 +3,109 @@
    For use in location-info-form.tsx
    ============================================ */
 
+/* Notification Banner */
+.notification-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 400px;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 99999;
+  animation: slideDown 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.notification-content i {
+  font-size: 20px;
+}
+
+.notification-content span {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  font-size: 18px;
+}
+
+.notification-close:hover {
+  opacity: 1;
+}
+
+/* Notification Types */
+.notification-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.notification-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.notification-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.notification-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .notification-banner {
+    min-width: auto;
+    max-width: 90%;
+    left: 5%;
+    transform: none;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
 /* Village Section */
 .village-section {
   background: #f9fafb;
@@ -663,5 +766,274 @@
 
   .legend-item {
     font-size: 12px;
+  }
+}
+
+/* ============================================
+   AI VILLAGE DISCOVERY STYLES
+   ============================================ */
+
+/* Village Discovery Card */
+.village-discovery-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.discovery-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.discovery-header i {
+  font-size: 20px;
+  animation: sparkle 2s infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.discovery-header h5 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+.discovery-content {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.discovery-content .village-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.discovery-content .village-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.discovery-content .village-county {
+  font-size: 14px;
+  opacity: 0.9;
+  color: white;
+}
+
+.discovery-content .village-population {
+  font-size: 13px;
+  opacity: 0.85;
+  color: white;
+  margin-top: 4px;
+}
+
+.confidence-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.discovery-description {
+  font-size: 14px;
+  margin: 12px 0;
+  opacity: 0.95;
+  line-height: 1.6;
+  font-style: italic;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.discovery-message {
+  font-size: 15px;
+  margin: 12px 0 16px 0;
+  opacity: 1;
+  line-height: 1.5;
+  text-align: center;
+  font-weight: 500;
+}
+
+.discovery-reasoning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  margin: 0 0 16px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.discovery-reasoning i {
+  font-size: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.discovery-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-yes-village {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-yes-village:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-yes-village:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-yes-village i {
+  font-size: 14px;
+}
+
+.btn-no-village {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.btn-no-village:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-no-village:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-no-village i {
+  font-size: 14px;
+}
+
+/* AI Discovery Loading State */
+.village-discovery-loading {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.spinner-ai {
+  font-size: 32px;
+  color: #667eea;
+}
+
+.spinner-ai i {
+  animation: spin 1.5s linear infinite;
+}
+
+.loading-content span {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767px) {
+  .village-discovery-card {
+    padding: 16px;
+  }
+
+  .discovery-content {
+    padding: 12px;
+  }
+
+  .discovery-actions {
+    flex-direction: column;
+  }
+
+  .btn-add-village,
+  .btn-dismiss {
+    width: 100%;
   }
 }

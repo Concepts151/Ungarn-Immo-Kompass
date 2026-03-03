@@ -1,5 +1,5 @@
 import React from "react";
-import { Video, Phone, LogOut } from "lucide-react";
+import { Video, Phone, LogOut, ChevronLeft } from "lucide-react";
 import "./css/roomheader.css";
 import LanguageSelector from "@/components/chat/LanguageSelector";
 
@@ -11,6 +11,7 @@ interface RoomHeaderProps {
   onVoiceCall?: () => void;
   getUserDisplayName?: (matrixUserId: string) => string;
   getUserAvatar?: (matrixUserId: string) => string | null;
+  onBack?: () => void;
 }
 
 const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -21,6 +22,7 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
   onVoiceCall,
   getUserDisplayName,
   getUserAvatar,
+  onBack,
 }) => {
   const roomName = room?.name || "Chat";
   
@@ -63,6 +65,15 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
   return (
     <div className="room-header">
       <div className="room-header-info">
+        {onBack && (
+          <button 
+            onClick={onBack} 
+            className="room-header-back-btn mobile-only"
+            aria-label="Back to conversations"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
         <div className="room-header-avatar">
           {otherParticipant?.avatarUrl ? (
             <img 

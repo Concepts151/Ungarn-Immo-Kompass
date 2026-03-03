@@ -88,9 +88,11 @@ export default function UserAvatarDropdown() {
             )}
             <div className="user-header-info">
               <div className="user-header-name">
-                {authUser?.user?.firstName && authUser?.user?.lastName
+                {name && name !== "User"
+                  ? name
+                  : authUser?.user?.firstName && authUser?.user?.lastName
                   ? `${authUser.user.firstName} ${authUser.user.lastName}`
-                  : name || "User"}
+                  : "User"}
               </div>
               <div className="user-header-email">{authUser?.user?.email || ""}</div>
             </div>

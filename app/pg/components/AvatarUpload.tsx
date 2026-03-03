@@ -63,8 +63,13 @@ export default function ProfileImageUpload() {
       .eq("id", data.id)
       .select();
 
-    // setAvatarUrl(`/${fileName}`);
-    console.log(imgPathdata![0].avatarUrl);
+    // Update global state immediately
+    setAvatarUrl(fileName); // Just filename, as Header/Dropdown constructs the full URL
+    
+    // Also update the session store directly to be safe
+    // useSessionStore.setState({ avatarUrl: fileName });
+    
+    console.log("Updated avatar to:", fileName);
 
     
 
@@ -102,9 +107,9 @@ export default function ProfileImageUpload() {
         type="button"
         className="button-skip"
         disabled={loading}
-        onClick={() => setPreview(null)}
+        onClick={() => setOpenAvatarModal(false)}
       >
-        {loading ? "Setting up..." : "skip"}
+        {loading ? "Setting up..." : "Skip"}
       </button>
     </>
   );

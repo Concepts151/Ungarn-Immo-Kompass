@@ -9,6 +9,8 @@ import { CustomSelect } from "@/components/custom-comp/micro/custom-select";
 
 type RoleOptions = "BUYER" | "SELLER" | "MODERATOR" | "ADMIN";
 
+import { detailsSchema, signupSchema } from "../schema";
+
 const setModal = (bool: boolean) => {
   useToggleModal.setState({ isSignupModalOpen: bool });
 };
@@ -82,37 +84,41 @@ const RegisterModal = () => {
     setLoading(true);
     setError(null);
     try {
-      const form = new FormData();
-      form.append("name", formData.name);
-      form.append("email", formData.email);
-      form.append("password", formData.password);
+      // Client-side validation
+      const validation = signupSchema.safeParse({
+        email: formData.email,
+        password: formData.password,
+        role: role,
+      });
 
-      // Simulate error for demo:
-      // throw new Error("Invalid credentials");
-
-      
-      const signUpData = {...formData, role: role};
-      
-      console.log("Form data:", signUpData);
-      
+      if (!validation.success) {
+        throw new Error(validation.error.issues[0].message);
+      }
 
       if (formData.password !== formData.confirm) {
-        setError("Passwords do not match");
         throw new Error("Passwords do not match");
       }
 
+      const signUpData = {
+        name: formData.name, 
+        email: formData.email, 
+        password: formData.password, 
+        role: role
+      };
+      
       const { data, error } = await signup(signUpData);
 
       console.log("Signup error:", error);
       console.log("Signup data:", data);
 
-      if (!error) {
-        setSession(data);
-        closeModal();
-        setDetailModal(true);
+      if (error) {
+        throw new Error(error.message || "Signup failed");
       }
 
-      // Replace with your server action
+      setSession(data);
+      closeModal();
+      setDetailModal(true);
+
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
@@ -125,6 +131,17 @@ const RegisterModal = () => {
     setLoading(true);
     setError(null);
     try {
+      // Client-side validation
+      const validation = detailsSchema.safeParse({
+        firstName: detailData.firstName,
+        lastName: detailData.lastName,
+        phone: detailData.phone,
+      });
+
+      if (!validation.success) {
+        throw new Error(validation.error.issues[0].message);
+      }
+
       const form = new FormData();
       form.append("firstName", detailData.firstName);
       form.append("lastName", detailData.lastName);
@@ -132,10 +149,12 @@ const RegisterModal = () => {
       form.append("userId", session!.session?.user.id || ""); // Ensure userId is included
       console.log("User ID:", session!.session?.user.id);
 
-      // Simulate error for demo:
-      // throw new Error("Invalid credentials");
-      // await signup(form); // Replace with your server action
       const { data, error } = await updateDetails(form);
+      
+      if (error) {
+         throw new Error(error.message || "Update failed");
+      }
+
       console.log("Update details error:", error);
       setName(detailData.firstName || "User");
       closeDetailModal();

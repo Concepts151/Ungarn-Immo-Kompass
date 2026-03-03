@@ -1755,7 +1755,7 @@ const MatrixChat = () => {
         </button>
       )}
       {isChatOpen && (
-        <div className="matrix_chat_window">
+        <div className={`matrix_chat_window ${selectedRoom ? 'mobile-chat-active' : ''}`}>
           <div className="matrix_chat_window_header_wrapper">
             <div className="">
               <h3 className="header_title">Messaging</h3>
@@ -1770,7 +1770,7 @@ const MatrixChat = () => {
             </div>
           </div>
           <div
-            className=""
+            className={`matrix-chat-content ${selectedRoom ? 'chat-active' : ''}`}
             style={{
               flex: 1,
               display: "flex",
@@ -1806,6 +1806,7 @@ const MatrixChat = () => {
               userCache={userCache}
               getUserDisplayName={getUserDisplayName}
               getUserAvatar={getUserAvatar}
+              onBack={() => setSelectedRoom(null)}
             />
           </div>
         </div>
