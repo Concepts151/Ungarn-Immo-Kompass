@@ -175,7 +175,7 @@ const DescriptionInfoForm = ({
             <input
               type="text"
               className={errors.postalCode && "input_error"}
-              placeholder="000000"
+              placeholder="0000"
               id="postalCode"
               value={data.postalCode}
               onChange={(e) => handleInputChange("postalCode", e.target.value)}
