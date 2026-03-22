@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import bootstrap from "bootstrap";
 import { createClient } from "@/utils/supabase/client";
@@ -22,15 +23,6 @@ import AddOverview from "@/app/(dashboard)/add-property/components/add-overview"
 import { useNiceSelect } from "@/components/elements/useNiceSelect";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
-
-const steps = [
-  "Description",
-  "Media",
-  "Details",
-  "Location",
-  "Condition & Floor Plan",
-  "Overview",
-];
 
 interface ListingFormData {
   title: string;
@@ -163,10 +155,19 @@ const initialConditionData: ExposeCondition = {
 };
 
 export default function AddProperty() {
+  const t = useTranslations("AddProperty");
+  const steps = [
+    t("step_description"),
+    t("step_media"),
+    t("step_details"),
+    t("step_location"),
+    t("step_condition"),
+    "Overview",
+  ];
   const [currentStep, setCurrentStep] = useState(1);
   const supabase = createClient();
   const [listingFormData, setListingFormData] = useState<ListingFormData>(
-    initialListingFormData
+    initialListingFormData,
   );
   const [locationData, setLocationData] =
     useState<Locationdata>(initialLocationData);
@@ -187,6 +188,7 @@ export default function AddProperty() {
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isloading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   // redux user
   const { data: authUser } = useGetAuthUserQuery();
@@ -224,7 +226,7 @@ export default function AddProperty() {
 
     const sanitize = (obj: any) => {
       const sanitized = { ...obj };
-      Object.keys(sanitized).forEach(key => {
+      Object.keys(sanitized).forEach((key) => {
         if (sanitized[key] === null || sanitized[key] === undefined) {
           sanitized[key] = "";
         }
@@ -234,7 +236,7 @@ export default function AddProperty() {
 
     if (extractedData.basic) {
       const basic = sanitize(extractedData.basic);
-      
+
       // Map currency to form options
       let currency: string | null = null;
       if (basic.currency === "EUR") currency = "Euro (EUR)";
@@ -251,11 +253,13 @@ export default function AddProperty() {
         livingArea: basic.livingArea?.toString() || prev.livingArea,
         numberOfRooms: basic.rooms?.toString() || prev.numberOfRooms,
         numberOfBedrooms: basic.bedrooms?.toString() || prev.numberOfBedrooms,
-        numberOfBathrooms: basic.bathrooms?.toString() || prev.numberOfBathrooms,
+        numberOfBathrooms:
+          basic.bathrooms?.toString() || prev.numberOfBathrooms,
         year: basic.buildYear?.toString() || prev.year,
-        category: basic.propertyType ? 
-                  (basic.propertyType.charAt(0) + basic.propertyType.slice(1).toLowerCase()) : 
-                  prev.category,
+        category: basic.propertyType
+          ? basic.propertyType.charAt(0) +
+            basic.propertyType.slice(1).toLowerCase()
+          : prev.category,
       }));
     }
 
@@ -301,14 +305,14 @@ export default function AddProperty() {
 
     setVideoUrls(videoUrls.filter((videoUrl) => videoUrl !== url));
     setVideoFiles(
-      videoFiles.filter((file) => URL.createObjectURL(file) !== url)
+      videoFiles.filter((file) => URL.createObjectURL(file) !== url),
     );
   };
   // Handler for details tab input changes
   const handleDetailsChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setDetails((prev) => ({
@@ -319,7 +323,7 @@ export default function AddProperty() {
   const handleLocationChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setLocationData((prev) => ({
@@ -355,7 +359,7 @@ export default function AddProperty() {
 
       console.log(
         "🎯 Current video files before adding:",
-        videoFiles.length + filesArray.length > 2
+        videoFiles.length + filesArray.length > 2,
       );
 
       if (videoFiles.length + filesArray.length > 2) {
@@ -425,7 +429,7 @@ export default function AddProperty() {
 
   // Handle floor plan selection
   const handleFloorPlanChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     if (event.target.files) {
       const filesArray = Array.from(event.target.files);
@@ -501,10 +505,14 @@ export default function AddProperty() {
     startTransition(async () => {
       setIsCreating(true);
       try {
+        setUploadProgress("upload_photos");
         // First, upload images to Supabase Storage
         const uploadedMediaUrls = await uploadImagesToSupabase();
+
+        setUploadProgress("upload_floor_plans");
         const uploadedFloorPlanUrls = await uploadFloorPlansToSupabase();
 
+        setUploadProgress("upload_videos");
         const uploadedVideoUrls = await uploadVideosToSupabase();
 
         console.log("🎯 Uploaded image URLs:", uploadedMediaUrls);
@@ -593,9 +601,11 @@ export default function AddProperty() {
           })),
         };
 
+        setUploadProgress("save_property");
         // Call the API to create the property
         const result = await createProperty(propertyData).unwrap();
 
+        setUploadProgress("upload_complete");
         toast.success("Property created successfully!");
         setIsCreating(false);
 
@@ -606,7 +616,8 @@ export default function AddProperty() {
       } catch (error: any) {
         console.error("Error creating property:", error);
         toast.error(
-          error?.data?.message || "Failed to create property. Please try again."
+          error?.data?.message ||
+            "Failed to create property. Please try again.",
         );
         setIsCreating(false);
       }
@@ -711,6 +722,7 @@ export default function AddProperty() {
                         upload={handleSubmitNewListing}
                         onBack={handleBack}
                         isLoading={isCreating || isPending}
+                        uploadProgress={uploadProgress}
                       />
                     )}
                   </div>

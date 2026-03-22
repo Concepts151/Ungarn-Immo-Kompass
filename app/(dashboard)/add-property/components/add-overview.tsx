@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Home } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ListingFormData {
   title: string;
@@ -64,6 +65,7 @@ interface AddOverviewProps {
   upload: () => void;
   onBack: () => void;
   isLoading?: boolean;
+  uploadProgress?: string;
 }
 
 const AddOverview: React.FC<AddOverviewProps> = ({
@@ -75,7 +77,9 @@ const AddOverview: React.FC<AddOverviewProps> = ({
   upload,
   onBack,
   isLoading = false,
+  uploadProgress = "",
 }) => {
+  const t = useTranslations("AddProperty");
   const formatCurrency = (value: string, currency: string) => {
     const num = parseInt(value) || 0;
     const currencyCode = currency.includes("EUR") ? "EUR" : "HUF";
@@ -116,11 +120,15 @@ const AddOverview: React.FC<AddOverviewProps> = ({
         <div className="overview-grid">
           <div className="overview-item">
             <span className="overview-label">Title</span>
-            <span className="overview-value">{descriptionData.title || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.title || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Category</span>
-            <span className="overview-value">{getCategoryLabel(descriptionData.category) || "—"}</span>
+            <span className="overview-value">
+              {getCategoryLabel(descriptionData.category) || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Price</span>
@@ -130,7 +138,9 @@ const AddOverview: React.FC<AddOverviewProps> = ({
           </div>
           <div className="overview-item">
             <span className="overview-label">Status</span>
-            <span className="overview-value">{descriptionData.propertyStatus || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.propertyStatus || "—"}
+            </span>
           </div>
         </div>
 
@@ -151,25 +161,34 @@ const AddOverview: React.FC<AddOverviewProps> = ({
         <div className="overview-grid">
           <div className="overview-item">
             <span className="overview-label">Address</span>
-            <span className="overview-value">{descriptionData.address || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.address || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">City</span>
-            <span className="overview-value">{descriptionData.city || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.city || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Country</span>
-            <span className="overview-value">{descriptionData.country || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.country || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Postal Code</span>
-            <span className="overview-value">{descriptionData.postalCode || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.postalCode || "—"}
+            </span>
           </div>
           {locationData.latitude !== "0" && locationData.longitude !== "0" && (
             <div className="overview-item">
               <span className="overview-label">Coordinates</span>
               <span className="overview-value mono">
-                {parseFloat(locationData.latitude).toFixed(6)}, {parseFloat(locationData.longitude).toFixed(6)}
+                {parseFloat(locationData.latitude).toFixed(6)},{" "}
+                {parseFloat(locationData.longitude).toFixed(6)}
               </span>
             </div>
           )}
@@ -185,27 +204,39 @@ const AddOverview: React.FC<AddOverviewProps> = ({
         <div className="overview-grid">
           <div className="overview-item">
             <span className="overview-label">Lot Size</span>
-            <span className="overview-value">{descriptionData.lotSize || "—"} m²</span>
+            <span className="overview-value">
+              {descriptionData.lotSize || "—"} m²
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Living Area</span>
-            <span className="overview-value">{descriptionData.livingArea || "—"} m²</span>
+            <span className="overview-value">
+              {descriptionData.livingArea || "—"} m²
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Rooms</span>
-            <span className="overview-value">{descriptionData.numberOfRooms || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.numberOfRooms || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Bedrooms</span>
-            <span className="overview-value">{descriptionData.numberOfBedrooms || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.numberOfBedrooms || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Bathrooms</span>
-            <span className="overview-value">{descriptionData.numberOfBathrooms || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.numberOfBathrooms || "—"}
+            </span>
           </div>
           <div className="overview-item">
             <span className="overview-label">Year Built</span>
-            <span className="overview-value">{descriptionData.year || "—"}</span>
+            <span className="overview-value">
+              {descriptionData.year || "—"}
+            </span>
           </div>
         </div>
       </div>
@@ -220,38 +251,53 @@ const AddOverview: React.FC<AddOverviewProps> = ({
           <div className="overview-grid">
             <div className="overview-item">
               <span className="overview-label">Material</span>
-              <span className="overview-value">{detailsData.material || "—"}</span>
+              <span className="overview-value">
+                {detailsData.material || "—"}
+              </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Heating Type</span>
-              <span className="overview-value">{detailsData.heatingType || "—"}</span>
+              <span className="overview-value">
+                {detailsData.heatingType || "—"}
+              </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Heating Condition</span>
-              <span className="overview-value">{detailsData.heatingCondition || "—"}</span>
+              <span className="overview-value">
+                {detailsData.heatingCondition || "—"}
+              </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Windows</span>
-              <span className="overview-value">{detailsData.windows || "—"}</span>
+              <span className="overview-value">
+                {detailsData.windows || "—"}
+              </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Energy Class</span>
-              <span className="overview-value">{detailsData.energyClass || "—"}</span>
+              <span className="overview-value">
+                {detailsData.energyClass || "—"}
+              </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Internet</span>
               <span className="overview-value">
                 {detailsData.internetType || "—"}
-                {detailsData.internetSpeed && ` (${detailsData.internetSpeed} Mbps)`}
+                {detailsData.internetSpeed &&
+                  ` (${detailsData.internetSpeed} Mbps)`}
               </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Roof Type</span>
-              <span className="overview-value">{detailsData.roofType || "—"}</span>
+              <span className="overview-value">
+                {detailsData.roofType || "—"}
+              </span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Insulation</span>
-              <span className="overview-value">{detailsData.insulation || "—"}</span>
+              <span className="overview-value">
+                {detailsData.insulation || "—"}
+              </span>
             </div>
           </div>
         </div>
@@ -263,7 +309,7 @@ const AddOverview: React.FC<AddOverviewProps> = ({
           <span className="section-number">5</span>
           Media
         </h5>
-        
+
         {/* Images */}
         <div className="media-subsection">
           <h6 className="media-subsection-title">
@@ -282,7 +328,9 @@ const AddOverview: React.FC<AddOverviewProps> = ({
             )}
           </div>
           {mediaData.length > 6 && (
-            <p className="text-muted mt-2">+{mediaData.length - 6} more images</p>
+            <p className="text-muted mt-2">
+              +{mediaData.length - 6} more images
+            </p>
           )}
         </div>
 
@@ -306,7 +354,9 @@ const AddOverview: React.FC<AddOverviewProps> = ({
               ))}
             </div>
             {videoData.length > 4 && (
-              <p className="text-muted mt-2">+{videoData.length - 4} more videos</p>
+              <p className="text-muted mt-2">
+                +{videoData.length - 4} more videos
+              </p>
             )}
           </div>
         )}
@@ -314,7 +364,10 @@ const AddOverview: React.FC<AddOverviewProps> = ({
         {mediaData.length === 0 && videoData.length === 0 && (
           <div className="no-media-warning">
             <i className="fa-solid fa-exclamation-triangle" />
-            <p>No media uploaded. Consider adding images or videos to attract more buyers.</p>
+            <p>
+              No media uploaded. Consider adding images or videos to attract
+              more buyers.
+            </p>
           </div>
         )}
       </div>
@@ -338,29 +391,29 @@ const AddOverview: React.FC<AddOverviewProps> = ({
             </button>
             <button
               type="button"
-              className="vl-btn1"
+              className={`premium-submit-btn ${isLoading ? "is-loading" : ""}`}
               onClick={upload}
               disabled={isLoading}
-              style={{ 
-                minWidth: "200px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px"
-              }}
             >
               {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} />
-                  Creating Property...
-                </>
+                <div className="premium-loader-content">
+                  <div className="premium-spinner"></div>
+                  <div className="premium-loader-text">
+                    <span className="primary-text">
+                      {uploadProgress
+                        ? t("overview_" + uploadProgress)
+                        : t("overview_creating")}
+                    </span>
+                    <span className="secondary-text">
+                      {t("overview_processing_wait")}
+                    </span>
+                  </div>
+                </div>
               ) : (
-                <>
-                  Create Property
-                  <span className="arrow1 ms-2">
-                    <i className="fa-solid fa-check" />
-                  </span>
-                </>
+                <span className="premium-idle-content">
+                  {t("overview_create")}
+                  <i className="fa-solid fa-paper-plane ms-2" />
+                </span>
               )}
             </button>
           </div>
@@ -575,6 +628,94 @@ const AddOverview: React.FC<AddOverviewProps> = ({
         button:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+        }
+
+        .premium-submit-btn {
+          position: relative;
+          background: linear-gradient(135deg, #31543a 0%, #4a7c59 100%);
+          color: white;
+          border: none;
+          border-radius: 70px;
+          min-width: 220px;
+          min-height: 52px;
+          padding: 0 24px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          overflow: hidden;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(49, 84, 58, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .premium-submit-btn:not(:disabled):hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(49, 84, 58, 0.3);
+          background: linear-gradient(135deg, #2a4932 0%, #3f6b4d 100%);
+        }
+
+        .premium-submit-btn:disabled {
+          cursor: not-allowed;
+        }
+
+        .premium-submit-btn.is-loading {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #1e293b;
+          box-shadow: none;
+          pointer-events: none;
+        }
+
+        .premium-idle-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .premium-loader-content {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          width: 100%;
+          justify-content: center;
+        }
+
+        .premium-spinner {
+          width: 24px;
+          height: 24px;
+          border: 3px solid #e2e8f0;
+          border-top-color: #31543a;
+          border-radius: 50%;
+          animation: premium-spin 1s linear infinite;
+        }
+
+        .premium-loader-text {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          text-align: left;
+        }
+
+        .premium-loader-text .primary-text {
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: #0f172a;
+          white-space: nowrap;
+        }
+
+        .premium-loader-text .secondary-text {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin-top: 2px;
+          white-space: nowrap;
+        }
+
+        @keyframes premium-spin {
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         @media (max-width: 768px) {

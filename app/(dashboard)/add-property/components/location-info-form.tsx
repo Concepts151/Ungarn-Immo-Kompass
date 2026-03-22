@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import cities from "@/data/hu.json";
 import "./css/location-picker.css";
 import "./css/village-selector.css";
@@ -64,7 +64,7 @@ interface LocationFormProps {
   onDataChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => void;
   onNext: () => void;
   onBack: () => void;
@@ -112,7 +112,7 @@ function VillageSelector({
   apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
 }: VillageSelectorProps) {
   const locale = useLocale(); // Get user's current language
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [villages, setVillages] = useState<Village[]>([]);
@@ -127,17 +127,23 @@ function VillageSelector({
   const [isCreating, setIsCreating] = useState(false);
   const [notification, setNotification] = useState<{
     message: string;
-    type: 'success' | 'error' | 'warning' | 'info';
+    type: "success" | "error" | "warning" | "info";
   } | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Show notification banner
-  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
-    setNotification({ message, type });
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => setNotification(null), 5000);
-  }, []);
+  const showNotification = useCallback(
+    (
+      message: string,
+      type: "success" | "error" | "warning" | "info" = "info",
+    ) => {
+      setNotification({ message, type });
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => setNotification(null), 5000);
+    },
+    [],
+  );
 
   // Fetch all villages from database
   const fetchAllVillages = useCallback(async () => {
@@ -166,7 +172,7 @@ function VillageSelector({
       const filtered = villages.filter(
         (v) =>
           v.name.toLowerCase().includes(term) ||
-          v.county.toLowerCase().includes(term)
+          v.county.toLowerCase().includes(term),
       );
       setFilteredVillages(filtered);
     }
@@ -253,7 +259,7 @@ function VillageSelector({
     }
 
     setIsDiscovering(true);
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for AI
 
@@ -292,16 +298,25 @@ function VillageSelector({
     } catch (err: any) {
       clearTimeout(timeoutId);
       console.error("Error discovering village with AI:", err);
-      
+
       // Show user-friendly error message
-      if (err.name === 'AbortError') {
-        showNotification('AI discovery timed out due to slow connection. Please try again or select a village manually.', 'warning');
-      } else if (err.message?.includes('Failed to fetch')) {
-        showNotification('Network error. Please check your internet connection and try again.', 'error');
+      if (err.name === "AbortError") {
+        showNotification(
+          "AI discovery timed out due to slow connection. Please try again or select a village manually.",
+          "warning",
+        );
+      } else if (err.message?.includes("Failed to fetch")) {
+        showNotification(
+          "Network error. Please check your internet connection and try again.",
+          "error",
+        );
       } else {
-        showNotification('Unable to discover village. Please select manually from the list.', 'error');
+        showNotification(
+          "Unable to discover village. Please select manually from the list.",
+          "error",
+        );
       }
-      
+
       setShowDiscovery(false);
     } finally {
       setIsDiscovering(false);
@@ -313,7 +328,7 @@ function VillageSelector({
     if (!discoveredVillage) return;
 
     setIsCreating(true);
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
@@ -327,7 +342,7 @@ function VillageSelector({
           latitude: discoveredVillage.latitude,
           longitude: discoveredVillage.longitude,
           population: discoveredVillage.population || 0,
-          description: discoveredVillage.description || '',
+          description: discoveredVillage.description || "",
         }),
         signal: controller.signal,
       });
@@ -354,21 +369,30 @@ function VillageSelector({
         setDiscoveredVillage(null);
 
         // Show success feedback
-        showNotification(`Successfully added ${newVillage.name} to the database!`, 'success');
+        showNotification(
+          `Successfully added ${newVillage.name} to the database!`,
+          "success",
+        );
       } else {
-        showNotification(`Failed to add village: ${data.message}`, 'error');
+        showNotification(`Failed to add village: ${data.message}`, "error");
       }
     } catch (err: any) {
       clearTimeout(timeoutId);
       console.error("Error creating village:", err);
-      
+
       // User-friendly error messages
-      if (err.name === 'AbortError') {
-        showNotification('Request timed out due to slow connection. Please try again.', 'warning');
-      } else if (err.message?.includes('Failed to fetch')) {
-        showNotification('Network error. Please check your internet connection and try again.', 'error');
+      if (err.name === "AbortError") {
+        showNotification(
+          "Request timed out due to slow connection. Please try again.",
+          "warning",
+        );
+      } else if (err.message?.includes("Failed to fetch")) {
+        showNotification(
+          "Network error. Please check your internet connection and try again.",
+          "error",
+        );
       } else {
-        showNotification('Failed to add village. Please try again.', 'error');
+        showNotification("Failed to add village. Please try again.", "error");
       }
     } finally {
       setIsCreating(false);
@@ -427,17 +451,24 @@ function VillageSelector({
     <div className="village-selector-wrapper">
       {/* Notification Banner */}
       {notification && (
-        <div className={`notification-banner notification-${notification.type}`}>
+        <div
+          className={`notification-banner notification-${notification.type}`}
+        >
           <div className="notification-content">
-            <i className={`fa-solid ${
-              notification.type === 'success' ? 'fa-circle-check' :
-              notification.type === 'error' ? 'fa-circle-xmark' :
-              notification.type === 'warning' ? 'fa-triangle-exclamation' :
-              'fa-circle-info'
-            }`}></i>
+            <i
+              className={`fa-solid ${
+                notification.type === "success"
+                  ? "fa-circle-check"
+                  : notification.type === "error"
+                    ? "fa-circle-xmark"
+                    : notification.type === "warning"
+                      ? "fa-triangle-exclamation"
+                      : "fa-circle-info"
+              }`}
+            ></i>
             <span>{notification.message}</span>
           </div>
-          <button 
+          <button
             className="notification-close"
             onClick={() => setNotification(null)}
             aria-label="Close notification"
@@ -590,7 +621,6 @@ function VillageSelector({
           </div>
         </div>
       )}
-
 
       {/* Dropdown View */}
       {viewMode === "dropdown" && (
@@ -823,8 +853,8 @@ function VillageMapView({
     const color = isSelected
       ? "#10b981"
       : isAutoDetected
-      ? "#f59e0b"
-      : "#6366f1";
+        ? "#f59e0b"
+        : "#6366f1";
     const size = isSelected || isAutoDetected ? 32 : 24;
 
     return L.divIcon({
@@ -1045,8 +1075,8 @@ function LocationSearch({
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            debouncedQuery
-          )}&limit=5&addressdetails=1`
+            debouncedQuery,
+          )}&limit=5&addressdetails=1`,
         );
         const data = await response.json();
         setResults(data);
@@ -1066,7 +1096,7 @@ function LocationSearch({
     onLocationSelect(
       parseFloat(result.lat),
       parseFloat(result.lon),
-      result.display_name
+      result.display_name,
     );
     setQuery(result.display_name.split(",")[0]);
     setShowResults(false);
@@ -1216,7 +1246,7 @@ function LocationPickerMap({
   const [pinpoint, setPinpoint] = useState<{ lat: number; lng: number } | null>(
     initialLat && initialLng
       ? { lat: parseFloat(initialLat), lng: parseFloat(initialLng) }
-      : null
+      : null,
   );
   const [pinpointAddress, setPinpointAddress] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -1247,7 +1277,7 @@ function LocationPickerMap({
   // Reverse geocode function with timeout and error handling
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     setIsLoading(true);
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
@@ -1257,9 +1287,9 @@ function LocationPickerMap({
         {
           signal: controller.signal,
           headers: {
-            'User-Agent': 'PropertyListingApp/1.0',
+            "User-Agent": "PropertyListingApp/1.0",
           },
-        }
+        },
       );
 
       clearTimeout(timeoutId);
@@ -1273,11 +1303,11 @@ function LocationPickerMap({
     } catch (error: any) {
       clearTimeout(timeoutId);
       console.error("Geocoding error:", error);
-      
+
       // User-friendly error messages
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         setPinpointAddress("⚠️ Request timed out - slow connection");
-      } else if (error.message?.includes('Failed to fetch')) {
+      } else if (error.message?.includes("Failed to fetch")) {
         setPinpointAddress("⚠️ Network error - check your connection");
       } else {
         setPinpointAddress("⚠️ Unable to get address");
@@ -1294,7 +1324,7 @@ function LocationPickerMap({
       onLocationChange(lat.toString(), lng.toString());
       reverseGeocode(lat, lng);
     },
-    [onLocationChange, reverseGeocode]
+    [onLocationChange, reverseGeocode],
   );
 
   // Handle search selection
@@ -1305,7 +1335,7 @@ function LocationPickerMap({
       onLocationChange(lat.toString(), lng.toString());
       setFlyToPosition({ lat, lng });
     },
-    [onLocationChange]
+    [onLocationChange],
   );
 
   // Clear pinpoint
@@ -1465,6 +1495,7 @@ const LocationInfoForm = ({
   steps,
   currentStep,
 }: LocationFormProps) => {
+  const t = useTranslations("AddProperty");
   // Track selected village locally for display
   const [selectedVillage, setSelectedVillage] = useState<Village | null>(null);
 
@@ -1487,7 +1518,7 @@ const LocationInfoForm = ({
   // Handle village selection
   const handleVillageChange = (
     villageId: string | null,
-    village: Village | null
+    village: Village | null,
   ) => {
     onDataChange(createFakeEvent("villageId", villageId || ""));
     setSelectedVillage(village);
@@ -1507,11 +1538,11 @@ const LocationInfoForm = ({
     <div>
       <div className="upload-main-boxarea">
         <div className="space48" />
-        <h4>Listing Property Location</h4>
+        <h4>{t("location_title")}</h4>
         <div className="space32" />
 
         <div className="input-area">
-          <h5>Address</h5>
+          <h5>{t("location_address")}</h5>
           <div className="space16" />
           <input
             type="text"
@@ -1525,7 +1556,7 @@ const LocationInfoForm = ({
           <div className="col-lg-4 col-md-6">
             <div className="space28" />
             <div className="input-area">
-              <h5>Country</h5>
+              <h5>{t("location_country")}</h5>
               <div className="space16" />
               <select
                 className="form-select"
@@ -1540,7 +1571,7 @@ const LocationInfoForm = ({
           <div className="col-lg-4 col-md-6">
             <div className="space28" />
             <div className="input-area">
-              <h5>City</h5>
+              <h5>{t("location_city")}</h5>
               <div className="space16" />
               <select
                 className="form-select"
@@ -1559,7 +1590,7 @@ const LocationInfoForm = ({
           <div className="col-lg-4 col-md-6">
             <div className="space28" />
             <div className="input-area">
-              <h5>ZIP Code*</h5>
+              <h5>{t("location_postal_code")}</h5>
               <div className="space16" />
               <input
                 type="text"
@@ -1586,7 +1617,7 @@ const LocationInfoForm = ({
           <div className="col-lg-6 col-md-6">
             <div className="space28" />
             <div className="input-area">
-              <h5>Latitude</h5>
+              <h5>{t("location_latitude")}</h5>
               <div className="space16" />
               <input
                 type="text"
@@ -1601,7 +1632,7 @@ const LocationInfoForm = ({
           <div className="col-lg-6 col-md-6">
             <div className="space28" />
             <div className="input-area">
-              <h5>Longitude</h5>
+              <h5>{t("location_longitude")}</h5>
               <div className="space16" />
               <input
                 type="text"
@@ -1618,12 +1649,9 @@ const LocationInfoForm = ({
             <div className="space48" />
             <div className="village-section">
               <div className="village-section-header">
-                <h4>Village Information</h4>
+                <h4>{t("location_village_info")}</h4>
                 <p className="village-section-desc">
-                  Link your property to a nearby village to help buyers
-                  understand the local community and infrastructure. The village
-                  will be auto-detected based on your property location, or you
-                  can select one manually.
+                  {t("location_village_desc")}
                 </p>
               </div>
               <div className="space24" />
@@ -1658,7 +1686,7 @@ const LocationInfoForm = ({
                 className="vl-btn1"
                 onClick={() => handleNext()}
               >
-                Continue to {steps[currentStep]}
+                {t("description_next", { step: steps[currentStep] })}
                 <span className="arrow1 ms-2">
                   <i className="fa-solid fa-arrow-right" />
                 </span>

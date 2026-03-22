@@ -1,23 +1,45 @@
-"use client";
-import React, { useState } from "react";
-import { Upload, Sparkles, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Upload, Sparkles, FileText, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useExtractDocumentMutation } from "@/state/api";
+import { useTranslations } from "next-intl";
 
 interface DocumentUploadAidProps {
   onDataExtracted: (data: any) => void;
 }
 
 const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
+  const t = useTranslations("AddProperty");
   const [extractDocument, { isLoading }] = useExtractDocumentMutation();
   const [dragActive, setDragActive] = useState(false);
+  const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+
+  const loadingMessages = [
+    "AI is reading your document...",
+    "Extracting property details...",
+    "Analyzing amenities & location...",
+    "Structuring data for form...",
+    "Almost done...",
+  ];
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setLoadingTextIndex((prev) => (prev + 1) % loadingMessages.length);
+      }, 2500);
+    } else {
+      setLoadingTextIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const handleFile = async (file: File) => {
     const allowedTypes = [
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
-      "text/plain"
+      "text/plain",
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -33,20 +55,20 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
       }
     } catch (err: any) {
       console.error("Extraction failed full object:", err);
-      
+
       // Handle RTK Query error structure
       let errorMessage = "Failed to extract data from document.";
-      
+
       if (err?.data?.message) {
         errorMessage = err.data.message;
       } else if (err?.message) {
         errorMessage = err.message;
       } else if (err?.error) {
         errorMessage = err.error;
-      } else if (typeof err === 'string') {
+      } else if (typeof err === "string") {
         errorMessage = err;
       }
-      
+
       toast.error(errorMessage);
     }
   };
@@ -78,8 +100,8 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
   };
 
   return (
-    <div 
-      className={`ai-smart-fill-container ${dragActive ? 'active' : ''} ${isLoading ? 'processing' : ''}`}
+    <div
+      className={`ai-smart-fill-container ${dragActive ? "active" : ""} ${isLoading ? "processing" : ""}`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
       onDragOver={handleDrag}
@@ -87,29 +109,37 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
     >
       <div className="smart-fill-header">
         <Sparkles size={18} className="sparkle-icon" />
-        <span>AI Smart-Fill (Optional)</span>
+        <span>{t("smart_fill_title")}</span>
       </div>
-      
-      <p className="smart-fill-hint">
-        Have an exposé or property document? Upload PDF, Word, or TXT to auto-fill.
-      </p>
+
+      <p className="smart-fill-hint">{t("smart_fill_hint")}</p>
 
       <label className="smart-fill-upload-btn">
         {isLoading ? (
-          <div className="loading-state">
-            <Loader2 className="animate-spin" size={18} />
-            <span>AI is reading your document...</span>
+          <div className="loading-state-enhanced">
+            <div className="scanner-container">
+              <FileText className="doc-icon" size={24} />
+              <div className="scanner-line"></div>
+            </div>
+            <div className="loading-text-container">
+              <span className="loading-message">
+                {loadingMessages[loadingTextIndex]}
+              </span>
+              <span className="loading-subtext">
+                This might take a few seconds
+              </span>
+            </div>
           </div>
         ) : (
           <div className="upload-state">
             <Upload size={18} />
-            <span>Click or Drop File to Auto-Fill</span>
+            <span>{t("smart_fill_upload_btn")}</span>
           </div>
         )}
-        <input 
-          type="file" 
-          className="hidden-file-input" 
-          accept=".pdf,.docx,.doc,.txt" 
+        <input
+          type="file"
+          className="hidden-file-input"
+          accept=".pdf,.docx,.doc,.txt"
           onChange={handleChange}
           disabled={isLoading}
         />
@@ -135,6 +165,15 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
           border-color: var(--ztc-bg-bg-2, #1b1b1b);
           background: #fff;
         }
+        .ai-smart-fill-container.processing {
+          border-color: var(--ztc-bg-bg-3, #ce283f);
+          background: rgba(206, 40, 63, 0.03);
+          animation: pulse-border-glow 2s infinite ease-in-out;
+        }
+        .ai-smart-fill-container.processing .smart-fill-header,
+        .ai-smart-fill-container.processing .smart-fill-hint {
+          opacity: 0.4;
+        }
         .smart-fill-header {
           display: flex;
           align-items: center;
@@ -146,6 +185,7 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
           font-size: 1.25rem;
           font-family: var(--ztc-family-font1, "Roboto", sans-serif);
           letter-spacing: -0.01em;
+          transition: opacity 0.4s ease;
         }
         .sparkle-icon {
           color: var(--ztc-bg-bg-3, #ce283f);
@@ -158,6 +198,7 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
           line-height: 1.6;
           max-width: 400px;
           margin-inline: auto;
+          transition: opacity 0.4s ease;
         }
         .smart-fill-upload-btn {
           cursor: pointer;
@@ -175,9 +216,10 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
           position: relative;
           z-index: 1;
           overflow: hidden;
+          min-height: 56px;
         }
         .smart-fill-upload-btn::before {
-          content: '';
+          content: "";
           position: absolute;
           top: 0;
           left: 0;
@@ -187,15 +229,58 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
           transition: width 0.4s ease;
           z-index: -1;
         }
-        .smart-fill-upload-btn:hover {
+        .smart-fill-upload-btn:not(:disabled):hover {
           color: #fff;
           transform: translateY(-2px);
           box-shadow: 0 12px 30px -8px rgba(27, 27, 27, 0.4);
         }
-        .smart-fill-upload-btn:hover::before {
+        .smart-fill-upload-btn:not(:disabled):hover::before {
           width: 100%;
         }
-        .loading-state, .upload-state {
+        .loading-state-enhanced {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .scanner-container {
+          position: relative;
+          width: 24px;
+          height: 24px;
+          overflow: hidden;
+          color: #fff;
+        }
+        .doc-icon {
+          opacity: 0.8;
+          display: block;
+        }
+        .scanner-line {
+          position: absolute;
+          top: 0;
+          left: -10%;
+          width: 120%;
+          height: 2px;
+          background: #fff;
+          box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8);
+          animation: scan 1.5s infinite linear alternate;
+        }
+        .loading-text-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          text-align: left;
+        }
+        .loading-message {
+          font-weight: 600;
+          font-size: 1rem;
+          min-width: 230px;
+        }
+        .loading-subtext {
+          font-size: 0.75rem;
+          font-weight: 400;
+          opacity: 0.8;
+          margin-top: 2px;
+        }
+        .upload-state {
           display: flex;
           align-items: center;
           gap: 12px;
@@ -203,16 +288,33 @@ const DocumentUploadAid = ({ onDataExtracted }: DocumentUploadAidProps) => {
         .hidden-file-input {
           display: none;
         }
-        .animate-spin {
-          animation: spin 1s linear infinite;
+        @keyframes scan {
+          0% {
+            top: 0%;
+          }
+          100% {
+            top: 100%;
+          }
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes pulse-border-glow {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 rgba(206, 40, 63, 0.4);
+          }
+          50% {
+            box-shadow: 0 0 0 12px rgba(206, 40, 63, 0);
+          }
         }
         @keyframes pulse-gold {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.2); opacity: 0.8; }
+          0%,
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.2);
+            opacity: 0.8;
+          }
         }
       `}</style>
     </div>
