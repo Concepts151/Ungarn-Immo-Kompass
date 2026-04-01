@@ -126,7 +126,7 @@ export interface VillageDetail {
   thumbnailUrl: string | null;
   latitude: number;
   longitude: number;
-  status: 'IN_REVIEW' | 'PUBLISHED' | 'REJECTED';
+  status: "IN_REVIEW" | "PUBLISHED" | "REJECTED";
   createdAt: string;
   updatedAt: string;
   infrastructure?: {
@@ -193,7 +193,7 @@ export interface VillageDetail {
   links?: {
     id: string;
     villageId: string;
-    linkType: 'WEBSITE' | 'WIKIPEDIA' | 'YOUTUBE' | 'OTHER';
+    linkType: "WEBSITE" | "WIKIPEDIA" | "YOUTUBE" | "OTHER";
     url: string;
   }[];
   _translation?: {
@@ -256,8 +256,8 @@ export const api = createApi({
             userRole === "BUYER"
               ? `/buyer/${user?.id}`
               : userRole === "SELLER"
-              ? `/seller/${user?.id}`
-              : "";
+                ? `/seller/${user?.id}`
+                : "";
           console.log("endpoint:", endpoint);
 
           const userNewData = { ...user, ...supabaseUserData };
@@ -272,7 +272,7 @@ export const api = createApi({
               userNewData,
               idToken,
               userRole,
-              fetchWithBQ
+              fetchWithBQ,
             );
           }
 
@@ -294,8 +294,8 @@ export const api = createApi({
                 userRole === "BUYER"
                   ? `/buyer/${user?.id}`
                   : userRole === "SELLER"
-                  ? `/seller/${user?.id}`
-                  : "";
+                    ? `/seller/${user?.id}`
+                    : "";
 
               if (updateEndpoint) {
                 const updateResponse = await fetchWithBQ({
@@ -321,7 +321,10 @@ export const api = createApi({
 
           if (userData?.matrixUserId) {
             try {
-              console.log('[getAuthUser] Fetching Matrix credentials for:', userData.matrixUserId);
+              console.log(
+                "[getAuthUser] Fetching Matrix credentials for:",
+                userData.matrixUserId,
+              );
               const matrixResponse = await fetchWithBQ({
                 url: "matrix/token",
                 method: "POST",
@@ -331,16 +334,18 @@ export const api = createApi({
               });
 
               if (matrixResponse.data) {
-                console.log('[getAuthUser] Matrix credentials fetched successfully');
+                console.log(
+                  "[getAuthUser] Matrix credentials fetched successfully",
+                );
                 matrixCredentials = matrixResponse.data;
               } else {
-                console.warn('[getAuthUser] No Matrix credentials returned');
+                console.warn("[getAuthUser] No Matrix credentials returned");
               }
             } catch (matrixError) {
               console.error("Failed to get Matrix credentials:", matrixError);
             }
           } else {
-            console.log('[getAuthUser] User has no Matrix account yet');
+            console.log("[getAuthUser] User has no Matrix account yet");
           }
 
           return {
@@ -402,7 +407,9 @@ export const api = createApi({
           hasPreviousPage: boolean;
         };
       },
-      Partial<FiltersState & { favoriteIds?: number[]; page?: number; limit?: number }>
+      Partial<
+        FiltersState & { favoriteIds?: number[]; page?: number; limit?: number }
+      >
     >({
       query: (filters) => {
         const params = cleanParams({
@@ -425,7 +432,12 @@ export const api = createApi({
       },
       providesTags: (result) =>
         result?.data
-          ? [...result.data.map(({ id }) => ({ type: "Properties" as const, id }))]
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: "Properties" as const,
+                id,
+              })),
+            ]
           : [{ type: "Properties", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         await withToast(queryFulfilled, {
@@ -452,7 +464,7 @@ export const api = createApi({
         params: lang ? { lang } : undefined,
       }),
       providesTags: (result, error, { id, lang }) => [
-        { type: "Properties", id: `${result?.id}_${lang || 'default'}` },
+        { type: "Properties", id: `${result?.id}_${lang || "default"}` },
       ],
       keepUnusedDataFor: 300, // Keep cached translations for 5 minutes
     }),
@@ -522,7 +534,7 @@ export const api = createApi({
       ],
       async onQueryStarted(
         { userId, propertyId },
-        { dispatch, queryFulfilled }
+        { dispatch, queryFulfilled },
       ) {
         const patchResult = dispatch(
           api.util.updateQueryData("getFavoriteIds", userId, (draft) => {
@@ -532,7 +544,7 @@ export const api = createApi({
             } else {
               draft.favoriteIds.push(propertyId);
             }
-          })
+          }),
         );
 
         try {
@@ -795,7 +807,7 @@ export const api = createApi({
         params: lang ? { lang } : undefined,
       }),
       providesTags: (result, error, { id, lang }) => [
-        { type: "Properties", id: `VILLAGE_${id}_${lang || 'default'}` },
+        { type: "Properties", id: `VILLAGE_${id}_${lang || "default"}` },
       ],
       keepUnusedDataFor: 300, // Keep cached translations for 5 minutes
     }),
@@ -803,6 +815,20 @@ export const api = createApi({
     getCountiesWithVillages: build.query<CountiesResponse, void>({
       query: () => "village/counties",
       providesTags: [{ type: "Properties", id: "COUNTIES" }],
+    }),
+
+    // ==================== REGION DISCOVERY ENDPOINTS ====================
+    lookupZip: build.query<
+      {
+        id: string;
+        zip: string;
+        city: string;
+        regionId: number;
+        region: any;
+      }[],
+      string
+    >({
+      query: (zip) => `regions/lookup/${zip}`,
     }),
   }),
 });
@@ -854,4 +880,8 @@ export const {
   useGetVillagesByCountyQuery,
   useGetVillageQuery,
   useGetCountiesWithVillagesQuery,
+
+  // Regions
+  useLookupZipQuery,
+  useLazyLookupZipQuery,
 } = api;

@@ -135,10 +135,11 @@ const VillageSection = ({ village }: { village: Village }) => {
               </p>
               <p>
                 <span>Village association:</span>{" "}
-                {village.community.associations}
+                {village.community?.associations || "N/A"}
               </p>
               <p>
-                <span>Village atmosphere:</span> {village.community.atmosphere}
+                <span>Village atmosphere:</span>{" "}
+                {village.community?.atmosphere || "N/A"}
               </p>
             </div>
           </div>
@@ -151,13 +152,15 @@ const VillageSection = ({ village }: { village: Village }) => {
                 <span>Village Amenities</span>
               </p>
               <p>
-                <span>Banks: </span> {village.infrastructure.bankName || "N/A"}
+                <span>Banks: </span> {village.infrastructure?.bankName || "N/A"}
               </p>
               <p>
-                <span>Super Markets: </span> {village.infrastructure.supermarketName|| "N/A"}
+                <span>Super Markets: </span>{" "}
+                {village.infrastructure?.supermarketName || "N/A"}
               </p>
               <p>
-                <span>weekly Markets: </span> {village.infrastructure.hasWeeklyMarket ? "Available" : "N/A"}
+                <span>weekly Markets: </span>{" "}
+                {village.infrastructure?.hasWeeklyMarket ? "Available" : "N/A"}
               </p>
             </div>
           </div>

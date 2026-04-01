@@ -610,9 +610,9 @@ export default function AddProperty() {
         setIsCreating(false);
 
         // Redirect to the property listing or dashboard
-        // setTimeout(() => {
-        //   router.push("/dashboard/properties");
-        // }, 1500);
+        setTimeout(() => {
+          router.push("/my-property");
+        }, 1500);
       } catch (error: any) {
         console.error("Error creating property:", error);
         toast.error(

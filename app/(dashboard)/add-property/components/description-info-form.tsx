@@ -40,6 +40,7 @@ interface ListingDescriptionFormData {
 
 import DocumentUploadAid from "./DocumentUploadAid";
 import { useTranslations } from "next-intl";
+import { useLazyLookupZipQuery } from "@/state/api";
 
 interface DescriptionInfoFormProps {
   data: ListingDescriptionFormData;
@@ -60,6 +61,59 @@ const DescriptionInfoForm = ({
 }: DescriptionInfoFormProps) => {
   const t = useTranslations("AddProperty");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [lookupZip] = useLazyLookupZipQuery();
+
+  React.useEffect(() => {
+    const fetchCity = async () => {
+      // In Hungary, ZIP codes are exactly 4 digits.
+      if (data.postalCode && data.postalCode.length === 4) {
+        try {
+          const res = await lookupZip(data.postalCode).unwrap();
+          if (res && res.length > 0) {
+            // Auto-fill city and clear any corresponding error
+            const city = res[0].city;
+            onDataChange({ ...data, city });
+            if (errors.city || errors.postalCode) {
+              setErrors((prev) => ({ ...prev, city: "", postalCode: "" }));
+            }
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              postalCode: "Invalid postal code. No region found.",
+            }));
+            onDataChange({ ...data, city: "" });
+          }
+        } catch (error: any) {
+          if (error?.status !== 404) {
+            console.warn(
+              "Failed to auto-lookup ZIP:",
+              error?.status || "Unknown error",
+            );
+          }
+          setErrors((prev) => ({
+            ...prev,
+            postalCode: "Invalid postal code. No region found.",
+          }));
+          onDataChange({ ...data, city: "" });
+        }
+      } else if (
+        data.postalCode &&
+        data.postalCode.length > 0 &&
+        data.postalCode.length !== 4
+      ) {
+        if (
+          errors.postalCode !== "Postal code must be 4 digits" &&
+          data.postalCode.length > 4
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            postalCode: "Postal code must be 4 digits",
+          }));
+        }
+      }
+    };
+    fetchCity();
+  }, [data.postalCode]);
 
   const handleInputChange = (
     field: keyof ListingDescriptionFormData,
