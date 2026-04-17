@@ -43,18 +43,6 @@ export default function DashboardArea() {
     currentPage * listingsPerPage
   );
 
-  async function getUserDetails() {
-    const { data, error } = await supabase.from("user").select("*").single();
-
-    if (error) {
-      console.error("Error fetching user details:", error);
-      return;
-    }
-    console.log("userDetails for listing", data);
-    setUser(data);
-    //if data is complete do nothing, else open signup detail modal
-  }
-
   const handleEditClick = (listing: any) => {
     // setSelectedListing(listing); // Set the selected listing data
     // setIsModalOpen(true); // Open the modal
@@ -64,29 +52,6 @@ export default function DashboardArea() {
   const handleModalClose = () => {
     setIsModalOpen(false); // Close the modal
     setSelectedListing(null); // Clear the selected listing
-  };
-
-  const handleUpdateListing = async (updatedData: any) => {
-    try {
-      const { error } = await supabase
-        .from("expose")
-        .update(updatedData)
-        .eq("id", selectedListing.id);
-
-      if (error) {
-        console.error("Error updating listing:", error);
-        toast.error("Failed to update listing.");
-        return;
-      }
-
-      toast.success("Listing updated successfully!");
-      setIsModalOpen(false); // Close the modal after successful update
-      setSelectedListing(null); // Clear the selected listing
-      // Optionally, refetch the listings to reflect the changes
-    } catch (err) {
-      console.error("Unexpected error updating listing:", err);
-      toast.error("An unexpected error occurred.");
-    }
   };
 
   return (

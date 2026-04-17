@@ -2,7 +2,7 @@
 
 import { useSessionStore } from "@/app/store"
 import Link from "next/link"
-import { logout } from "../action"
+import { signOut } from "next-auth/react"
 import "../avatarDropdown.css"
 import { useTranslations } from "next-intl"
 import { useGetAuthUserQuery } from "@/state/api"
@@ -27,11 +27,10 @@ export default function UserAvatarDropdown() {
 
   const handleLogout = async () => {
     try {
-      await logout()
+      await signOut({ callbackUrl: "/" })
       clearSession()
       localStorage.clear()
       sessionStorage.clear()
-      window.location.href = "/"
     } catch (error) {
       console.error("Logout failed:", error)
     }

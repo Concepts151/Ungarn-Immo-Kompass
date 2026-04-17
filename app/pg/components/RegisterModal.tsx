@@ -1,15 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import { signup, updateDetails } from "../action";
+import { signup } from "../action";
 import { AtSign, Eye, EyeOff, Lock, Phone, User } from "lucide-react";
 import { useSessionStore, useToggleModal } from "@/app/store";
 import { setOpenAvatarModal, switchToLoginModal } from "./gobalActions";
 import ProfileImageUpload from "./AvatarUpload";
 import { CustomSelect } from "@/components/custom-comp/micro/custom-select";
+import { signIn, useSession } from "next-auth/react";
 
 type RoleOptions = "BUYER" | "SELLER" | "MODERATOR" | "ADMIN";
 
 import { detailsSchema, signupSchema } from "../schema";
+import { useUpdateUserMutation } from "@/state/api";
 
 const setModal = (bool: boolean) => {
   useToggleModal.setState({ isSignupModalOpen: bool });
@@ -19,6 +21,7 @@ const setDetailModal = (bool: boolean) => {
 };
 
 const RegisterModal = () => {
+  const { data: sessionData } = useSession();
   const session = useSessionStore((state) => state.session);
   const [formData, setFormData] = useState({
     name: "",
@@ -49,7 +52,7 @@ const RegisterModal = () => {
     (state) => state.isUploadImgModalOpen
   );
   const userId = useSessionStore((state) => state.userid);
-  // const setAvatarModal = useSessionStore((state) => state.);
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   const closeModal = () => {
     setModal(false);
@@ -108,14 +111,21 @@ const RegisterModal = () => {
       
       const { data, error } = await signup(signUpData);
 
-      console.log("Signup error:", error);
-      console.log("Signup data:", data);
-
       if (error) {
         throw new Error(error.message || "Signup failed");
       }
 
-      setSession(data);
+      // Automatically sign in after signup
+      const loginResult = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (loginResult?.error) {
+        throw new Error(loginResult.error);
+      }
+
       closeModal();
       setDetailModal(true);
 
@@ -142,25 +152,26 @@ const RegisterModal = () => {
         throw new Error(validation.error.issues[0].message);
       }
 
-      const form = new FormData();
-      form.append("firstName", detailData.firstName);
-      form.append("lastName", detailData.lastName);
-      form.append("phone", detailData.phone);
-      form.append("userId", session!.session?.user.id || ""); // Ensure userId is included
-      console.log("User ID:", session!.session?.user.id);
+      const updateData = {
+        firstName: detailData.firstName,
+        lastName: detailData.lastName,
+        phone: detailData.phone,
+      };
 
-      const { data, error } = await updateDetails(form);
-      
-      if (error) {
-         throw new Error(error.message || "Update failed");
-      }
+      const userId = (sessionData?.user as any)?.id;
+      if (!userId) throw new Error("No user session found");
 
-      console.log("Update details error:", error);
+      await updateUser({
+        userId,
+        role: role,
+        data: updateData
+      }).unwrap();
+
       setName(detailData.firstName || "User");
       closeDetailModal();
       setOpenAvatarModal(true);
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Update failed");
     } finally {
       setLoading(false);
     }

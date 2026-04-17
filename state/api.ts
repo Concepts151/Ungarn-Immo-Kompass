@@ -4,10 +4,8 @@
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, GetVillagesResponse, Property } from "@/types/api";
-import { createClient } from "@/utils/supabase/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-const supabase = createClient();
+import { getSession } from "next-auth/react";
 
 // ============================================
 // TYPES
@@ -210,10 +208,8 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
     prepareHeaders: async (headers) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const idToken = session?.access_token;
+      const session = await getSession();
+      const idToken = (session as any)?.accessToken;
 
       if (idToken) {
         headers.set("Authorization", `Bearer ${idToken}`);
@@ -228,129 +224,54 @@ export const api = createApi({
     // ==================== AUTH ENDPOINTS ====================
     getAuthUser: build.query<any, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
-        console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
-
         try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
+          const session = await getSession();
+          if (!session || !session.user) {
+            return { data: null };
+          }
 
-          const { data: supabaseUserData } = await supabase
-            .from("user")
-            .select("*")
-            .eq("id", session?.user.id)
-            .single();
-          console.log("supabaseUserData:", supabaseUserData);
+          const user = session.user as any;
+          const userRole = user.role;
+          const userId = user.id;
 
-          const idToken = session?.access_token;
-          const user = session?.user;
-          const userRole = user?.user_metadata.role;
-          console.log("session:", session);
-
-          // Get avatar URL from Supabase auth user metadata
-          const supabaseAvatarUrl = supabaseUserData?.avatarUrl || null;
-
-          console.log("supabaseAvatarUrl:", supabaseAvatarUrl);
+          console.log("Current NextAuth Session User:", user);
 
           const endpoint =
             userRole === "BUYER"
-              ? `/buyer/${user?.id}`
+              ? `/buyer/${userId}`
               : userRole === "SELLER"
-                ? `/seller/${user?.id}`
+                ? `/seller/${userId}`
                 : "";
-          console.log("endpoint:", endpoint);
-
-          const userNewData = { ...user, ...supabaseUserData };
-          console.log("userNewData:", userNewData);
-
-          let userDetailsResponse = await fetchWithBQ(endpoint);
-          console.log("user:", user);
-          console.log("userDetailsResponse:", userDetailsResponse);
-
-          if (!userDetailsResponse.data) {
-            userDetailsResponse = await createNewUserInDatabase(
-              userNewData,
-              idToken,
-              userRole,
-              fetchWithBQ,
-            );
+          
+          if (!endpoint) {
+             return { data: { user } };
           }
 
-          // Sync avatar URL if it changed
-          const userData = userDetailsResponse.data as {
-            id?: string;
-            avatarUrl?: string | null;
-            matrixUserId?: string;
-            matrixPassword?: string;
-          };
-
-          if (supabaseAvatarUrl && userData?.avatarUrl !== supabaseAvatarUrl) {
-            console.log("🔄 Syncing avatar URL from Supabase to database...");
-            console.log("Current DB avatar:", userData?.avatarUrl);
-            console.log("Supabase avatar:", supabaseAvatarUrl);
-
-            try {
-              const updateEndpoint =
-                userRole === "BUYER"
-                  ? `/buyer/${user?.id}`
-                  : userRole === "SELLER"
-                    ? `/seller/${user?.id}`
-                    : "";
-
-              if (updateEndpoint) {
-                const updateResponse = await fetchWithBQ({
-                  url: updateEndpoint,
-                  method: "PUT",
-                  body: { avatarUrl: supabaseAvatarUrl },
-                });
-
-                if (updateResponse.data) {
-                  console.log("✅ Avatar URL synced successfully");
-                  // Update the local data with the new avatar
-                  (userDetailsResponse.data as any).avatarUrl =
-                    supabaseAvatarUrl;
-                }
-              }
-            } catch (avatarError) {
-              console.error("Failed to sync avatar URL:", avatarError);
-            }
-          }
-
+          const userDetailsResponse = await fetchWithBQ(endpoint);
+          
           // Get Matrix credentials if user has a matrixUserId
           let matrixCredentials = null;
+          const userData = userDetailsResponse.data as any;
 
           if (userData?.matrixUserId) {
             try {
-              console.log(
-                "[getAuthUser] Fetching Matrix credentials for:",
-                userData.matrixUserId,
-              );
               const matrixResponse = await fetchWithBQ({
                 url: "matrix/token",
                 method: "POST",
-                body: {
-                  matrixUserId: userData.matrixUserId,
-                },
+                body: { matrixUserId: userData.matrixUserId },
               });
 
               if (matrixResponse.data) {
-                console.log(
-                  "[getAuthUser] Matrix credentials fetched successfully",
-                );
                 matrixCredentials = matrixResponse.data;
-              } else {
-                console.warn("[getAuthUser] No Matrix credentials returned");
               }
             } catch (matrixError) {
               console.error("Failed to get Matrix credentials:", matrixError);
             }
-          } else {
-            console.log("[getAuthUser] User has no Matrix account yet");
           }
 
           return {
             data: {
-              user: userDetailsResponse.data,
+              user: userData || user,
               userRole: userRole,
               matrix: matrixCredentials,
             },
@@ -444,6 +365,17 @@ export const api = createApi({
           error: "Failed to fetch properties.",
         });
       },
+    }),
+
+    updateUser: build.mutation<any, { userId: string; data: any; role: string }>({
+      query: ({ userId, data, role }) => ({
+        url: role === "SELLER" ? `seller/${userId}` : `buyer/${userId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "Properties", id: userId }, // Invalidate properties related to user
+      ],
     }),
 
     extractDocument: build.mutation<any, File>({
@@ -840,6 +772,7 @@ export const api = createApi({
 export const {
   // Auth
   useGetAuthUserQuery,
+  useUpdateUserMutation,
 
   // Properties
   useGetPropertiesQuery,

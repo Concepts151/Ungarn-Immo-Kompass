@@ -7,17 +7,17 @@ import { login } from "../action";
 import { useSessionStore, useToggleModal } from "@/app/store";
 import { useMatrixStore } from "@/app/store/matrixStore";
 import { switchToSignupModal } from "./gobalActions";
-import { createClient } from "@/utils/supabase/client";
 import { useGetAuthUserQuery } from "@/state/api";
 import { initializeMatrixClient } from "@/lib/matrixUtils";
 import toast, { Toaster } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 const setCloseModal = () => {
   useToggleModal.setState({ isLoginModalOpen: false });
 };
 
 export default function LoginModal() {
-  const supabase = createClient();
+   const { data: session, status } = useSession();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,20 +39,6 @@ export default function LoginModal() {
     setShowPassword(false);
   };
 
-  async function getUserDetails() {
-    const { data, error } = await supabase.from("user").select("*").single();
-
-    if (error) {
-      console.error("Error fetching user details:", error);
-      return;
-    }
-    setName(data.firstName || "User");
-    setAvatarUrl(
-      data.avatarUrl
-        ? `${data.avatarUrl}`
-        : null
-    );
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,26 +49,25 @@ export default function LoginModal() {
     setLoading(true);
     setError(null);
     try {
-      const form = new FormData();
-      form.append("email", formData.email);
-      form.append("password", formData.password);
+      const { signIn } = await import("next-auth/react");
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
 
-      const { data, error } = await login(form);
-      setSession(data);
-      setName(data.session?.user?.user_metadata?.name || "User");
-
-      if (error) {
-        setError(error.message || "Login failed");
+      if (result?.error) {
+        setError(result.error);
         return;
       }
       
       toast.success('Login Successful!');
-      await getUserDetails();
       
-      // Refetch auth user to get Matrix credentials
+      // Setting session and fetching Matrix is preserved in global state as before,
+      // handled by useSessionStore in another location or directly fetched.
+      // We trigger refetch of Matrix credentials through RTK Query since the token is now set.
       const { data: authUserData } = await refetch();
       
-      // Initialize Matrix if credentials are available (only on client side)
       if (typeof window !== 'undefined' && authUserData?.matrix) {
         try {
           setMatrixCredentials({
@@ -91,7 +76,6 @@ export default function LoginModal() {
             matrixHomeserver: authUserData.matrix.matrixHomeserver,
           });
           
-          // Wait a bit for Matrix SDK to load, then initialize
           setTimeout(() => {
             try {
               initializeMatrixClient(
@@ -104,10 +88,8 @@ export default function LoginModal() {
               console.error("Failed to initialize Matrix client:", matrixInitError);
             }
           }, 500);
-          
         } catch (matrixError) {
           console.error("Failed to set Matrix credentials:", matrixError);
-          // Don't block login if Matrix fails
         }
       }
       
@@ -122,7 +104,7 @@ export default function LoginModal() {
   return (
     <div className="login-modal-container">
       <Toaster position="top-center" reverseOrder={false} />
-      {isLoginModalOpen && (
+      {session == null && (
         <div className="login-modal-overlay" onClick={closeModal}>
           <div
             className="login-modal-content"

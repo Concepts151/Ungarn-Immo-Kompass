@@ -1,3 +1,4 @@
+
 import {
   setOpenLoginModal,
   setOpenSignupDetailModal,
@@ -14,71 +15,43 @@ import toast, { Toaster } from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useGetAuthUserQuery } from "@/state/api";
 
+import { useSession } from "next-auth/react";
+
 export default function Header1({
   scroll,
   isMobileMenu,
   handleMobileMenu,
 }: any) {
   const pathname = usePathname();
-  const supabase = createClient();
-  const session = useSessionStore((state) => state.session);
-  const setSession = useSessionStore((state) => state.setSession);
+  const { data: session, status } = useSession();
   const setName = useSessionStore((state) => state.setName);
   const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
   const avatarUrl = useSessionStore((state) => state.avatarUrl);
   const t = useTranslations("navbar");
-  const { data: authUser } = useGetAuthUserQuery();
+  const { data: authUser } = useGetAuthUserQuery(undefined, { skip: status !== "authenticated" });
 
   console.log("authUser in header:", authUser);
+  console.log("session in header:", session);
+  console.log("status in header:", status);
 
-  async function getUserDetails() {
-    const { data, error } = await supabase.from("user").select("*").single();
-
-    if (error) {
-      console.error("Error fetching user details:", error);
-      return;
-    }
-    console.log("userDetails", data);
-    //if data is complete do nothing, else open signup detail modal
-    if (!data.iscomplete) {
-      setOpenSignupDetailModal(true);
-    } else {
-      setName(data.firstName || "User");
-      setAvatarUrl(data.avatarUrl ? `${data.avatarUrl}` : null);
-      console.log("User details fetched successfully:", data);
-    }
-  }
-
-  // Fetch session on mount
+  // Sync user details when authUser changes
   useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then((response) => {
-      if (!mounted) return;
-      setSession(response.data);
-      setName(response.data.session?.user?.user_metadata?.name || "User");
-
-      if (response.data.session) {
-        console.log("Session data:", response.data.session);
-        console.log("avatarUrl", avatarUrl);
-
-        // Fetch user details if session exists
-        getUserDetails();
+    if (authUser && authUser.user) {
+      const data = authUser.user;
+      console.log("userDetails", data);
+      if (!data.firstName || !data.lastName) {
+        setOpenSignupDetailModal(true);
       } else {
-        console.log("No active session found.");
+        setName(data.firstName || "User");
+        setAvatarUrl(data.avatarUrl ? `${data.avatarUrl}` : null);
+        console.log("User details fetched successfully:", data);
       }
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Open login modal if no session
-  useEffect(() => {
-    if (session?.session === null) {
-      setOpenLoginModal(true);
     }
-  }, [session]);
+  }, [authUser]);
+
+  // Open login modal if unauthenticated naturally (e.g. they should be blocked on certain actions)
+  // We'll leave this to individual protected routes or explicit sign in actions
+  // instead of a global unauthorized redirect because visitors can browse generic pages
 
   return (
     <header className="homepage1-body">
@@ -205,7 +178,7 @@ export default function Header1({
             >
               <LanguageToggle />
               <div className="vl-hero-btn d-none d-lg-block text-end">
-                {session?.session != null ? (
+                {session != null ? (
                   <UserAvatarDropdown />
                 ) : (
                   <div className="btn-area1" style={{ margin: 0 }}>

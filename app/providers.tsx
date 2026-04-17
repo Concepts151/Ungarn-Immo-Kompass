@@ -1,14 +1,7 @@
 "use client";
-import StoreProvider from "@/state/redux";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
 
-// component not in use
+import { SessionProvider } from "next-auth/react";
 
-const Providers = ({ children }: { children: React.ReactNode }) => {
-    <StoreProvider>
-        {children}
-    </StoreProvider>
-};
-
-export default Providers
+export default function Providers({ children }: { children: React.ReactNode }) {
+  return <SessionProvider>{children}</SessionProvider>;
+}

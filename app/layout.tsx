@@ -17,6 +17,8 @@ import { Roboto } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import StoreProvider from "@/state/redux";
+import Providers from "./providers";
+
 
 const roboto = Roboto({
   weight: ["300", "400", "500", "700", "900"],
@@ -63,7 +65,7 @@ export default async function RootLayout({
 }>) {
   let messages = {};
   let locale = "en";
-
+ 
   try {
     messages = await getMessages();
     locale = await getLocale();
@@ -75,12 +77,15 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${roboto.className} homepage1-body body1`}>
+        <Providers> 
+
         <NextIntlClientProvider messages={messages}>
           <StoreProvider>
             {/* Matrix Provider wraps everything */}
             {children}
           </StoreProvider>
         </NextIntlClientProvider>
+        </Providers>
       </body>
     </html>
   );

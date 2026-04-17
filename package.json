@@ -28,6 +28,7 @@
         "mapbox-gl": "^3.14.0",
         "matrix-js-sdk": "^39.0.0",
         "next": "15.1.11",
+        "next-auth": "^4.24.14",
         "next-intl": "^4.3.5",
         "nodemailer": "^7.0.5",
         "postcss": "^8.5.6",
