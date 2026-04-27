@@ -5,7 +5,7 @@ import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, GetVillagesResponse, Property } from "@/types/api";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 
 // ============================================
 // TYPES
@@ -204,20 +204,38 @@ export interface VillageDetail {
 // API DEFINITION
 // ============================================
 
+const baseQuery = fetchBaseQuery({
+  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
+  prepareHeaders: async (headers) => {
+    const session = await getSession();
+    const idToken = (session as any)?.accessToken;
+
+    if (idToken) {
+      headers.set("Authorization", `Bearer ${idToken}`);
+    }
+
+    return headers;
+  },
+});
+
+const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+  let result = await baseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 401) {
+    console.warn("Unauthorized access detected (401). Signing out...");
+    // Clear any local state if needed
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+    await signOut({ callbackUrl: "/" });
+  }
+
+  return result;
+};
+
 export const api = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
-    prepareHeaders: async (headers) => {
-      const session = await getSession();
-      const idToken = (session as any)?.accessToken;
-
-      if (idToken) {
-        headers.set("Authorization", `Bearer ${idToken}`);
-      }
-
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   reducerPath: "api",
   tagTypes: ["Properties", "Favorites", "MatrixRooms"],
   endpoints: (build) => ({
@@ -249,6 +267,11 @@ export const api = createApi({
 
           const userDetailsResponse = await fetchWithBQ(endpoint);
           
+          if (userDetailsResponse.error && userDetailsResponse.error.status === 401) {
+             // baseQueryWithReauth will handle the logout, but we should return the error here too
+             return { error: userDetailsResponse.error };
+          }
+
           // Get Matrix credentials if user has a matrixUserId
           let matrixCredentials = null;
           const userData = userDetailsResponse.data as any;
@@ -345,6 +368,7 @@ export const api = createApi({
           latitude: filters.coordinates?.[1],
           longitude: filters.coordinates?.[0],
           village: (filters as any).village,
+          status: (filters as any).status || "PUBLISHED", // Default to PUBLISHED for web listing
           page: filters.page || 1,
           limit: filters.limit || 12,
         });

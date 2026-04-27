@@ -59,22 +59,19 @@ const ListingList = () => {
                     {/* Pagination */}
                     {pagination && pagination.totalPages > 1 && (
                         <div className="pagination-area" style={{ marginTop: '20px' }}>
-                            <ul style={{ marginTop: '0' }}>
+                            <ul className="d-flex align-items-center justify-content-center">
                                 {/* Previous Button */}
-                                <li>
+                                <li style={{ pointerEvents: !pagination.hasPreviousPage ? 'none' : 'auto' }}>
                                     <a
-                                        onClick={() => pagination.hasPreviousPage && handlePageChange(currentPage - 1)}
-                                        style={{
-                                            cursor: pagination.hasPreviousPage ? 'pointer' : 'not-allowed',
-                                            opacity: pagination.hasPreviousPage ? 1 : 0.5,
-                                            padding: '8px 12px',
-                                            fontSize: '13px',
-                                            minWidth: '36px',
-                                            height: '36px'
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            pagination.hasPreviousPage && handlePageChange(currentPage - 1);
                                         }}
+                                        style={{ opacity: !pagination.hasPreviousPage ? 0.5 : 1 }}
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width={5} height={10} viewBox="0 0 7 12">
-                                            <path d="M0 6L6 0L7.4 1.4L2.8 6L7.4 10.6L6 12L0 6Z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M10.8284 12.0007L15.7782 16.9504L14.364 18.3646L8 12.0007L14.364 5.63672L15.7782 7.05093L10.8284 12.0007Z" />
                                         </svg>
                                     </a>
                                 </li>
@@ -88,24 +85,29 @@ const ListingList = () => {
                                         (page >= currentPage - 1 && page <= currentPage + 1);
 
                                     if (!showPage && page === 2 && currentPage > 3) {
-                                        return <li key={page}><a style={{ cursor: 'default', padding: '8px 12px', fontSize: '13px', minWidth: '36px', height: '36px' }}>...</a></li>;
+                                        return (
+                                            <li key={page}>
+                                                <a href="#" onClick={(e) => e.preventDefault()} style={{ cursor: 'default' }}>...</a>
+                                            </li>
+                                        );
                                     }
                                     if (!showPage && page === pagination.totalPages - 1 && currentPage < pagination.totalPages - 2) {
-                                        return <li key={page}><a style={{ cursor: 'default', padding: '8px 12px', fontSize: '13px', minWidth: '36px', height: '36px' }}>...</a></li>;
+                                        return (
+                                            <li key={page}>
+                                                <a href="#" onClick={(e) => e.preventDefault()} style={{ cursor: 'default' }}>...</a>
+                                            </li>
+                                        );
                                     }
                                     if (!showPage) return null;
 
                                     return (
                                         <li key={page}>
                                             <a
+                                                href="#"
                                                 className={page === currentPage ? 'active' : ''}
-                                                onClick={() => handlePageChange(page)}
-                                                style={{
-                                                    cursor: 'pointer',
-                                                    padding: '8px 12px',
-                                                    fontSize: '13px',
-                                                    minWidth: '36px',
-                                                    height: '36px'
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handlePageChange(page);
                                                 }}
                                             >
                                                 {page}
@@ -115,20 +117,17 @@ const ListingList = () => {
                                 })}
 
                                 {/* Next Button */}
-                                <li>
+                                <li style={{ pointerEvents: !pagination.hasNextPage ? 'none' : 'auto' }}>
                                     <a
-                                        onClick={() => pagination.hasNextPage && handlePageChange(currentPage + 1)}
-                                        style={{
-                                            cursor: pagination.hasNextPage ? 'pointer' : 'not-allowed',
-                                            opacity: pagination.hasNextPage ? 1 : 0.5,
-                                            padding: '8px 12px',
-                                            fontSize: '13px',
-                                            minWidth: '36px',
-                                            height: '36px'
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            pagination.hasNextPage && handlePageChange(currentPage + 1);
                                         }}
+                                        style={{ opacity: !pagination.hasNextPage ? 0.5 : 1 }}
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width={5} height={10} viewBox="0 0 7 12">
-                                            <path d="M7 6L1 0L-0.4 1.4L4.2 6L-0.4 10.6L1 12L7 6Z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M13.1717 12.0007L8.22192 7.05093L9.63614 5.63672L16.0001 12.0007L9.63614 18.3646L8.22192 16.9504L13.1717 12.0007Z" />
                                         </svg>
                                     </a>
                                 </li>

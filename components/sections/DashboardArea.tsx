@@ -133,13 +133,35 @@ export default function DashboardArea() {
                             <div className="col-lg-6">
                               <div className="content-tab-area">
                                 <div className="property-price">
-                                  <div className="text">
-                                    <Link href="#" className="title">
-                                      {item.basic?.title || "n/a"}
-                                    </Link>
-                                    <div className="space16" />
-                                    <p>{item.basic?.address || "n/a"}</p>
-                                  </div>
+                                    <div className="text">
+                                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                                        <Link href="#" className="title">
+                                          {item.basic?.title || "n/a"}
+                                        </Link>
+                                        {item.status === "IN_REVIEW" && (
+                                          <span className="status-badge pending">
+                                            In Review
+                                          </span>
+                                        )}
+                                        {item.status === "PUBLISHED" && (
+                                          <span className="status-badge approved">
+                                            Published
+                                          </span>
+                                        )}
+                                        {item.status === "SOLD" && (
+                                          <span className="status-badge sold">
+                                            Sold
+                                          </span>
+                                        )}
+                                        {item.status === "REJECTED" && (
+                                          <span className="status-badge" style={{ backgroundColor: "#ce283f", borderRadius: "8px" }}>
+                                            Rejected
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="space16" />
+                                      <p>{item.basic?.address || "n/a"}</p>
+                                    </div>
                                   <Link href="#" className="price">
                                     ${item.basic?.price || "N/a"}
                                   </Link>

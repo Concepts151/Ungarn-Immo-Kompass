@@ -2,31 +2,46 @@
 
 import { useSessionStore } from "@/app/store"
 import Link from "next/link"
-import { signOut } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
+import { useMatrixStore } from "@/app/store/matrixStore"
 import "../avatarDropdown.css"
 import { useTranslations } from "next-intl"
 import { useGetAuthUserQuery } from "@/state/api"
 
 export default function UserAvatarDropdown() {
-  const user = useSessionStore((s) => s.session?.user)
+  const { data: session } = useSession()
+  const { data: authUser, isError } = useGetAuthUserQuery()
   const name = useSessionStore((state) => state.name)
   const avatarUrl = useSessionStore((state) => state.avatarUrl)
   const clearSession = useSessionStore((state) => state.clearSession)
+  const setMatrixCredentials = useMatrixStore((state) => state.setMatrixCredentials)
   const t = useTranslations("navbar")
-  const { data: authUser } = useGetAuthUserQuery()
 
+
+  // Get name and email from either authUser (fresh from DB) or session (from cookie)
+  const displayName = name && name !== "User" 
+    ? name 
+    : (authUser?.user?.firstName ? `${authUser.user.firstName} ${authUser.user.lastName || ""}` : session?.user?.name || "User")
+  
+  const displayEmail = authUser?.user?.email || session?.user?.email || ""
 
   // Get initials from the name
-  const initials = name
-    ? name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? "U"
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2) || "U"
 
   const handleLogout = async () => {
     try {
+      // Clear Matrix store
+      setMatrixCredentials({
+        matrixUserId: "",
+        matrixAccessToken: "",
+        matrixHomeserver: ""
+      })
+      
       await signOut({ callbackUrl: "/" })
       clearSession()
       localStorage.clear()
@@ -87,13 +102,9 @@ export default function UserAvatarDropdown() {
             )}
             <div className="user-header-info">
               <div className="user-header-name">
-                {name && name !== "User"
-                  ? name
-                  : authUser?.user?.firstName && authUser?.user?.lastName
-                  ? `${authUser.user.firstName} ${authUser.user.lastName}`
-                  : "User"}
+                {displayName}
               </div>
-              <div className="user-header-email">{authUser?.user?.email || ""}</div>
+              <div className="user-header-email">{displayEmail}</div>
             </div>
           </div>
         </li>
