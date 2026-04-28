@@ -5,7 +5,7 @@
 
 .Forms_navigaion_button_wrapper {
   display: flex !important;
-  justify-content: start !important;
+  justify-content: flex-start !important;
   gap: 12px;
 }
 

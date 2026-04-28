@@ -19,8 +19,7 @@ export default function LoginPage() {
     if (data.session) {
       console.log("session availabel:", data.session);
     }
-    const user = data.session?.user?.identities;
-    const userName = user?.[0].identity_data?.name;
+    const userName = data.session?.user?.name;
     const userProfile = await readUser();
 
     console.log(userProfile!, userName);

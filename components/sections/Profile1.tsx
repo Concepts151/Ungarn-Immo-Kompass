@@ -88,8 +88,8 @@ export default function Profile1() {
                       src={
                         avatarUrl && avatarUrl.startsWith("blob:")
                           ? avatarUrl
-                          : user?.avatarUrl
-                          ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${user.avatarUrl}`
+                          : authData?.user?.avatarUrl
+                          ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${authData.user.avatarUrl}`
                           : "/assets/img/all-images/others/others-img1.png"
                       }
                       className="img-fluid"
@@ -181,9 +181,9 @@ export default function Profile1() {
                         <button
                           onClick={handleUpdateProfile}
                           className="vl-btn1"
-                          disabled={loading}
+                          disabled={isUpdating}
                         >
-                          {loading ? "Updating..." : "Update Profile"}
+                          {isUpdating ? "Updating..." : "Update Profile"}
                           <span className="arrow1 ms-2">
                             <i className="fa-solid fa-arrow-right" />
                           </span>
