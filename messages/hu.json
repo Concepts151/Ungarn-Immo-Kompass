@@ -341,5 +341,19 @@
     "overview_save_property": "Ingatlan adatainak mentése...",
     "overview_upload_complete": "Feltöltés kész!",
     "overview_processing_wait": "Kérjük várjon, feldolgozás alatt..."
+  },
+  "ProfilePage": {
+    "title": "Profilom",
+    "upload_photo": "Profilkép feltöltése",
+    "upload_new_poster": "Új kép feltöltése",
+    "first_name": "Keresztnév*",
+    "last_name": "Vezetéknév*",
+    "email": "E-mail*",
+    "phone": "Telefonszám*",
+    "update_profile": "Profil frissítése",
+    "updating": "Frissítés...",
+    "success": "Profil sikeresen frissítve!",
+    "error": "Hiba a profil frissítésekor.",
+    "png_jpeg": "PNG/JPEG (100/100)"
   }
 }

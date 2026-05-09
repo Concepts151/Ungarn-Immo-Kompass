@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./css/matrixchat.css";
 import { MessageCircle, X } from "lucide-react";
-import { useGetAuthUserQuery, useRegisterMatrixAccountMutation, useLookupMatrixUsersMutation } from "@/state/api";
+import { useGetAuthUserQuery, useRegisterMatrixAccountMutation, useLookupMatrixUsersMutation, useNotifyNewMatrixMessageMutation } from "@/state/api";
 import { useToggleModal } from "@/app/store";
 import { getMatrixSdk } from "@/utils/matrixSdk";
 import { MatrixClientType } from "@/types/index.t";
@@ -71,6 +71,9 @@ const MatrixChat = () => {
 
   // RTK Query mutation for looking up users by Matrix ID
   const [lookupUsers] = useLookupMatrixUsersMutation();
+
+  // RTK Query mutation to notify backend of new messages (for emails)
+  const [notifyNewMessage] = useNotifyNewMatrixMessageMutation();
 
   // User cache - maps Matrix IDs to user details
   const [userCache, setUserCache] = useState<Record<string, MatrixUserInfo>>({});
@@ -1117,6 +1120,18 @@ const MatrixChat = () => {
     setSending(true);
     try {
       await client.sendTextMessage(selectedRoom.roomId, newMessage.trim());
+      
+      // Notify backend for email notifications to offline users
+      try {
+        notifyNewMessage({
+          roomId: selectedRoom.roomId,
+          message: newMessage.trim(),
+          senderMatrixId: matrixUserId
+        });
+      } catch (notifyErr) {
+        console.error("Failed to trigger message notification:", notifyErr);
+      }
+
       setNewMessage("");
 
       setTimeout(() => {

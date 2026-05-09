@@ -9,7 +9,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text", placeholder: "hiouh@kjjd.com" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing credentials");
         }
@@ -31,6 +31,27 @@ export const authOptions: NextAuthOptions = {
           const data = await res.json();
 
           if (res.ok && data.user && data.token) {
+            // Trigger login notification for single-device login enforcement
+            try {
+              const userAgent = req?.headers?.['user-agent'] || 'Unknown';
+              const forwardedFor = req?.headers?.['x-forwarded-for'] || req?.headers?.['x-real-ip'] || 'Unknown';
+              
+              await fetch(`${backendUrl}/auth/login-notification`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-user-agent": userAgent,
+                  "x-forwarded-for": forwardedFor
+                },
+                body: JSON.stringify({
+                  userId: data.user.id,
+                  sessionId: data.token,
+                })
+              });
+            } catch (err) {
+              console.error("Failed to send login notification:", err);
+            }
+
             // Include token to return it in JWT
             return {
               id: data.user.id,

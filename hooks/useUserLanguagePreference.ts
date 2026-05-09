@@ -12,7 +12,7 @@ export interface UseUserLanguagePreferenceReturn {
 
 /**
  * Hook for managing user's chat language preferences
- * Stores preferences in localStorage for persistence
+ * Stores preferences in localStorage and syncs across components using CustomEvents
  */
 export function useUserLanguagePreference(): UseUserLanguagePreferenceReturn {
     // Initialize from localStorage or browser language
@@ -38,25 +38,43 @@ export function useUserLanguagePreference(): UseUserLanguagePreferenceReturn {
         return stored !== 'false'; // Default to true
     });
 
-    // Save to localStorage whenever preferences change
+    // Listen for changes from other components
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(LANGUAGE_PREFERENCE_KEY, preferredLanguage);
-        }
-    }, [preferredLanguage]);
+        if (typeof window === 'undefined') return;
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(`${LANGUAGE_PREFERENCE_KEY}_auto`, String(autoTranslateEnabled));
-        }
-    }, [autoTranslateEnabled]);
+        const handleLangChange = (e: Event) => {
+            const customEvent = e as CustomEvent<SupportedLanguage>;
+            setPreferredLanguageState(customEvent.detail);
+        };
+
+        const handleAutoChange = (e: Event) => {
+            const customEvent = e as CustomEvent<boolean>;
+            setAutoTranslateEnabledState(customEvent.detail);
+        };
+
+        window.addEventListener('chat_lang_changed', handleLangChange);
+        window.addEventListener('chat_auto_changed', handleAutoChange);
+
+        return () => {
+            window.removeEventListener('chat_lang_changed', handleLangChange);
+            window.removeEventListener('chat_auto_changed', handleAutoChange);
+        };
+    }, []);
 
     const setPreferredLanguage = useCallback((lang: SupportedLanguage) => {
         setPreferredLanguageState(lang);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(LANGUAGE_PREFERENCE_KEY, lang);
+            window.dispatchEvent(new CustomEvent('chat_lang_changed', { detail: lang }));
+        }
     }, []);
 
     const setAutoTranslateEnabled = useCallback((enabled: boolean) => {
         setAutoTranslateEnabledState(enabled);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(`${LANGUAGE_PREFERENCE_KEY}_auto`, String(enabled));
+            window.dispatchEvent(new CustomEvent('chat_auto_changed', { detail: enabled }));
+        }
     }, []);
 
     return {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMessageTranslation, type SupportedLanguage } from "@/hooks/useMessageTranslation";
 import { useUserLanguagePreference } from "@/hooks/useUserLanguagePreference";
 import { Languages, Loader2 } from "lucide-react";
@@ -24,6 +24,8 @@ export default function TranslatableMessage({
     const [showOriginal, setShowOriginal] = useState(true);
     const [translatedText, setTranslatedText] = useState<string | null>(null);
     const [detectedLanguage, setDetectedLanguage] = useState<SupportedLanguage | null>(senderLanguage || null);
+    
+    const prevLanguageRef = useRef(preferredLanguage);
 
     const handleTranslate = async (shouldAutoShow: boolean = false) => {
         if (!text) return;
@@ -55,18 +57,22 @@ export default function TranslatableMessage({
         }
     };
 
-    // Auto-translate on mount if enabled and language differs
+    // Auto-translate on mount if enabled
     // Also re-translate when preferredLanguage changes
     useEffect(() => {
+        const languageChanged = prevLanguageRef.current !== preferredLanguage;
+        prevLanguageRef.current = preferredLanguage;
+
         console.log('[TranslatableMessage] Auto-translate check:', {
             autoTranslateEnabled,
+            languageChanged,
             text: text?.substring(0, 30),
             preferredLanguage,
             senderLanguage,
             messageId
         });
 
-        if (autoTranslateEnabled && text && preferredLanguage) {
+        if ((autoTranslateEnabled || languageChanged) && text && preferredLanguage) {
             // Don't translate if it's already in preferred language
             if (senderLanguage && senderLanguage === preferredLanguage) {
                 console.log('[TranslatableMessage] Skipping - already in preferred language');

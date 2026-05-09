@@ -654,6 +654,18 @@ export const api = createApi({
       }),
     }),
 
+    // Notify backend of a new message (for email notifications)
+    notifyNewMatrixMessage: build.mutation<
+      { success: boolean; notificationsSent: number },
+      { roomId: string; message: string; senderMatrixId: string }
+    >({
+      query: ({ roomId, message, senderMatrixId }) => ({
+        url: "matrix/notify",
+        method: "POST",
+        body: { roomId, message, senderMatrixId },
+      }),
+    }),
+
     // ==================== TRANSLATION ENDPOINTS ====================
     // Translate single message
     translateMessage: build.mutation<
@@ -824,6 +836,7 @@ export const {
   useCreateDirectMessageRoomMutation,
   useGetMatrixStatsQuery,
   useLookupMatrixUsersMutation,
+  useNotifyNewMatrixMessageMutation,
 
   // Translation
   useTranslateMessageMutation,

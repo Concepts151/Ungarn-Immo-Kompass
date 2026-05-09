@@ -4,8 +4,10 @@ import { useGetAuthUserQuery, useUpdateUserMutation } from "@/state/api";
 import { useSession } from "next-auth/react";
 import { useSessionStore } from "@/app/store";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export default function Profile1() {
+  const t = useTranslations("ProfilePage");
   const { data: session } = useSession();
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
@@ -58,9 +60,9 @@ export default function Profile1() {
       }).unwrap();
 
       setName(firstName);
-      toast.success("Profile updated successfully!");
+      toast.success(t("success"));
     } catch (err) {
-      toast.error("Failed to update profile.");
+      toast.error(t("error"));
     }
   };
 
@@ -74,13 +76,13 @@ export default function Profile1() {
           <div className="row">
             <div className="col-lg-4">
               <div className="heading1">
-                <h2>My Profile</h2>
+                <h2>{t("title")}</h2>
                 <div className="space32" />
               </div>
             </div>
             <div className="col-lg-12">
               <div className="account-details-boxarea">
-                <h4>Upload Profile Photo</h4>
+                <h4>{t("upload_photo")}</h4>
                 <div className="space24" />
                 <div className="box-agent-avt">
                   <div className="img-poster">
@@ -103,7 +105,7 @@ export default function Profile1() {
                     />
                   </div>
                   <div className="content uploadfile">
-                    <p>Upload a new poster</p>
+                    <p>{t("upload_new_poster")}</p>
                     <div className="space16" />
                     <div className="box-ip">
                       <input
@@ -114,49 +116,49 @@ export default function Profile1() {
                       />
                     </div>
                     <div className="space16" />
-                    <span>PNG/JPEG (100/100)</span>
+                    <span>{t("png_jpeg")}</span>
                   </div>
                 </div>
                 <div className="space30" />
                 <div className="personal-info-area">
-                  <h3>Upload Profile Photo</h3>
+                  <h3>{t("upload_photo")}</h3>
                   <div className="row">
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>First Name*</h5>
+                        <h5>{t("first_name")}</h5>
                         <div className="space16" />
                         <input
                           type="text"
                           value={firstName!}
                           onChange={(e) => setFirstName(e.target.value)}
-                          placeholder="First Name*"
+                          placeholder={t("first_name")}
                         />
                       </div>
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>Last Name*</h5>
+                        <h5>{t("last_name")}</h5>
                         <div className="space16" />
                         <input
                           type="text"
                           value={lastName!}
                           onChange={(e) => setLastName(e.target.value)}
-                          placeholder="Last Name*"
+                          placeholder={t("last_name")}
                         />
                       </div>
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>Email*</h5>
+                        <h5>{t("email")}</h5>
                         <div className="space16" />
                         <input
                           type="email"
                           value={email!}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Email*"
+                          placeholder={t("email")}
                           disabled
                         />
                       </div>
@@ -164,13 +166,13 @@ export default function Profile1() {
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>Phone*</h5>
+                        <h5>{t("phone")}</h5>
                         <div className="space16" />
                         <input
                           type="number"
                           value={phone!}
                           onChange={(e) => setPhone(e.target.value)}
-                          placeholder="Phone*"
+                          placeholder={t("phone")}
                         />
                       </div>
                     </div>
@@ -183,7 +185,7 @@ export default function Profile1() {
                           className="vl-btn1"
                           disabled={isUpdating}
                         >
-                          {isUpdating ? "Updating..." : "Update Profile"}
+                          {isUpdating ? t("updating") : t("update_profile")}
                           <span className="arrow1 ms-2">
                             <i className="fa-solid fa-arrow-right" />
                           </span>

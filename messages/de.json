@@ -341,5 +341,19 @@
     "overview_save_property": "Immobiliendetails werden gespeichert...",
     "overview_upload_complete": "Upload abgeschlossen!",
     "overview_processing_wait": "Einen Moment bitte, wird verarbeitet..."
+  },
+  "ProfilePage": {
+    "title": "Mein Profil",
+    "upload_photo": "Profilfoto hochladen",
+    "upload_new_poster": "Neues Bild hochladen",
+    "first_name": "Vorname*",
+    "last_name": "Nachname*",
+    "email": "E-Mail*",
+    "phone": "Telefon*",
+    "update_profile": "Profil aktualisieren",
+    "updating": "Wird aktualisiert...",
+    "success": "Profil erfolgreich aktualisiert!",
+    "error": "Fehler beim Aktualisieren des Profils.",
+    "png_jpeg": "PNG/JPEG (100/100)"
   }
 }

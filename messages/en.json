@@ -341,5 +341,19 @@
     "overview_save_property": "Saving Property Details...",
     "overview_upload_complete": "Upload Complete!",
     "overview_processing_wait": "Please wait, processing..."
+  },
+  "ProfilePage": {
+    "title": "My Profile",
+    "upload_photo": "Upload Profile Photo",
+    "upload_new_poster": "Upload a new poster",
+    "first_name": "First Name*",
+    "last_name": "Last Name*",
+    "email": "Email*",
+    "phone": "Phone*",
+    "update_profile": "Update Profile",
+    "updating": "Updating...",
+    "success": "Profile updated successfully!",
+    "error": "Failed to update profile.",
+    "png_jpeg": "PNG/JPEG (100/100)"
   }
 }
