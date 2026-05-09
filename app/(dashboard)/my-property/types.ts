@@ -28,6 +28,7 @@ export enum ExposeStatus {
   IN_REVIEW = "IN_REVIEW",
   PUBLISHED = "PUBLISHED",
   REJECTED = "REJECTED",
+  SOLD = "SOLD",
 }
 
 // Village type

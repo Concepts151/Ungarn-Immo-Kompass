@@ -28,6 +28,7 @@ interface MessagesAreaProps {
   userCache?: Record<string, MatrixUserInfo>;
   getUserDisplayName?: (matrixUserId: string) => string;
   getUserAvatar?: (matrixUserId: string) => string | null;
+  onBack?: () => void;
 }
 
 const MessageArea = ({
@@ -45,6 +46,7 @@ const MessageArea = ({
   userCache,
   getUserDisplayName,
   getUserAvatar,
+  onBack,
 }: MessagesAreaProps) => {
   if (!selectedRoom) {
     return (
@@ -73,6 +75,7 @@ const MessageArea = ({
         onVoiceCall={onVoiceCall}
         getUserDisplayName={getUserDisplayName}
         getUserAvatar={getUserAvatar}
+        onBack={onBack}
       />
       {/* Message List */}
       <MessageList 

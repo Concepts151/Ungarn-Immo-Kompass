@@ -1,6 +1,7 @@
 import { Expose } from "@/app/(nondashboard)/property/[id]/page";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { useTranslations } from "next-intl";
 
 interface PropertiesDetailsProps {
   property: Expose;
@@ -9,6 +10,9 @@ interface PropertiesDetailsProps {
 const supabase = createClient();
 
 export default function PropertiesDetails({ property }: any) {
+  const t = useTranslations("PropertyDetails");
+  const tCommon = useTranslations("Common");
+
   // differentiat between media types
   const photos = property.media.filter(
     (mediaItem: any) => mediaItem.mediaType === "PHOTO"
@@ -231,7 +235,7 @@ export default function PropertiesDetails({ property }: any) {
               <h2>
                 {property.basic.propertyType.charAt(0) +
                   property.basic.propertyType.slice(1).toLowerCase()}{" "}
-                in{" "}
+                {t("in")}{" "}
                 {property.basic.city.charAt(0).toUpperCase() +
                   property.basic.city.slice(1)}
               </h2>
@@ -284,7 +288,7 @@ export default function PropertiesDetails({ property }: any) {
                       />
                     </svg>
                   </span>
-                  {property.basic.livingArea} sqft
+                  {property.basic.livingArea} {t("sqft")}
                 </li>
                 <li>
                   <span>
@@ -323,7 +327,7 @@ export default function PropertiesDetails({ property }: any) {
                       />
                     </svg>
                   </span>
-                  {property.basic.bedrooms} Beds
+                  {property.basic.bedrooms} {tCommon("beds")}
                 </li>
                 <li>
                   <span>
@@ -367,7 +371,7 @@ export default function PropertiesDetails({ property }: any) {
                       />
                     </svg>
                   </span>
-                  {property.basic.bathrooms} Baths
+                  {property.basic.bathrooms} {tCommon("baths")}
                 </li>
               </ul>
               <div className="space24" />

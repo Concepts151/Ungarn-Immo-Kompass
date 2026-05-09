@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const MATRIX_HOMESERVER_URL = process.env.NEXT_PUBLIC_MATRIX_HOMESERVER || 'https://matrix.org';
 const REQUEST_TIMEOUT = 30000; // 30 seconds
+const SERVER_API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3002';
 
 async function fetchWithTimeout(
   url: string,
@@ -107,7 +108,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Left room successfully');
+    console.log('✅ Left room successfully from Matrix');
+
+    // Now check if we should clean up the room from database
+    // Call the server API to handle database cleanup
+    try {
+      console.log('📞 Notifying server about room leave for cleanup...');
+      const cleanupResponse = await fetch(`${SERVER_API_URL}/api/matrix/rooms/${encodeURIComponent(roomId)}/leave-cleanup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ roomId }),
+      });
+
+      if (cleanupResponse.ok) {
+        const cleanupData = await cleanupResponse.json();
+        console.log('✅ Server cleanup result:', cleanupData);
+      } else {
+        console.warn('⚠️ Server cleanup failed (non-critical):', await cleanupResponse.text());
+      }
+    } catch (cleanupError: any) {
+      // Non-critical error - we already left the room in Matrix
+      console.warn('⚠️ Server cleanup request failed (non-critical):', cleanupError.message);
+    }
 
     return NextResponse.json({
       success: true,

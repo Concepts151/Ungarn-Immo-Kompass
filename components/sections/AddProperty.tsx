@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import bootstrap from "bootstrap";
 import { createClient } from "@/utils/supabase/client";
@@ -19,17 +20,9 @@ import AmenitiesForm from "@/app/(dashboard)/add-property/components/amenities-i
 import { useCreatePropertyMutation, useGetAuthUserQuery } from "@/state/api";
 import Conditions from "@/app/(dashboard)/add-property/components/conditon-and-plan";
 import AddOverview from "@/app/(dashboard)/add-property/components/add-overview";
+import { useNiceSelect } from "@/components/elements/useNiceSelect";
 
 type Category = "Apartment" | "Bar" | "Cafe" | "House" | "Farm";
-
-const steps = [
-  "Description",
-  "Media",
-  "Details",
-  "Location",
-  "Condition & Floor Plan",
-  "Overview",
-];
 
 interface ListingFormData {
   title: string;
@@ -46,6 +39,7 @@ interface ListingFormData {
   city: string;
   year: string;
   country: string;
+  villageId?: string;
   category: string;
   listedIn: string;
   propertyStatus: string; // imageUrls: string[];
@@ -82,6 +76,7 @@ interface DetailsFormData {
 interface Locationdata {
   longitude: string;
   latitude: string;
+  villageId: string;
 }
 
 export interface ExposeCondition {
@@ -109,6 +104,7 @@ const initialListingFormData: ListingFormData = {
   city: "",
   year: "",
   country: "Hungary",
+  villageId: "",
   category: "HOUSE",
   listedIn: "Active",
   propertyStatus: "Sale",
@@ -145,6 +141,7 @@ const initialDetailsFormData: DetailsFormData = {
 const initialLocationData: Locationdata = {
   longitude: "0",
   latitude: "0",
+  villageId: "",
 };
 
 const initialConditionData: ExposeCondition = {
@@ -158,10 +155,19 @@ const initialConditionData: ExposeCondition = {
 };
 
 export default function AddProperty() {
+  const t = useTranslations("AddProperty");
+  const steps = [
+    t("step_description"),
+    t("step_media"),
+    t("step_details"),
+    t("step_location"),
+    t("step_condition"),
+    "Overview",
+  ];
   const [currentStep, setCurrentStep] = useState(1);
   const supabase = createClient();
   const [listingFormData, setListingFormData] = useState<ListingFormData>(
-    initialListingFormData
+    initialListingFormData,
   );
   const [locationData, setLocationData] =
     useState<Locationdata>(initialLocationData);
@@ -182,10 +188,14 @@ export default function AddProperty() {
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isloading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   // redux user
   const { data: authUser } = useGetAuthUserQuery();
   const [createProperty] = useCreatePropertyMutation();
+
+  // Initialize nice-select for dropdowns
+  const { initializeNiceSelect } = useNiceSelect();
 
   // Convert property type category to match backend enum
   const mapCategoryToPropertyType = (category: string): string => {
@@ -210,6 +220,74 @@ export default function AddProperty() {
     console.log("authUser", authUser);
   }, []);
 
+  // Handle AI Extracted Data
+  const handleDataExtracted = (extractedData: any) => {
+    console.log("🎯 Merging extracted data:", extractedData);
+
+    const sanitize = (obj: any) => {
+      const sanitized = { ...obj };
+      Object.keys(sanitized).forEach((key) => {
+        if (sanitized[key] === null || sanitized[key] === undefined) {
+          sanitized[key] = "";
+        }
+      });
+      return sanitized;
+    };
+
+    if (extractedData.basic) {
+      const basic = sanitize(extractedData.basic);
+
+      // Map currency to form options
+      let currency: string | null = null;
+      if (basic.currency === "EUR") currency = "Euro (EUR)";
+      else if (basic.currency === "HUF") currency = "Hungarian forint (HUF)";
+      else if (basic.currency === "USD") currency = "US Dollar (USD)";
+
+      setListingFormData((prev) => ({
+        ...prev,
+        ...basic,
+        currency: currency || prev.currency,
+        // Ensure strings for form inputs
+        price: basic.price?.toString() || prev.price,
+        lotSize: basic.lotSize?.toString() || prev.lotSize,
+        livingArea: basic.livingArea?.toString() || prev.livingArea,
+        numberOfRooms: basic.rooms?.toString() || prev.numberOfRooms,
+        numberOfBedrooms: basic.bedrooms?.toString() || prev.numberOfBedrooms,
+        numberOfBathrooms:
+          basic.bathrooms?.toString() || prev.numberOfBathrooms,
+        year: basic.buildYear?.toString() || prev.year,
+        category: basic.propertyType
+          ? basic.propertyType.charAt(0) +
+            basic.propertyType.slice(1).toLowerCase()
+          : prev.category,
+      }));
+    }
+
+    if (extractedData.details) {
+      setDetails((prev) => ({
+        ...prev,
+        ...sanitize(extractedData.details),
+      }));
+    }
+
+    if (extractedData.condition) {
+      setConditionData((prev) => ({
+        ...prev,
+        ...sanitize(extractedData.condition),
+      }));
+    }
+  };
+
+  // Reinitialize nice-select when step changes
+  useEffect(() => {
+    // Use setTimeout to ensure DOM is updated before initializing
+    const timer = setTimeout(() => {
+      initializeNiceSelect();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [currentStep, initializeNiceSelect, listingFormData.category]); // Re-init if category changes via AI
+
   const handleNext = () => {
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
@@ -227,14 +305,14 @@ export default function AddProperty() {
 
     setVideoUrls(videoUrls.filter((videoUrl) => videoUrl !== url));
     setVideoFiles(
-      videoFiles.filter((file) => URL.createObjectURL(file) !== url)
+      videoFiles.filter((file) => URL.createObjectURL(file) !== url),
     );
   };
   // Handler for details tab input changes
   const handleDetailsChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setDetails((prev) => ({
@@ -245,7 +323,7 @@ export default function AddProperty() {
   const handleLocationChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setLocationData((prev) => ({
@@ -281,7 +359,7 @@ export default function AddProperty() {
 
       console.log(
         "🎯 Current video files before adding:",
-        videoFiles.length + filesArray.length > 2
+        videoFiles.length + filesArray.length > 2,
       );
 
       if (videoFiles.length + filesArray.length > 2) {
@@ -351,7 +429,7 @@ export default function AddProperty() {
 
   // Handle floor plan selection
   const handleFloorPlanChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     if (event.target.files) {
       const filesArray = Array.from(event.target.files);
@@ -427,10 +505,14 @@ export default function AddProperty() {
     startTransition(async () => {
       setIsCreating(true);
       try {
+        setUploadProgress("upload_photos");
         // First, upload images to Supabase Storage
         const uploadedMediaUrls = await uploadImagesToSupabase();
+
+        setUploadProgress("upload_floor_plans");
         const uploadedFloorPlanUrls = await uploadFloorPlansToSupabase();
 
+        setUploadProgress("upload_videos");
         const uploadedVideoUrls = await uploadVideosToSupabase();
 
         console.log("🎯 Uploaded image URLs:", uploadedMediaUrls);
@@ -461,6 +543,7 @@ export default function AddProperty() {
             postalCode: postalCode,
             city: city,
             county: country, // Using city as county for now
+            villageId: locationData.villageId,
             price: parseInt(price),
             currency: mapCurrency(currency),
             lotSize: parseInt(lotSize) || 0,
@@ -518,20 +601,23 @@ export default function AddProperty() {
           })),
         };
 
+        setUploadProgress("save_property");
         // Call the API to create the property
         const result = await createProperty(propertyData).unwrap();
 
+        setUploadProgress("upload_complete");
         toast.success("Property created successfully!");
         setIsCreating(false);
 
         // Redirect to the property listing or dashboard
-        // setTimeout(() => {
-        //   router.push("/dashboard/properties");
-        // }, 1500);
+        setTimeout(() => {
+          router.push("/my-property");
+        }, 1500);
       } catch (error: any) {
         console.error("Error creating property:", error);
         toast.error(
-          error?.data?.message || "Failed to create property. Please try again."
+          error?.data?.message ||
+            "Failed to create property. Please try again.",
         );
         setIsCreating(false);
       }
@@ -573,6 +659,7 @@ export default function AddProperty() {
                         onNext={handleNext}
                         steps={steps}
                         currentStep={currentStep}
+                        onDataExtracted={handleDataExtracted}
                       />
                     )}
                     {currentStep === 2 && (
@@ -635,6 +722,7 @@ export default function AddProperty() {
                         upload={handleSubmitNewListing}
                         onBack={handleBack}
                         isLoading={isCreating || isPending}
+                        uploadProgress={uploadProgress}
                       />
                     )}
                   </div>

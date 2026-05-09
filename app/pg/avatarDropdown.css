@@ -1,67 +1,158 @@
 .avatar-dropdown-btn {
     background: #fff;
-    border: none;
+    border: 2px solid #f3f4f6;
     padding: 0;
-    border-radius: 2rem;
-    box-shadow: 0 4px 24px 0 rgba(60, 30, 90, 0.08);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
     display: flex;
     align-items: center;
-    transition: box-shadow 0.2s;
+    transition: all 0.3s ease;
   }
-  
+
   .avatar-dropdown-btn:hover,
   .avatar-dropdown-btn:focus {
-    box-shadow: 0 8px 32px 0 rgba(60, 30, 90, 0.16);
+    border-color: #436f4d;
+    box-shadow: 0 4px 12px 0 rgba(67, 111, 77, 0.25);
     outline: none;
+    transform: scale(1.05);
   }
-  
+
   .avatar-circle {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #857fff;
+    background: linear-gradient(135deg, #436f4d 0%, #355a3d 100%);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 20px;
-    /* margin-right: 12px; */
-    box-shadow: 0 1px 3px 0 rgba(30,20,70,0.07);
+    font-size: 18px;
+    box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
   }
-  
+
   .avatar-name {
     font-weight: 600;
     font-size: 1rem;
-    color: #332c63;
+    color: #1a1a1a;
     margin-right: 20px;
   }
-  
+
   .avatar-dropdown-menu {
-    min-width: 190px;
-    border-radius: 1rem;
-    border: 1px solid #ecebfa;
-    box-shadow: 0 8px 24px 0 rgba(40,30,90,0.08);
-    padding: 0.5rem 0;
-    margin-top: 10px !important;
+    min-width: 240px;
+    max-width: 280px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    margin-top: 12px !important;
     background: #fff;
   }
+
   .avatar-dropdown-menu .dropdown-item {
-    font-size: 1rem;
-    border-radius: 0.6rem;
-    padding: 0.7rem 1.2rem;
-    transition: background 0.15s;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    transition: all 0.2s ease;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
+
+  .avatar-dropdown-menu .dropdown-item i {
+    width: 18px;
+    font-size: 16px;
+    color: #6b7280;
+    transition: color 0.2s ease;
+  }
+
   .avatar-dropdown-menu .dropdown-item:active,
   .avatar-dropdown-menu .dropdown-item:hover {
-    background: #f6f4fe;
-    color: #857fff;
+    background: #f0f7f2;
+    color: #436f4d;
   }
+
+  .avatar-dropdown-menu .dropdown-item:hover i {
+    color: #436f4d;
+  }
+
   .avatar-dropdown-menu .dropdown-divider {
-    margin: 0.2rem 0;
+    margin: 0.5rem 0;
+    border-color: #e5e7eb;
   }
+
   .avatar-dropdown-menu .dropdown-item.text-danger {
-    color: #e04a5a;
+    color: #ce283f;
+  }
+
+  .avatar-dropdown-menu .dropdown-item.text-danger:hover {
+    background: #fef2f4;
+    color: #ce283f;
+  }
+
+  .avatar-dropdown-menu .dropdown-item.text-danger i {
+    color: #ce283f;
+  }
+  
+  /* User Profile Header Styles */
+  .dropdown-user-header {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0;
+  }
+
+  .user-header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-header-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+    border: 2px solid #f3f4f6;
+  }
+
+  .user-header-initials {
+    background: linear-gradient(135deg, #436f4d 0%, #355a3d 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .user-header-info {
+    flex: 1;
+    min-width: 0;
+    max-width: 180px;
+    overflow: hidden;
+  }
+
+  .user-header-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-header-email {
+    font-size: 0.875rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    margin-top: 4px;
   }
   

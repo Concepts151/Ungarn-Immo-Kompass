@@ -14,8 +14,9 @@ export default function LogoutButton() {
     setError(null);
     setLoading(true);
     try {
-      await logout(); // Call your async logout action here
-      // Optionally, redirect or update state here
+      const { signOut } = await import("next-auth/react");
+      await signOut({ redirect: false });
+      
       clearSession();
       localStorage.clear();
       sessionStorage.clear();

@@ -1,14 +1,14 @@
-"use client"; 
+"use client";
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useGetAuthUserQuery } from "@/state/api";
-import { useSessionStore } from "@/app/store";
+import { useSession } from "next-auth/react";
 
 export default function MobileMenu({ isMobileMenu, handleMobileMenu }: any) {
     const t = useTranslations("navbar");
-    const { data: authUser } = useGetAuthUserQuery();
-    const session = useSessionStore((state) => state.session);
+    const { data: session, status } = useSession();
+    const { data: authUser } = useGetAuthUserQuery(undefined, { skip: status !== "authenticated" });
     const [isAccordion, setIsAccordion] = useState(0);
     const handleAccordion = (key: any) => {
         setIsAccordion((prevState) => (prevState === key ? null : key));
@@ -73,9 +73,12 @@ export default function MobileMenu({ isMobileMenu, handleMobileMenu }: any) {
                                         <Link href="/our-service">{t("OurServices")}</Link>
                                     </li>
                                     <li>
-                                        <Link href="/contact">{t("ContactUs")}</Link>
+                                        <Link href="/for-sellers">{t("ForSellers")}</Link>
                                     </li>
-                                    {session?.session != null && (
+                                    <li>
+                                        <Link href="/for-buyers">{t("ForBuyers")}</Link>
+                                    </li>
+                                    {status === "authenticated" && (
                                         <li className={`has-dropdown ${isAccordion == 1 ? "active" : ""}`} onClick={() => handleAccordion(1)}>
                                             <Link href="#">
                                                 {t("Dashboard")}

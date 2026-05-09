@@ -139,7 +139,8 @@ const UpdateProperty = () => {
   const propertyId =
     typeof id === "string" ? id : Array.isArray(id) ? id[0] : "";
 
-  const { data: property, error, isLoading } = useGetPropertyQuery(propertyId);
+  // Don't pass lang for update - we want the original content for editing
+  const { data: property, error, isLoading } = useGetPropertyQuery({ id: propertyId });
   const [
     updateProperty,
     { isLoading: updating, isSuccess, isError, error: updateError },

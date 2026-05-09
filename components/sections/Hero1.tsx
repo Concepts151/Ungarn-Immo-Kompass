@@ -5,22 +5,27 @@ export default async function Hero1() {
   const t = await getTranslations("HomePage");
   return (
     <>
+      {/* <style jsx>
+        {`
+          .no-word-break {
+            word-break: keep-all !important;
+            overflow-wrap: normal !important;
+            white-space: normal !important;
+          }
+        `}
+      </style> */}
       <div className="hero1-section-area">
         <div className="container-fluid">
           <div className="row">
             <div className="col-lg-6">
-              <div className="hero-heading-content heading1">
-                <h1 className="text-anime-style-3">
-                 {t('Hero_h1')}
+              <div className="hero-heading-content heading1 no-word-break">
+                <h1 className="fw-bold" data-aos="fade-right" data-aos-duration={1000}>
+                  {t("Hero_h1")}
                 </h1>
                 <div className="space20" />
-                <p className="text-anime-style-1">
-                {t('Hero_p')}
-                  {/* Whether you're looking to buy, sell, or rent, Housa connects
-                  you with <br className="d-lg-block d-none" /> the best
-                  properties and expert advice. Explore homes that fit your{" "}
-                  <br className="d-lg-block d-none" /> vision and budget with
-                  ease and confidence. */}
+                <p className="mb-0" data-aos="fade-right" data-aos-duration={1200}>
+                  {t("Hero_p")}
+                  
                 </p>
                 <div className="space32" />
                 <div
@@ -28,8 +33,8 @@ export default async function Hero1() {
                   data-aos="fade-left"
                   data-aos-duration={1000}
                 >
-                  <Link href="/add-property" className="vl-btn1">
-                    {t('add-listing-btn')}
+                  <Link href="/search" className="vl-btn1">
+                    {t("add-listing-btn")}
                     <span className="arrow1 ms-2">
                       <i className="fa-solid fa-arrow-right" />
                     </span>
@@ -56,7 +61,7 @@ export default async function Hero1() {
                           +
                         </h1>
                         <div className="space10" />
-                        <p>{t('Hero_bp')}</p>
+                        <p>{t("Hero_bp")}</p>
                       </div>
                     </div>
                     <div
@@ -73,7 +78,7 @@ export default async function Hero1() {
                           +
                         </h1>
                         <div className="space10" />
-                        <p>{t('Hero_sp')}</p>
+                        <p>{t("Hero_sp")}</p>
                       </div>
                     </div>
                     <div
@@ -91,7 +96,7 @@ export default async function Hero1() {
                           +
                         </h1>
                         <div className="space10" />
-                        <p>{t('Hero_pa')}</p>
+                        <p>{t("Hero_pa")}</p>
                       </div>
                     </div>
                   </div>
@@ -100,9 +105,14 @@ export default async function Hero1() {
             </div>
             <div className="col-lg-6">
               <div className="hero-images-area image-anime">
-                <img
+                {/* <img
                   src="/assets/img/all-images/hero/hero-img1.png"
                   alt="housa"
+                /> */}
+                <img
+                  src="https://images.pexels.com/photos/2350351/pexels-photo-2350351.jpeg"
+                  alt="Hungary"
+                  loading="lazy"
                 />
               </div>
             </div>

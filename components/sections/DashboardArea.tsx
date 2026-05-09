@@ -43,18 +43,6 @@ export default function DashboardArea() {
     currentPage * listingsPerPage
   );
 
-  async function getUserDetails() {
-    const { data, error } = await supabase.from("user").select("*").single();
-
-    if (error) {
-      console.error("Error fetching user details:", error);
-      return;
-    }
-    console.log("userDetails for listing", data);
-    setUser(data);
-    //if data is complete do nothing, else open signup detail modal
-  }
-
   const handleEditClick = (listing: any) => {
     // setSelectedListing(listing); // Set the selected listing data
     // setIsModalOpen(true); // Open the modal
@@ -64,29 +52,6 @@ export default function DashboardArea() {
   const handleModalClose = () => {
     setIsModalOpen(false); // Close the modal
     setSelectedListing(null); // Clear the selected listing
-  };
-
-  const handleUpdateListing = async (updatedData: any) => {
-    try {
-      const { error } = await supabase
-        .from("expose")
-        .update(updatedData)
-        .eq("id", selectedListing.id);
-
-      if (error) {
-        console.error("Error updating listing:", error);
-        toast.error("Failed to update listing.");
-        return;
-      }
-
-      toast.success("Listing updated successfully!");
-      setIsModalOpen(false); // Close the modal after successful update
-      setSelectedListing(null); // Clear the selected listing
-      // Optionally, refetch the listings to reflect the changes
-    } catch (err) {
-      console.error("Unexpected error updating listing:", err);
-      toast.error("An unexpected error occurred.");
-    }
   };
 
   return (
@@ -168,13 +133,35 @@ export default function DashboardArea() {
                             <div className="col-lg-6">
                               <div className="content-tab-area">
                                 <div className="property-price">
-                                  <div className="text">
-                                    <Link href="#" className="title">
-                                      {item.basic?.title || "n/a"}
-                                    </Link>
-                                    <div className="space16" />
-                                    <p>{item.basic?.address || "n/a"}</p>
-                                  </div>
+                                    <div className="text">
+                                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                                        <Link href="#" className="title">
+                                          {item.basic?.title || "n/a"}
+                                        </Link>
+                                        {item.status === "IN_REVIEW" && (
+                                          <span className="status-badge pending">
+                                            In Review
+                                          </span>
+                                        )}
+                                        {item.status === "PUBLISHED" && (
+                                          <span className="status-badge approved">
+                                            Published
+                                          </span>
+                                        )}
+                                        {item.status === "SOLD" && (
+                                          <span className="status-badge sold">
+                                            Sold
+                                          </span>
+                                        )}
+                                        {item.status === "REJECTED" && (
+                                          <span className="status-badge" style={{ backgroundColor: "#ce283f", borderRadius: "8px" }}>
+                                            Rejected
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="space16" />
+                                      <p>{item.basic?.address || "n/a"}</p>
+                                    </div>
                                   <Link href="#" className="price">
                                     ${item.basic?.price || "N/a"}
                                   </Link>

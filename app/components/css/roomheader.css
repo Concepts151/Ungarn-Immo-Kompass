@@ -129,7 +129,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
+@media (max-width: 900px) {
   .room-header {
     padding: 10px 12px;
   }
@@ -140,8 +140,9 @@
     font-size: 14px;
   }
 
-  .room-header-name {
-    font-size: 14px;
+  .room-header-name, 
+  .room-header-participant {
+    display: none;
   }
 
   .room-header-btn {

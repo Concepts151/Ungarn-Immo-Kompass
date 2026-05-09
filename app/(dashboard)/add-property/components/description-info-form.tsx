@@ -38,12 +38,17 @@ interface ListingDescriptionFormData {
   propertyStatus: string;
 }
 
+import DocumentUploadAid from "./DocumentUploadAid";
+import { useTranslations } from "next-intl";
+import { useLazyLookupZipQuery } from "@/state/api";
+
 interface DescriptionInfoFormProps {
   data: ListingDescriptionFormData;
   onDataChange: (data: any) => void;
   onNext: () => void;
   steps: string[];
   currentStep: number;
+  onDataExtracted?: (data: any) => void;
 }
 
 const DescriptionInfoForm = ({
@@ -52,12 +57,67 @@ const DescriptionInfoForm = ({
   onNext,
   steps,
   currentStep,
+  onDataExtracted,
 }: DescriptionInfoFormProps) => {
+  const t = useTranslations("AddProperty");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [lookupZip] = useLazyLookupZipQuery();
+
+  React.useEffect(() => {
+    const fetchCity = async () => {
+      // In Hungary, ZIP codes are exactly 4 digits.
+      if (data.postalCode && data.postalCode.length === 4) {
+        try {
+          const res = await lookupZip(data.postalCode).unwrap();
+          if (res && res.length > 0) {
+            // Auto-fill city and clear any corresponding error
+            const city = res[0].city;
+            onDataChange({ ...data, city });
+            if (errors.city || errors.postalCode) {
+              setErrors((prev) => ({ ...prev, city: "", postalCode: "" }));
+            }
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              postalCode: "Invalid postal code. No region found.",
+            }));
+            onDataChange({ ...data, city: "" });
+          }
+        } catch (error: any) {
+          if (error?.status !== 404) {
+            console.warn(
+              "Failed to auto-lookup ZIP:",
+              error?.status || "Unknown error",
+            );
+          }
+          setErrors((prev) => ({
+            ...prev,
+            postalCode: "Invalid postal code. No region found.",
+          }));
+          onDataChange({ ...data, city: "" });
+        }
+      } else if (
+        data.postalCode &&
+        data.postalCode.length > 0 &&
+        data.postalCode.length !== 4
+      ) {
+        if (
+          errors.postalCode !== "Postal code must be 4 digits" &&
+          data.postalCode.length > 4
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            postalCode: "Postal code must be 4 digits",
+          }));
+        }
+      }
+    };
+    fetchCity();
+  }, [data.postalCode]);
 
   const handleInputChange = (
     field: keyof ListingDescriptionFormData,
-    value: any
+    value: any,
   ) => {
     onDataChange({ ...data, [field]: value });
     // Clear error when user starts typing
@@ -75,12 +135,12 @@ const DescriptionInfoForm = ({
     if (!data.city.trim()) newErrors.city = "City is required";
     if (!data.country.trim()) newErrors.country = "Country is required";
     if (!data.currency) newErrors.currency = "Currency is required";
-    if (!data.description.trim()) newErrors.description = "Description is required";
+    if (!data.description.trim())
+      newErrors.description = "Description is required";
     if (!data.listedIn.trim()) newErrors.listedIn = "Listed in is required";
     if (!data.livingArea.trim())
       newErrors.livingArea = "Living area is required";
-    if (!data.lotSize.trim())
-      newErrors.lotSize = "Lot size  is required";
+    if (!data.lotSize.trim()) newErrors.lotSize = "Lot size  is required";
     if (!data.numberOfBathrooms.trim())
       newErrors.numberOfBathrooms = "Number of bathrooms is required";
     if (!data.numberOfBedrooms.trim())
@@ -107,9 +167,12 @@ const DescriptionInfoForm = ({
   return (
     <div className="">
       <div className="space48" />
-      <h4>Property Description</h4>
+      {onDataExtracted && (
+        <DocumentUploadAid onDataExtracted={onDataExtracted} />
+      )}
+      <h4>{t("description_home")}</h4>
       <div className="space28" />
-      <h5>Title Your Home*</h5>
+      <h5>{t("description_title")}*</h5>
       <div className="space16" />
       <div className="col-lg-12">
         <div className="input-area">
@@ -121,12 +184,10 @@ const DescriptionInfoForm = ({
             value={data.title}
             onChange={(e) => handleInputChange("title", e.target.value)}
           />
-          {errors.title && (
-              <p className="error_msg">{errors.title}</p>
-            )}
+          {errors.title && <p className="error_msg">{errors.title}</p>}
         </div>
         <div className="space32" />
-        <h5>Description Note*</h5>
+        <h5>{t("step_description")} Note*</h5>
         <div className="space16" />
         <div className="input-area">
           <textarea
@@ -136,15 +197,15 @@ const DescriptionInfoForm = ({
             value={data.description}
             onChange={(e) => handleInputChange("description", e.target.value)}
           />
-           {errors.description && (
-              <p className="error_msg">{errors.description}</p>
-            )}
+          {errors.description && (
+            <p className="error_msg">{errors.description}</p>
+          )}
         </div>
       </div>
       <div className="row">
         <div className="col-lg-8">
           <div className="space16" />
-          <h5>Address</h5>
+          <h5>{t("description_address")}</h5>
           <div className="space16" />
           <div className="input-area">
             <input
@@ -155,20 +216,18 @@ const DescriptionInfoForm = ({
               value={data.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
             />
-            {errors.address && (
-              <p className="error_msg">{errors.address}</p>
-            )}
+            {errors.address && <p className="error_msg">{errors.address}</p>}
           </div>
         </div>
         <div className="col-lg-4">
           <div className="space16" />
-          <h5>Postal Code</h5>
+          <h5>{t("location_postal_code")}</h5>
           <div className="space16" />
           <div className="input-area">
             <input
               type="text"
               className={errors.postalCode && "input_error"}
-              placeholder="000000"
+              placeholder="0000"
               id="postalCode"
               value={data.postalCode}
               onChange={(e) => handleInputChange("postalCode", e.target.value)}
@@ -183,7 +242,7 @@ const DescriptionInfoForm = ({
         <div className="col-lg-4 col-md-6">
           <div className="space30" />
           <div className="input-area">
-            <h5>City</h5>
+            <h5>{t("location_city")}</h5>
             <div className="space16" />
             <input
               type="text"
@@ -193,9 +252,7 @@ const DescriptionInfoForm = ({
               value={data.city}
               onChange={(e) => handleInputChange("city", e.target.value)}
             />
-            {errors.category && (
-              <p className="error_msg">{errors.city}</p>
-            )} 
+            {errors.category && <p className="error_msg">{errors.city}</p>}
             {/* <select
               className="form-select"
 
@@ -219,21 +276,20 @@ const DescriptionInfoForm = ({
             <h5>Country</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.country}
               onChange={(e) => handleInputChange("country", e.target.value)}
             >
+              <option value="">Select Country</option>
               <option value="Hungary">Hungary</option>
               <option value="Nigeria">Nigeria</option>
             </select>
-            {errors.country && (
-              <p className="error_msg">{errors.country}</p>
-            )}
+            {errors.country && <p className="error_msg">{errors.country}</p>}
           </div>
         </div>
         <div className="col-lg-4">
           <div className="space30" />
-          <h5>Price</h5>
+          <h5>{t("description_price")}</h5>
           <div className="space16" />
           <div className="input-area">
             <input
@@ -243,9 +299,7 @@ const DescriptionInfoForm = ({
               value={data.price}
               onChange={(e) => handleInputChange("price", e.target.value)}
             />
-             {errors.price && (
-              <p className="error_msg">{errors.price}</p>
-            )}
+            {errors.price && <p className="error_msg">{errors.price}</p>}
           </div>
         </div>
       </div>
@@ -256,24 +310,23 @@ const DescriptionInfoForm = ({
             <h5>Currency</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.currency}
               onChange={(e) => handleInputChange("currency", e.target.value)}
             >
+              <option value="">Select Currency</option>
               <option value="US Dollar (USD)">US Dollar (USD)</option>
               <option value="Euro (EUR)">Euro (EUR)</option>
               <option value="Hungarian forint (HUF)">
                 Hungarian forint (HUF)
               </option>
             </select>
-            {errors.currency && (
-              <p className="error_msg">{errors.currency}</p>
-            )}
+            {errors.currency && <p className="error_msg">{errors.currency}</p>}
           </div>
         </div>
         <div className="col-lg-4">
           <div className="space30" />
-          <h5>Lot Size (in m²)</h5>
+          <h5>{t("description_lot_size")}</h5>
           <div className="space16" />
           <div className="input-area">
             <input
@@ -283,14 +336,12 @@ const DescriptionInfoForm = ({
               value={data.lotSize}
               onChange={(e) => handleInputChange("lotSize", e.target.value)}
             />
-          {errors.lotSize && (
-              <p className="error_msg">{errors.lotSize}</p>
-            )}
+            {errors.lotSize && <p className="error_msg">{errors.lotSize}</p>}
           </div>
         </div>
         <div className="col-lg-4">
           <div className="space30" />
-          <h5>Living Area (in m²)</h5>
+          <h5>{t("description_living_area")}</h5>
           <div className="space16" />
           <div className="input-area">
             <input
@@ -309,7 +360,7 @@ const DescriptionInfoForm = ({
       <div className="row">
         <div className="col-lg-4">
           <div className="space30" />
-          <h5>Number of Rooms</h5>
+          <h5>{t("description_rooms")}</h5>
           <div className="space16" />
           <div className="input-area">
             <input
@@ -321,7 +372,7 @@ const DescriptionInfoForm = ({
                 handleInputChange("numberOfRooms", e.target.value)
               }
             />
-             {errors.numberOfRooms && (
+            {errors.numberOfRooms && (
               <p className="error_msg">{errors.numberOfRooms}</p>
             )}
           </div>
@@ -340,7 +391,7 @@ const DescriptionInfoForm = ({
                 handleInputChange("numberOfBedrooms", e.target.value)
               }
             />
-             {errors.numberOfBedrooms && (
+            {errors.numberOfBedrooms && (
               <p className="error_msg">{errors.numberOfBedrooms}</p>
             )}
           </div>
@@ -359,7 +410,7 @@ const DescriptionInfoForm = ({
                 handleInputChange("numberOfBathrooms", e.target.value)
               }
             />
-             {errors.numberOfBathrooms && (
+            {errors.numberOfBathrooms && (
               <p className="error_msg">{errors.numberOfBathrooms}</p>
             )}
           </div>
@@ -369,10 +420,10 @@ const DescriptionInfoForm = ({
         <div className="col-lg-4 col-md-6">
           <div className="space30" />
           <div className="input-area">
-            <h5>Select Category*</h5>
+            <h5>{t("description_property_category")}*</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.category}
               onChange={(e) => handleInputChange("category", e.target.value)}
             >
@@ -382,9 +433,7 @@ const DescriptionInfoForm = ({
               <option value="House">House</option>
               <option value="Farm">Farm</option>
             </select>
-            {errors.category && (
-              <p className="error_msg">{errors.category}</p>
-            )}
+            {errors.category && <p className="error_msg">{errors.category}</p>}
           </div>
         </div>
         <div className="col-lg-4 col-md-6">
@@ -393,25 +442,23 @@ const DescriptionInfoForm = ({
             <h5>Listed In*</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.listedIn}
               onChange={(e) => handleInputChange("listedIn", e.target.value)}
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
-            {errors.listedIn && (
-              <p className="error_msg">{errors.listedIn}</p>
-            )}
+            {errors.listedIn && <p className="error_msg">{errors.listedIn}</p>}
           </div>
         </div>
         <div className="col-lg-4 col-md-6">
           <div className="space30" />
           <div className="input-area">
-            <h5>Property Status*</h5>
+            <h5>{t("description_property_status")}*</h5>
             <div className="space16" />
             <select
-              className="nice-select"
+              className="form-select"
               value={data.propertyStatus}
               onChange={(e) =>
                 handleInputChange("propertyStatus", e.target.value)
@@ -429,7 +476,7 @@ const DescriptionInfoForm = ({
           <div className="col-lg-4">
             <div className="space30" />
             <div className="input-area">
-              <h5>Build Year</h5>
+              <h5>{t("details_build_year")}</h5>
               <div className="space16" />
               <input
                 type="text"
@@ -438,9 +485,7 @@ const DescriptionInfoForm = ({
                 onChange={(e) => handleInputChange("year", e.target.value)}
                 placeholder="YYYY"
               />
-               {errors.year && (
-              <p className="error_msg">{errors.year}</p>
-            )}
+              {errors.year && <p className="error_msg">{errors.year}</p>}
             </div>
           </div>
         </div>
@@ -454,7 +499,7 @@ const DescriptionInfoForm = ({
             className="vl-btn1"
             onClick={() => handleNext()}
           >
-            Continue to {steps[currentStep]}
+            {t("description_next", { step: steps[currentStep] })}
             <span className="arrow1 ms-2">
               <i className="fa-solid fa-arrow-right" />
             </span>

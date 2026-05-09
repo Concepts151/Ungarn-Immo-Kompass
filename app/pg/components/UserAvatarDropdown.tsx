@@ -2,32 +2,50 @@
 
 import { useSessionStore } from "@/app/store"
 import Link from "next/link"
-import { logout } from "../action"
+import { useSession, signOut } from "next-auth/react"
+import { useMatrixStore } from "@/app/store/matrixStore"
 import "../avatarDropdown.css"
+import { useTranslations } from "next-intl"
+import { useGetAuthUserQuery } from "@/state/api"
 
 export default function UserAvatarDropdown() {
-  const user = useSessionStore((s) => s.session?.user)
+  const { data: session } = useSession()
+  const { data: authUser, isError } = useGetAuthUserQuery()
   const name = useSessionStore((state) => state.name)
   const avatarUrl = useSessionStore((state) => state.avatarUrl)
   const clearSession = useSessionStore((state) => state.clearSession)
+  const setMatrixCredentials = useMatrixStore((state) => state.setMatrixCredentials)
+  const t = useTranslations("navbar")
 
+
+  // Get name and email from either authUser (fresh from DB) or session (from cookie)
+  const displayName = name && name !== "User" 
+    ? name 
+    : (authUser?.user?.firstName ? `${authUser.user.firstName} ${authUser.user.lastName || ""}` : session?.user?.name || "User")
+  
+  const displayEmail = authUser?.user?.email || session?.user?.email || ""
 
   // Get initials from the name
-  const initials = name
-    ? name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? "U"
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2) || "U"
 
   const handleLogout = async () => {
     try {
-      await logout()
+      // Clear Matrix store
+      setMatrixCredentials({
+        matrixUserId: "",
+        matrixAccessToken: "",
+        matrixHomeserver: ""
+      })
+      
+      await signOut({ callbackUrl: "/" })
       clearSession()
       localStorage.clear()
       sessionStorage.clear()
-      window.location.href = "/"
     } catch (error) {
       console.error("Logout failed:", error)
     }
@@ -70,13 +88,72 @@ export default function UserAvatarDropdown() {
       <ul
         className="dropdown-menu avatar-dropdown-menu dropdown-menu-end shadow"
         aria-labelledby="avatarDropdown">
+        {/* User Profile Header */}
+        <li className="dropdown-user-header">
+          <div className="user-header-content">
+            {avatarUrl ? (
+              <img
+                src={` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
+                alt="Avatar"
+                className="user-header-avatar"
+              />
+            ) : (
+              <div className="user-header-avatar user-header-initials">{initials}</div>
+            )}
+            <div className="user-header-info">
+              <div className="user-header-name">
+                {displayName}
+              </div>
+              <div className="user-header-email">{displayEmail}</div>
+            </div>
+          </div>
+        </li>
         <li>
-          <Link className="dropdown-item" href="/my-profile">
-            Profile
+          <hr className="dropdown-divider" />
+        </li>
+        <li>
+          <Link className="dropdown-item" href="/dashboard">
+            <i className="fa-solid fa-th-large"></i>
+            {t("Dashboard")}
           </Link>
         </li>
         <li>
+          <Link className="dropdown-item" href="/massages">
+            <i className="fa-solid fa-envelope"></i>
+            {t("Message")}
+          </Link>
+        </li>
+        <li>
+          <Link className="dropdown-item" href="/my-favorites">
+            <i className="fa-solid fa-heart"></i>
+            {t("MyFavorites")}
+          </Link>
+        </li>
+        <li>
+          <Link className="dropdown-item" href="/my-profile">
+            <i className="fa-solid fa-user"></i>
+            {t("MyProfile")} 
+          </Link>
+        </li>
+        {authUser?.userRole === "SELLER" && (
+          <>
+            <li>
+              <Link className="dropdown-item" href="/my-property">
+                <i className="fa-solid fa-house"></i>
+                {t("MyProperties")}
+              </Link>
+            </li>
+            <li>
+              <Link className="dropdown-item" href="/add-property">
+                <i className="fa-solid fa-plus-circle"></i>
+                {t("AddProperty")}
+              </Link>
+            </li>
+          </>
+        )}
+        <li>
           <Link className="dropdown-item" href="/settings">
+            <i className="fa-solid fa-gear"></i>
             Settings
           </Link>
         </li>
@@ -88,6 +165,7 @@ export default function UserAvatarDropdown() {
             className="dropdown-item text-danger"
             type="button"
             onClick={handleLogout}>
+            <i className="fa-solid fa-right-from-bracket"></i>
             Logout
           </button>
         </li>

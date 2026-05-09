@@ -1,5 +1,9 @@
+'use client'
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+
 export default function InnerHeader({ title, currentpage }: any) {
+    const t = useTranslations("InnerHeader");
     return (
         <>
             <div className="space30" />
@@ -12,7 +16,7 @@ export default function InnerHeader({ title, currentpage }: any) {
                                 <h2>{title}</h2>
                                 <div className="space28" />
                                 <p>
-                                    <Link href="/">Home</Link>
+                                    <Link href="/">{t("home")}</Link>
                                     <svg xmlns="http://www.w3.org/2000/svg" width={9} height={16} viewBox="0 0 9 16" fill="none">
                                         <path d="M1.5 1.74997L7.75 7.99997L1.5 14.25" stroke="#1B1B1B" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>

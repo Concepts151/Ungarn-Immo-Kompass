@@ -1,22 +1,20 @@
 "use client";
-import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
-import { uploadImage } from "@/utils/supabase/storage/client";
+import React, { useState, useEffect } from "react";
+import { useGetAuthUserQuery, useUpdateUserMutation } from "@/state/api";
+import { useSession } from "next-auth/react";
+import { useSessionStore } from "@/app/store";
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
-import { useSessionStore } from "@/app/store"; // Import Zustand store
+import { useTranslations } from "next-intl";
 
 export default function Profile1() {
-  const supabase = createClient();
+  const t = useTranslations("ProfilePage");
+  const { data: session } = useSession();
+  const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
-  // Zustand actions
   const setName = useSessionStore((state) => state.setName);
   const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
 
-  // create necessary hooks and states
-  const [user, setUser] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
@@ -24,36 +22,17 @@ export default function Profile1() {
   const [avatarUrl, setAvatarUrlState] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-  // fetch user details from supabase
-  const fetchUserDetails = async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error("Error fetching user details:", error);
-      return;
+  useEffect(() => {
+    if (authData?.user) {
+      const userData = authData.user;
+      setAvatarUrlState(userData.avatarUrl || null);
+      setEmail(userData.email);
+      setPhone(userData.phone || "");
+      setFirstName(userData.firstName || "");
+      setLastName(userData.lastName || "");
     }
+  }, [authData]);
 
-    console.log("User details fetched successfully:", data.session?.user.id);
-    const userId = data.session?.user.id;
-    const { data: userData, error: userError } = await supabase
-      .from("user")
-      .select("*")
-      .eq("id", userId)
-      .single(); // Fetch a single user record
-
-    console.log(userData);
-    if (userError) {
-      console.error("Error fetching user data:", userError);
-      return;
-    }
-    setUser(userData);
-    setAvatarUrlState(userData.avatarUrl || null);
-    setEmail(userData.email);
-    setPhone(userData.phone || ""); // Set phone if available, else empty string
-    setFirstName(userData.firstName || ""); // Set first name if available, else empty string
-    setLastName(userData.lastName || ""); // Set last name if available, else empty string
-  };
-
-  // Handle image input change and preview
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -63,85 +42,32 @@ export default function Profile1() {
     }
   };
 
-  // Delete old avatar from bucket
-  const deleteOldAvatar = async (avatarPath: string) => {
-    if (!avatarPath) return;
-    console.log("Deleting old avatar:", avatarPath);
-
-    const { error } = await supabase.storage
-      .from("avatars")
-      .remove([avatarPath]);
-    if (error) {
-      console.error("Error deleting old avatar:", error);
-    }
-  };
-
-  // Upload new avatar to bucket and update user table
   const handleUpdateProfile = async () => {
-    setLoading(true);
-    let newAvatarUrl = user?.avatarUrl || null;
+    if (!authData?.user?.id) return;
 
-    // Handle avatar upload if a new file is selected
-    if (avatarFile) {
-      // Delete old avatar if exists and is not a blob url
-      if (user?.avatarUrl || !avatarUrl?.startsWith("blob:")) {
-        await deleteOldAvatar(user.avatarUrl);
-      }
-      // Upload new avatar
-      const fileExt = avatarFile.name.split('.').pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, avatarFile, { upsert: true });
-      if (uploadError) {
-        toast.error("Failed to upload new avatar.");
-        setLoading(false);
-        return;
-      }
-      newAvatarUrl = filePath;
-    }
-
-    // Update user table
-    const { error: updateError } = await supabase
-      .from("user")
-      .update({
+    try {
+      const updateData = {
         firstName,
         lastName,
         phone,
-        avatarUrl: newAvatarUrl,
-      })
-      .eq("id", user.id);
+        // TODO: Handle avatar upload to backend
+      };
 
-    if (updateError) {
-      toast.error("Failed to update profile.");
-      setLoading(false);
-      return;
+      await updateUser({
+        userId: authData.user.id,
+        role: authData.userRole,
+        data: updateData
+      }).unwrap();
+
+      setName(firstName);
+      toast.success(t("success"));
+    } catch (err) {
+      toast.error(t("error"));
     }
-
-    // Update Zustand state
-    setName(firstName);
-    setAvatarUrl(
-      `${newAvatarUrl}`
-    );
-
-    // Update local state
-    setUser({ ...user, firstName, lastName, phone, avatarUrl: newAvatarUrl });
-    setAvatarFile(null);
-    // If a new avatar was uploaded, show the new image from Supabase, not the blob
-    if (avatarFile) {
-      setAvatarUrlState(
-        `${newAvatarUrl}`
-      );
-    }
-    toast.success("Profile updated successfully!");
-    setLoading(false);
   };
 
-  useEffect(() => {
-    fetchUserDetails();
-
-    // console.log(user);
-  }, []);
+  if (isAuthLoading) return <div>Loading...</div>;
+  
   return (
     <>
       {/*===== DASHBOARD AREA STARTS =======*/}
@@ -150,13 +76,13 @@ export default function Profile1() {
           <div className="row">
             <div className="col-lg-4">
               <div className="heading1">
-                <h2>My Profile</h2>
+                <h2>{t("title")}</h2>
                 <div className="space32" />
               </div>
             </div>
             <div className="col-lg-12">
               <div className="account-details-boxarea">
-                <h4>Upload Profile Photo</h4>
+                <h4>{t("upload_photo")}</h4>
                 <div className="space24" />
                 <div className="box-agent-avt">
                   <div className="img-poster">
@@ -164,8 +90,8 @@ export default function Profile1() {
                       src={
                         avatarUrl && avatarUrl.startsWith("blob:")
                           ? avatarUrl
-                          : user?.avatarUrl
-                          ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${user.avatarUrl}`
+                          : authData?.user?.avatarUrl
+                          ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${authData.user.avatarUrl}`
                           : "/assets/img/all-images/others/others-img1.png"
                       }
                       className="img-fluid"
@@ -179,7 +105,7 @@ export default function Profile1() {
                     />
                   </div>
                   <div className="content uploadfile">
-                    <p>Upload a new poster</p>
+                    <p>{t("upload_new_poster")}</p>
                     <div className="space16" />
                     <div className="box-ip">
                       <input
@@ -190,49 +116,49 @@ export default function Profile1() {
                       />
                     </div>
                     <div className="space16" />
-                    <span>PNG/JPEG (100/100)</span>
+                    <span>{t("png_jpeg")}</span>
                   </div>
                 </div>
                 <div className="space30" />
                 <div className="personal-info-area">
-                  <h3>Upload Profile Photo</h3>
+                  <h3>{t("upload_photo")}</h3>
                   <div className="row">
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>First Name*</h5>
+                        <h5>{t("first_name")}</h5>
                         <div className="space16" />
                         <input
                           type="text"
                           value={firstName!}
                           onChange={(e) => setFirstName(e.target.value)}
-                          placeholder="First Name*"
+                          placeholder={t("first_name")}
                         />
                       </div>
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>Last Name*</h5>
+                        <h5>{t("last_name")}</h5>
                         <div className="space16" />
                         <input
                           type="text"
                           value={lastName!}
                           onChange={(e) => setLastName(e.target.value)}
-                          placeholder="Last Name*"
+                          placeholder={t("last_name")}
                         />
                       </div>
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>Email*</h5>
+                        <h5>{t("email")}</h5>
                         <div className="space16" />
                         <input
                           type="email"
                           value={email!}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Email*"
+                          placeholder={t("email")}
                           disabled
                         />
                       </div>
@@ -240,13 +166,13 @@ export default function Profile1() {
                     <div className="col-lg-4 col-md-6">
                       <div className="space28" />
                       <div className="input-area">
-                        <h5>Phone*</h5>
+                        <h5>{t("phone")}</h5>
                         <div className="space16" />
                         <input
                           type="number"
                           value={phone!}
                           onChange={(e) => setPhone(e.target.value)}
-                          placeholder="Phone*"
+                          placeholder={t("phone")}
                         />
                       </div>
                     </div>
@@ -257,9 +183,9 @@ export default function Profile1() {
                         <button
                           onClick={handleUpdateProfile}
                           className="vl-btn1"
-                          disabled={loading}
+                          disabled={isUpdating}
                         >
-                          {loading ? "Updating..." : "Update Profile"}
+                          {isUpdating ? t("updating") : t("update_profile")}
                           <span className="arrow1 ms-2">
                             <i className="fa-solid fa-arrow-right" />
                           </span>

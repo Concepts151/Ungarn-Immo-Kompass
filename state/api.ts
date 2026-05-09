@@ -4,10 +4,8 @@
 import { GetSellerPropertiesResponse } from "@/app/(dashboard)/my-property/types";
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils";
 import { FiltersState, GetVillagesResponse, Property } from "@/types/api";
-import { createClient } from "@/utils/supabase/client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-const supabase = createClient();
+import { getSession, signOut } from "next-auth/react";
 
 // ============================================
 // TYPES
@@ -59,133 +57,231 @@ interface MatrixRegistrationStats {
   };
 }
 
+export interface Village {
+  id: string;
+  name: string;
+  county: string;
+  population: number;
+  latitude: number;
+  longitude: number;
+  thumbnailUrl: string | null;
+  distance_km?: number;
+}
+
+export interface NearestVillageResponse {
+  success: boolean;
+  data: {
+    villages: Village[];
+    nearestMatch: Village | null;
+    searchParams: {
+      latitude: number;
+      longitude: number;
+      county: string | null;
+      radiusKm: number;
+    };
+  };
+}
+
+export interface SearchVillagesResponse {
+  success: boolean;
+  data: Village[];
+}
+
+export interface VillagesByCountyResponse {
+  success: boolean;
+  data: Village[];
+  count: number;
+}
+
+export interface CountiesResponse {
+  success: boolean;
+  data: Array<{
+    name: string;
+    villageCount: number;
+  }>;
+}
+
+export interface FindNearestVillageParams {
+  lat: number;
+  lng: number;
+  county?: string;
+  radius?: number;
+}
+
+export interface SearchVillagesParams {
+  search?: string;
+  county?: string;
+  limit?: number;
+}
+
+// Full village detail response
+export interface VillageDetail {
+  id: string;
+  name: string;
+  county: string;
+  population: number;
+  description: string;
+  thumbnailUrl: string | null;
+  latitude: number;
+  longitude: number;
+  status: "IN_REVIEW" | "PUBLISHED" | "REJECTED";
+  createdAt: string;
+  updatedAt: string;
+  infrastructure?: {
+    villageId: string;
+    hasGroceryStore: boolean;
+    hasSupermarket: boolean;
+    supermarketName: string | null;
+    storeDistanceKm: number | null;
+    hasWeeklyMarket: boolean;
+    hasBaker: boolean;
+    hasButcher: boolean;
+    hasHouseDoctor: boolean;
+    doctorHours: string | null;
+    doctorGerman: boolean;
+    nextSpecialistKm: number | null;
+    nextHospitalKm: number | null;
+    hasPharmacy: boolean;
+    pharmacyHours: string | null;
+    hasDentist: boolean;
+    dentistGerman: boolean;
+    hasPost: boolean;
+    hasAtm: boolean;
+    hasBank: boolean;
+    bankName: string | null;
+    hasKindergarten: boolean;
+    kindergartenInfo: string | null;
+    hasPrimarySchool: boolean;
+    primarySchoolInfo: string | null;
+    hasSecondarySchool: boolean;
+    secondarySchoolInfo: string | null;
+    restaurantsCount: number;
+    restaurantInfo: string | null;
+  };
+  internet?: {
+    villageId: string;
+    typicalSpeed: number;
+    internetTypes: string[];
+    mobileCoverage: string | null;
+  };
+  transport?: {
+    villageId: string;
+    busRoutes: string;
+    busFrequency: string;
+    trainStation: string | null;
+    trainDistanceKm: number | null;
+    motorwayDistanceKm: number | null;
+  };
+  community?: {
+    villageId: string;
+    germanCommunityCount: number;
+    associations: string;
+    festivals: string;
+    atmosphere: string;
+  };
+  leisure?: {
+    villageId: string;
+    nearLakes: boolean;
+    hikingTrails: boolean;
+    bicyclePaths: boolean;
+    spaDistanceKm: number | null;
+    culturalSites: string;
+    nearestTownDistanceKm: number | null;
+  };
+  links?: {
+    id: string;
+    villageId: string;
+    linkType: "WEBSITE" | "WIKIPEDIA" | "YOUTUBE" | "OTHER";
+    url: string;
+  }[];
+  _translation?: {
+    language: string;
+    applied: boolean;
+  };
+}
+
 // ============================================
 // API DEFINITION
 // ============================================
 
+const baseQuery = fetchBaseQuery({
+  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
+  prepareHeaders: async (headers) => {
+    const session = await getSession();
+    const idToken = (session as any)?.accessToken;
+
+    if (idToken) {
+      headers.set("Authorization", `Bearer ${idToken}`);
+    }
+
+    return headers;
+  },
+});
+
+const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+  let result = await baseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 401) {
+    console.warn("Unauthorized access detected (401). Signing out...");
+    // Clear any local state if needed
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+    await signOut({ callbackUrl: "/" });
+  }
+
+  return result;
+};
+
 export const api = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005",
-    prepareHeaders: async (headers) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const idToken = session?.access_token;
-
-      if (idToken) {
-        headers.set("Authorization", `Bearer ${idToken}`);
-      }
-
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   reducerPath: "api",
   tagTypes: ["Properties", "Favorites", "MatrixRooms"],
   endpoints: (build) => ({
     // ==================== AUTH ENDPOINTS ====================
     getAuthUser: build.query<any, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
-        console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
-
         try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
+          const session = await getSession();
+          if (!session || !session.user) {
+            return { data: null };
+          }
 
-          const { data: supabaseUserData } = await supabase
-            .from("user")
-            .select("*")
-            .eq("id", session?.user.id)
-            .single();
-          console.log("supabaseUserData:", supabaseUserData);
+          const user = session.user as any;
+          const userRole = user.role;
+          const userId = user.id;
 
-          const idToken = session?.access_token;
-          const user = session?.user;
-          const userRole = user?.user_metadata.role;
-          console.log("session:", session);
-
-          // Get avatar URL from Supabase auth user metadata
-          const supabaseAvatarUrl = supabaseUserData?.avatarUrl || null;
-
-          console.log("supabaseAvatarUrl:", supabaseAvatarUrl);
-          
+          console.log("Current NextAuth Session User:", user);
 
           const endpoint =
             userRole === "BUYER"
-              ? `/buyer/${user?.id}`
+              ? `/buyer/${userId}`
               : userRole === "SELLER"
-              ? `/seller/${user?.id}`
-              : "";
-          console.log("endpoint:", endpoint);
-
-          const userNewData = { ...user, ...supabaseUserData };
-          console.log("userNewData:", userNewData);
-
-          let userDetailsResponse = await fetchWithBQ(endpoint);
-          console.log("user:", user);
-          console.log("userDetailsResponse:", userDetailsResponse);
-
-          if (!userDetailsResponse.data) {
-            userDetailsResponse = await createNewUserInDatabase(
-              userNewData,
-              idToken,
-              userRole,
-              fetchWithBQ
-            );
+                ? `/seller/${userId}`
+                : "";
+          
+          if (!endpoint) {
+             return { data: { user } };
           }
 
-          // Sync avatar URL if it changed
-          const userData = userDetailsResponse.data as {
-            id?: string;
-            avatarUrl?: string | null;
-            matrixUserId?: string;
-            matrixPassword?: string;
-          };
-
-          if (supabaseAvatarUrl && userData?.avatarUrl !== supabaseAvatarUrl) {
-            console.log("🔄 Syncing avatar URL from Supabase to database...");
-            console.log("Current DB avatar:", userData?.avatarUrl);
-            console.log("Supabase avatar:", supabaseAvatarUrl);
-
-            try {
-              const updateEndpoint =
-                userRole === "BUYER"
-                  ? `/buyer/${user?.id}`
-                  : userRole === "SELLER"
-                  ? `/seller/${user?.id}`
-                  : "";
-
-              if (updateEndpoint) {
-                const updateResponse = await fetchWithBQ({
-                  url: updateEndpoint,
-                  method: "PUT",
-                  body: { avatarUrl: supabaseAvatarUrl },
-                });
-
-                if (updateResponse.data) {
-                  console.log("✅ Avatar URL synced successfully");
-                  // Update the local data with the new avatar
-                  (userDetailsResponse.data as any).avatarUrl =
-                    supabaseAvatarUrl;
-                }
-              }
-            } catch (avatarError) {
-              console.error("Failed to sync avatar URL:", avatarError);
-            }
+          const userDetailsResponse = await fetchWithBQ(endpoint);
+          
+          if (userDetailsResponse.error && userDetailsResponse.error.status === 401) {
+             // baseQueryWithReauth will handle the logout, but we should return the error here too
+             return { error: userDetailsResponse.error };
           }
 
           // Get Matrix credentials if user has a matrixUserId
           let matrixCredentials = null;
+          const userData = userDetailsResponse.data as any;
 
-          if (userData?.matrixUserId && userData?.matrixPassword) {
+          if (userData?.matrixUserId) {
             try {
               const matrixResponse = await fetchWithBQ({
-                url: "matrix/token", // Updated endpoint path
+                url: "matrix/token",
                 method: "POST",
-                body: {
-                  matrixUserId: userData.matrixUserId,
-                  matrixPassword: userData.matrixPassword,
-                },
+                body: { matrixUserId: userData.matrixUserId },
               });
 
               if (matrixResponse.data) {
@@ -198,7 +294,7 @@ export const api = createApi({
 
           return {
             data: {
-              user: userDetailsResponse.data,
+              user: userData || user,
               userRole: userRole,
               matrix: matrixCredentials,
             },
@@ -244,12 +340,24 @@ export const api = createApi({
     }),
 
     getProperties: build.query<
-      Property[],
-      Partial<FiltersState & { favoriteIds?: number[] }>
+      {
+        data: Property[];
+        pagination: {
+          currentPage: number;
+          itemsPerPage: number;
+          totalItems: number;
+          totalPages: number;
+          hasNextPage: boolean;
+          hasPreviousPage: boolean;
+        };
+      },
+      Partial<
+        FiltersState & { favoriteIds?: number[]; page?: number; limit?: number }
+      >
     >({
       query: (filters) => {
         const params = cleanParams({
-          Location: filters.location,
+          location: filters.location,
           priceMin: filters.priceRange?.[0],
           priceMax: filters.priceRange?.[1],
           bedrooms: filters.beds,
@@ -259,13 +367,22 @@ export const api = createApi({
           livingAreaMax: filters.squareFeet?.[1],
           latitude: filters.coordinates?.[1],
           longitude: filters.coordinates?.[0],
+          village: (filters as any).village,
+          status: (filters as any).status || "PUBLISHED", // Default to PUBLISHED for web listing
+          page: filters.page || 1,
+          limit: filters.limit || 12,
         });
 
         return { url: "properties", params };
       },
       providesTags: (result) =>
-        result
-          ? [...result.map(({ id }) => ({ type: "Properties" as const, id }))]
+        result?.data
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: "Properties" as const,
+                id,
+              })),
+            ]
           : [{ type: "Properties", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         await withToast(queryFulfilled, {
@@ -274,11 +391,38 @@ export const api = createApi({
       },
     }),
 
-    getProperty: build.query<Property, string>({
-      query: (id) => `properties/${id}`,
-      providesTags: (result, error, id) => [
-        { type: "Properties", id: result?.id },
+    updateUser: build.mutation<any, { userId: string; data: any; role: string }>({
+      query: ({ userId, data, role }) => ({
+        url: role === "SELLER" ? `seller/${userId}` : `buyer/${userId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "Properties", id: userId }, // Invalidate properties related to user
       ],
+    }),
+
+    extractDocument: build.mutation<any, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("document", file);
+        return {
+          url: "properties/extract-document",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
+
+    getProperty: build.query<Property, { id: string; lang?: string }>({
+      query: ({ id, lang }) => ({
+        url: `properties/${id}`,
+        params: lang ? { lang } : undefined,
+      }),
+      providesTags: (result, error, { id, lang }) => [
+        { type: "Properties", id: `${result?.id}_${lang || "default"}` },
+      ],
+      keepUnusedDataFor: 300, // Keep cached translations for 5 minutes
     }),
 
     getSellerProperties: build.query<GetSellerPropertiesResponse, string>({
@@ -292,7 +436,10 @@ export const api = createApi({
       query: () => `property-type/stats`,
       providesTags: (result) => [{ type: "Properties", id: "PROPERTY_TYPES" }],
     }),
-    getVillages: build.query<GetVillagesResponse, { county?: string; search?: string; limit?: number }>({
+    getVillages: build.query<
+      GetVillagesResponse,
+      { county?: string; search?: string; limit?: number }
+    >({
       query: (params) => {
         const queryParams = cleanParams(params);
         return { url: "villages", params: queryParams };
@@ -343,7 +490,7 @@ export const api = createApi({
       ],
       async onQueryStarted(
         { userId, propertyId },
-        { dispatch, queryFulfilled }
+        { dispatch, queryFulfilled },
       ) {
         const patchResult = dispatch(
           api.util.updateQueryData("getFavoriteIds", userId, (draft) => {
@@ -353,7 +500,7 @@ export const api = createApi({
             } else {
               draft.favoriteIds.push(propertyId);
             }
-          })
+          }),
         );
 
         try {
@@ -506,6 +653,151 @@ export const api = createApi({
         body: { matrixUserIds },
       }),
     }),
+
+    // Notify backend of a new message (for email notifications)
+    notifyNewMatrixMessage: build.mutation<
+      { success: boolean; notificationsSent: number },
+      { roomId: string; message: string; senderMatrixId: string }
+    >({
+      query: ({ roomId, message, senderMatrixId }) => ({
+        url: "matrix/notify",
+        method: "POST",
+        body: { roomId, message, senderMatrixId },
+      }),
+    }),
+
+    // ==================== TRANSLATION ENDPOINTS ====================
+    // Translate single message
+    translateMessage: build.mutation<
+      {
+        success: boolean;
+        data: {
+          originalText: string;
+          translatedText: string;
+          detectedLanguage: string;
+          targetLanguage: string;
+        };
+      },
+      { text: string; targetLanguage: string; sourceLanguage?: string }
+    >({
+      query: ({ text, targetLanguage, sourceLanguage }) => ({
+        url: "translation/translate",
+        method: "POST",
+        body: { text, targetLanguage, sourceLanguage },
+      }),
+    }),
+
+    // Translate to multiple languages
+    translateToMultiple: build.mutation<
+      {
+        success: boolean;
+        data: {
+          originalText: string;
+          detectedLanguage: string;
+          translations: Record<string, string>;
+        };
+      },
+      { text: string; targetLanguages: string[]; sourceLanguage?: string }
+    >({
+      query: ({ text, targetLanguages, sourceLanguage }) => ({
+        url: "translation/translate-multiple",
+        method: "POST",
+        body: { text, targetLanguages, sourceLanguage },
+      }),
+    }),
+
+    // Detect language
+    detectLanguage: build.mutation<
+      {
+        success: boolean;
+        data: {
+          text: string;
+          detectedLanguage: string;
+          supportedLanguages: string[];
+        };
+      },
+      { text: string }
+    >({
+      query: ({ text }) => ({
+        url: "translation/detect",
+        method: "POST",
+        body: { text },
+      }),
+    }),
+
+    // Get supported languages
+    getSupportedLanguages: build.query<
+      {
+        success: boolean;
+        data: {
+          languages: string[];
+          languageNames: Record<string, string>;
+        };
+      },
+      void
+    >({
+      query: () => "translation/languages",
+    }),
+
+    // ==================== VILLAGE ENDPOINTS ====================
+    findNearestVillage: build.query<
+      NearestVillageResponse,
+      FindNearestVillageParams
+    >({
+      query: ({ lat, lng, county, radius = 5 }) => ({
+        url: "village/nearest",
+        params: { lat, lng, county, radius },
+      }),
+      providesTags: [{ type: "Properties", id: "NEAREST_VILLAGE" }],
+    }),
+
+    searchVillages: build.query<SearchVillagesResponse, SearchVillagesParams>({
+      query: ({ search, county, limit = 20 }) => ({
+        url: "village/search",
+        params: { search, county, limit },
+      }),
+      providesTags: [{ type: "Properties", id: "SEARCH_VILLAGES" }],
+    }),
+
+    getVillagesByCounty: build.query<VillagesByCountyResponse, string>({
+      query: (county) => `village/by-county/${encodeURIComponent(county)}`,
+      providesTags: (result, error, county) => [
+        { type: "Properties", id: `VILLAGES_${county}` },
+      ],
+    }),
+
+    getVillage: build.query<
+      { success: boolean; village: VillageDetail },
+      { id: string; lang?: string }
+    >({
+      query: ({ id, lang }) => ({
+        url: `villages/${id}`,
+        params: lang ? { lang } : undefined,
+      }),
+      providesTags: (result, error, { id, lang }) => [
+        { type: "Properties", id: `VILLAGE_${id}_${lang || "default"}` },
+      ],
+      keepUnusedDataFor: 300, // Keep cached translations for 5 minutes
+    }),
+
+    getCountiesWithVillages: build.query<CountiesResponse, void>({
+      query: () => "village/counties",
+      providesTags: [{ type: "Properties", id: "COUNTIES" }],
+    }),
+
+    // ==================== REGION DISCOVERY ENDPOINTS ====================
+    lookupZip: build.query<
+      {
+        id: string;
+        zip: string;
+        city: string;
+        regionId: number;
+        region: any;
+      }[],
+      string
+    >({
+      query: (zip) => `regions/lookup/${zip}`,
+    }),
   }),
 });
 
@@ -516,6 +808,7 @@ export const api = createApi({
 export const {
   // Auth
   useGetAuthUserQuery,
+  useUpdateUserMutation,
 
   // Properties
   useGetPropertiesQuery,
@@ -525,6 +818,7 @@ export const {
   useGetPropertyTypesQuery,
   useUpdatePropertyMutation,
   useGetVillagesQuery,
+  useExtractDocumentMutation,
 
   // Favorites
   useGetFavoritesQuery,
@@ -542,4 +836,22 @@ export const {
   useCreateDirectMessageRoomMutation,
   useGetMatrixStatsQuery,
   useLookupMatrixUsersMutation,
+  useNotifyNewMatrixMessageMutation,
+
+  // Translation
+  useTranslateMessageMutation,
+  useTranslateToMultipleMutation,
+  useDetectLanguageMutation,
+  useGetSupportedLanguagesQuery,
+
+  // Villages
+  useFindNearestVillageQuery,
+  useSearchVillagesQuery,
+  useGetVillagesByCountyQuery,
+  useGetVillageQuery,
+  useGetCountiesWithVillagesQuery,
+
+  // Regions
+  useLookupZipQuery,
+  useLazyLookupZipQuery,
 } = api;

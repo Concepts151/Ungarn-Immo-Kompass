@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 10px 10px;
   background: white;
   border: 2px solid transparent;
   border-radius: 30px;
@@ -16,7 +16,7 @@
   font-weight: 500;
   color: #333;
   transition: all 0.2s ease;
-  min-width: 140px;
+  /* min-width: 140px; */
   justify-content: space-between;
 }
 

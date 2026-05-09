@@ -6,6 +6,7 @@ import React from 'react'
 import { useParams } from "next/navigation";
 import { useGetPropertyQuery } from '@/state/api'
 import PropertyInner from '@/components/sections/PropertyInner'
+import { useLocale, useTranslations } from 'next-intl'
 
 export interface Expose {
   id: string;
@@ -119,26 +120,31 @@ export interface Expose {
 
 const PropertyPage = () => {
     const { id } = useParams();
+    const locale = useLocale();
+    const t = useTranslations("PropertyDetails");
     // Ensure id is a string
     const propertyId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : '';
-    const { data: property, error, isLoading } = useGetPropertyQuery(propertyId);
-    console.log("property details:", property);
+    const { data: property, error, isLoading, isFetching } = useGetPropertyQuery(
+      { id: propertyId, lang: locale },
+      { refetchOnMountOrArgChange: true } // Refetch when locale changes
+    );
+    console.log("property details:", property, "locale:", locale);
 
-    if  (isLoading) {
-        return <div>Loading...</div>;
+    if  (isLoading || (isFetching && !property)) {
+        return <div>{t("loading")}</div>;
     }
 
     if (error) {
-        return <div>Error loading property details.</div>;
-    }   
+        return <div>{t("error_loading")}</div>;
+    }
 
     if (!property) {
-        return <div>No property data available.</div>;
+        return <div>{t("no_data")}</div>;
     }
   return (
     <>
       <Layout headerStyle={5}>
-        <InnerHeader title="property details" currentpage="Property details" />
+        <InnerHeader title={t("page_title")} currentpage={t("page_title")} />
         <PropertiesDetails property={property}/>
         <PropertyInner block_extend="d-block" property={property}/>
         {/* <pre>{JSON.stringify(property, null,2)}</pre> */}

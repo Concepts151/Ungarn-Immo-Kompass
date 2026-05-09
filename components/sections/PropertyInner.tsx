@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Expose } from "@/app/(nondashboard)/property/[id]/page";
 import dynamic from "next/dynamic";
 import VillageSection from "@/app/(nondashboard)/property/components/village-section";
+import { useTranslations } from "next-intl";
 
 // Dynamically import ContactSeller with no SSR
 const ContactSeller = dynamic(
@@ -46,6 +47,9 @@ export default function PropertyInner({
   block_extend,
   property,
 }: PropertyInnerProps) {
+  const t = useTranslations("PropertyDetails");
+  const tCommon = useTranslations("Common");
+
   // Extract seller information
   const seller = property.seller;
   const sellerName = `${seller.firstName} ${seller.lastName}`;
@@ -124,7 +128,7 @@ export default function PropertyInner({
                         {/* About This Property */}
                         {(property.basic as any).description && (
                           <>
-                            <h3>About This Property</h3>
+                            <h3>{t("about_property")}</h3>
                             <div className="space24" />
                             <p>{(property.basic as any).description}</p>
                           </>
@@ -132,7 +136,7 @@ export default function PropertyInner({
                         <div className="space30" />
 
                         {/* Property Overview */}
-                        <h3>Property Overview</h3>
+                        <h3>{t("property_overview")}</h3>
                         <div className="space12" />
                         <div className="row">
                           <div className="col-lg-6">
@@ -140,7 +144,7 @@ export default function PropertyInner({
                               <img src="/assets/img/icons/check1.svg" alt="check" />
                               <div className="text">
                                 <p>
-                                  <span>Property Type:</span> {property.basic.propertyType}
+                                  <span>{t("property_type")}:</span> {property.basic.propertyType}
                                 </p>
                               </div>
                             </div>
@@ -150,7 +154,7 @@ export default function PropertyInner({
                               <img src="/assets/img/icons/check1.svg" alt="check" />
                               <div className="text">
                                 <p>
-                                  <span>Build Year:</span> {property.basic.buildYear}
+                                  <span>{t("build_year")}:</span> {property.basic.buildYear}
                                 </p>
                               </div>
                             </div>
@@ -160,7 +164,7 @@ export default function PropertyInner({
                               <img src="/assets/img/icons/check1.svg" alt="check" />
                               <div className="text">
                                 <p>
-                                  <span>Living Area:</span> {property.basic.livingArea} sqft
+                                  <span>{t("living_area")}:</span> {property.basic.livingArea} {t("sqft")}
                                 </p>
                               </div>
                             </div>
@@ -170,7 +174,7 @@ export default function PropertyInner({
                               <img src="/assets/img/icons/check1.svg" alt="check" />
                               <div className="text">
                                 <p>
-                                  <span>Lot Size:</span> {property.basic.lotSize} sqft
+                                  <span>{t("lot_size")}:</span> {property.basic.lotSize} {t("sqft")}
                                 </p>
                               </div>
                             </div>
@@ -180,7 +184,7 @@ export default function PropertyInner({
                               <img src="/assets/img/icons/check1.svg" alt="check" />
                               <div className="text">
                                 <p>
-                                  <span>Rooms:</span> {property.basic.rooms}
+                                  <span>{t("rooms")}:</span> {property.basic.rooms}
                                 </p>
                               </div>
                             </div>
@@ -191,7 +195,7 @@ export default function PropertyInner({
                                 <img src="/assets/img/icons/check1.svg" alt="check" />
                                 <div className="text">
                                   <p>
-                                    <span>Last Renovation:</span> {property.basic.lastRenovation}
+                                    <span>{t("last_renovation")}:</span> {property.basic.lastRenovation}
                                   </p>
                                 </div>
                               </div>
@@ -204,7 +208,7 @@ export default function PropertyInner({
                         {/* Property Details Section */}
                         {property.details && (
                           <>
-                            <h3>Property Details</h3>
+                            <h3>{t("property_details")}</h3>
                             <div className="space12" />
                             <div className="row">
                               {property.details.material && (
@@ -213,7 +217,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Material:</span> {property.details.material}
+                                        <span>{t("material")}:</span> {property.details.material}
                                       </p>
                                     </div>
                                   </div>
@@ -225,7 +229,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Roof:</span> {property.details.roofType} ({property.details.roofCondition})
+                                        <span>{t("roof")}:</span> {property.details.roofType} ({property.details.roofCondition})
                                       </p>
                                     </div>
                                   </div>
@@ -237,7 +241,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Insulation:</span> {property.details.insulation}
+                                        <span>{t("insulation")}:</span> {property.details.insulation}
                                       </p>
                                     </div>
                                   </div>
@@ -249,8 +253,8 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Windows:</span> {property.details.windows}
-                                        {property.details.windowsAge && ` (${property.details.windowsAge} years old)`}
+                                        <span>{t("windows")}:</span> {property.details.windows}
+                                        {property.details.windowsAge && ` (${property.details.windowsAge} ${t("years_old")})`}
                                       </p>
                                     </div>
                                   </div>
@@ -261,7 +265,7 @@ export default function PropertyInner({
                                   <img src="/assets/img/icons/check1.svg" alt="check" />
                                   <div className="text">
                                     <p>
-                                      <span>Roller Shutters:</span> {property.details.hasRollerShutters ? "Yes" : "No"}
+                                      <span>{t("roller_shutters")}:</span> {property.details.hasRollerShutters ? t("yes") : t("no")}
                                     </p>
                                   </div>
                                 </div>
@@ -272,7 +276,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Heating:</span> {property.details.heatingType} ({property.details.heatingCondition})
+                                        <span>{t("heating")}:</span> {property.details.heatingType} ({property.details.heatingCondition})
                                       </p>
                                     </div>
                                   </div>
@@ -284,7 +288,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Internet:</span> {property.details.internetType} ({property.details.internetSpeed} Mbps)
+                                        <span>{t("internet")}:</span> {property.details.internetType} ({property.details.internetSpeed} Mbps)
                                       </p>
                                     </div>
                                   </div>
@@ -294,7 +298,7 @@ export default function PropertyInner({
                             <div className="space30" />
 
                             {/* Energy & Utilities Section */}
-                            <h3>Energy & Utilities</h3>
+                            <h3>{t("energy_utilities")}</h3>
                             <div className="space12" />
                             <div className="row">
                               <div className="col-lg-6">
@@ -302,7 +306,7 @@ export default function PropertyInner({
                                   <img src="/assets/img/icons/check1.svg" alt="check" />
                                   <div className="text">
                                     <p>
-                                      <span>Electric Condition:</span> {property.details.electricCondition}
+                                      <span>{t("electric_condition")}:</span> {property.details.electricCondition}
                                     </p>
                                   </div>
                                 </div>
@@ -312,7 +316,7 @@ export default function PropertyInner({
                                   <img src="/assets/img/icons/check1.svg" alt="check" />
                                   <div className="text">
                                     <p>
-                                      <span>Water Condition:</span> {property.details.waterCondition}
+                                      <span>{t("water_condition")}:</span> {property.details.waterCondition}
                                     </p>
                                   </div>
                                 </div>
@@ -322,7 +326,7 @@ export default function PropertyInner({
                                   <img src="/assets/img/icons/check1.svg" alt="check" />
                                   <div className="text">
                                     <p>
-                                      <span>Energy Certificate:</span> {property.details.energyCertificate ? "Yes" : "No"}
+                                      <span>{t("energy_certificate")}:</span> {property.details.energyCertificate ? t("yes") : t("no")}
                                     </p>
                                   </div>
                                 </div>
@@ -333,7 +337,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Energy Class:</span> {property.details.energyClass}
+                                        <span>{t("energy_class")}:</span> {property.details.energyClass}
                                       </p>
                                     </div>
                                   </div>
@@ -345,7 +349,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Energy Consumption:</span> {property.details.energyConsumption} kWh/m²
+                                        <span>{t("energy_consumption")}:</span> {property.details.energyConsumption} kWh/m²
                                       </p>
                                     </div>
                                   </div>
@@ -359,7 +363,7 @@ export default function PropertyInner({
                         {/* Monthly Costs Section */}
                         {monthlyCosts && totalMonthlyCosts > 0 && (
                           <>
-                            <h3>Monthly Costs</h3>
+                            <h3>{t("monthly_costs")}</h3>
                             <div className="space12" />
                             <div className="row">
                               {monthlyCosts.electricity > 0 && (
@@ -368,7 +372,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Electricity:</span> {formatCurrency(monthlyCosts.electricity, property.basic.currency)}
+                                        <span>{t("electricity")}:</span> {formatCurrency(monthlyCosts.electricity, property.basic.currency)}
                                       </p>
                                     </div>
                                   </div>
@@ -380,7 +384,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Water:</span> {formatCurrency(monthlyCosts.water, property.basic.currency)}
+                                        <span>{t("water")}:</span> {formatCurrency(monthlyCosts.water, property.basic.currency)}
                                       </p>
                                     </div>
                                   </div>
@@ -392,7 +396,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Gas:</span> {formatCurrency(monthlyCosts.gas, property.basic.currency)}
+                                        <span>{t("gas")}:</span> {formatCurrency(monthlyCosts.gas, property.basic.currency)}
                                       </p>
                                     </div>
                                   </div>
@@ -404,7 +408,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Trash:</span> {formatCurrency(monthlyCosts.trash, property.basic.currency)}
+                                        <span>{t("trash")}:</span> {formatCurrency(monthlyCosts.trash, property.basic.currency)}
                                       </p>
                                     </div>
                                   </div>
@@ -416,7 +420,7 @@ export default function PropertyInner({
                                     <img src="/assets/img/icons/check1.svg" alt="check" />
                                     <div className="text">
                                       <p>
-                                        <span>Tax:</span> {formatCurrency(monthlyCosts.tax, property.basic.currency)}
+                                        <span>{t("tax")}:</span> {formatCurrency(monthlyCosts.tax, property.basic.currency)}
                                       </p>
                                     </div>
                                   </div>
@@ -427,7 +431,7 @@ export default function PropertyInner({
                                   <img src="/assets/img/icons/check1.svg" alt="check" />
                                   <div className="text">
                                     <p>
-                                      <span>Total:</span> <strong>{formatCurrency(totalMonthlyCosts, property.basic.currency)}/month</strong>
+                                      <span>{t("total")}:</span> <strong>{formatCurrency(totalMonthlyCosts, property.basic.currency)}/{t("month")}</strong>
                                     </p>
                                   </div>
                                 </div>
@@ -440,7 +444,7 @@ export default function PropertyInner({
                         {/* Property Condition Section */}
                         {property.condition && (
                           <>
-                            <h3>Property Condition</h3>
+                            <h3>{t("property_condition")}</h3>
                             <div className="space12" />
                             <div className="row">
                               <div className="col-lg-4 col-md-6 mb-3">
@@ -453,7 +457,7 @@ export default function PropertyInner({
                                   }}
                                 >
                                   <p style={{ marginBottom: "8px", fontWeight: "600" }}>
-                                    Structure Rating
+                                    {t("structure_rating")}
                                   </p>
                                   <div>{renderStarRating(property.condition.structureRating)}</div>
                                 </div>
@@ -468,7 +472,7 @@ export default function PropertyInner({
                                   }}
                                 >
                                   <p style={{ marginBottom: "8px", fontWeight: "600" }}>
-                                    Electric Rating
+                                    {t("electric_rating")}
                                   </p>
                                   <div>{renderStarRating(property.condition.electricRating)}</div>
                                 </div>
@@ -483,7 +487,7 @@ export default function PropertyInner({
                                   }}
                                 >
                                   <p style={{ marginBottom: "8px", fontWeight: "600" }}>
-                                    Heating Rating
+                                    {t("heating_rating")}
                                   </p>
                                   <div>{renderStarRating(property.condition.heatingRating)}</div>
                                 </div>
@@ -494,7 +498,7 @@ export default function PropertyInner({
                                 <img src="/assets/img/icons/check1.svg" alt="check" />
                                 <div className="text">
                                   <p>
-                                    <span>Damage Description:</span> {property.condition.damageDescription}
+                                    <span>{t("damage_description")}:</span> {property.condition.damageDescription}
                                   </p>
                                 </div>
                               </div>
@@ -504,7 +508,7 @@ export default function PropertyInner({
                                 <img src="/assets/img/icons/check1.svg" alt="check" />
                                 <div className="text">
                                   <p>
-                                    <span>Renovation Needed:</span> {property.condition.renovationNeeded}
+                                    <span>{t("renovation_needed")}:</span> {property.condition.renovationNeeded}
                                   </p>
                                 </div>
                               </div>
@@ -514,7 +518,7 @@ export default function PropertyInner({
                                 <img src="/assets/img/icons/check1.svg" alt="check" />
                                 <div className="text">
                                   <p>
-                                    <span>Additional Notes:</span> {property.condition.additionalNotes}
+                                    <span>{t("additional_notes")}:</span> {property.condition.additionalNotes}
                                   </p>
                                 </div>
                               </div>
@@ -526,7 +530,7 @@ export default function PropertyInner({
                         {/* Garden Description */}
                         {property.details?.gardenDesc && (
                           <>
-                            <h3>Garden & Outdoor</h3>
+                            <h3>{t("garden_outdoor")}</h3>
                             <div className="space12" />
                             <p>{property.details.gardenDesc}</p>
                             <div className="space30" />
@@ -534,7 +538,7 @@ export default function PropertyInner({
                         )}
 
                         {/* Property Gallery */}
-                        <h3>Property Gallery, Explore The Space</h3>
+                        <h3>{t("property_gallery")}</h3>
                         <div className="space32" />
                         {photos.length > 0 ? (
                           <>
@@ -603,7 +607,7 @@ export default function PropertyInner({
                             </div>
                           </>
                         ) : (
-                          <p>No photos available for this property.</p>
+                          <p>{t("no_photos")}</p>
                         )}
                         <div className="space30" />
 
@@ -616,7 +620,7 @@ export default function PropertyInner({
                         {property.floorplans && property.floorplans.length > 0 && (
                           <>
                             <div className="space30" />
-                            <h3>Floor Plans</h3>
+                            <h3>{t("floor_plans")}</h3>
                             <div className="space32" />
                             <div
                               className="accordion accordion-flush"
@@ -633,7 +637,7 @@ export default function PropertyInner({
                                       aria-expanded={index === 0 ? "true" : "false"}
                                       aria-controls={`flush-collapse${index}`}
                                     >
-                                      <span>Floor Plan {index + 1}</span>
+                                      <span>{t("floor_plan")} {index + 1}</span>
                                       <span className="list">
                                         <span>
                                           <svg
@@ -656,7 +660,7 @@ export default function PropertyInner({
                                               strokeLinejoin="round"
                                             />
                                           </svg>
-                                          {property.basic.livingArea} sqft
+                                          {property.basic.livingArea} {t("sqft")}
                                         </span>
                                         <span>
                                           <svg
@@ -693,7 +697,7 @@ export default function PropertyInner({
                                               strokeLinecap="round"
                                             />
                                           </svg>
-                                          {property.basic.bedrooms} Beds
+                                          {property.basic.bedrooms} {tCommon("beds")}
                                         </span>
                                         <span>
                                           <svg
@@ -735,7 +739,7 @@ export default function PropertyInner({
                                               strokeLinecap="round"
                                             />
                                           </svg>
-                                          {property.basic.bathrooms} Baths
+                                          {property.basic.bathrooms} {tCommon("baths")}
                                         </span>
                                       </span>
                                     </button>
@@ -766,34 +770,31 @@ export default function PropertyInner({
                         )}
 
                         <div className="space30" />
-                        <h3>Schedule A Viewing Book a Tour Today!</h3>
+                        <h3>{t("schedule_viewing")}</h3>
                         <div className="space24" />
                         <p>
-                          Interested in this property? Contact us today to
-                          schedule a viewing and experience it for yourself. Our
-                          real estate experts are here to guide you every step
-                          of the way.
+                          {t("schedule_viewing_text")}
                         </p>
                         <div className="space32" />
                         <div className="contact-boxarea ms-0">
-                          <h3>Get In Touch Now</h3>
+                          <h3>{t("get_in_touch")}</h3>
                           <div className="space8" />
                           <div className="row">
                             <div className="col-lg-6">
                               <div className="input-area">
-                                <input type="text" placeholder="Your Name" />
+                                <input type="text" placeholder={t("your_name")} />
                               </div>
                             </div>
                             <div className="col-lg-6">
                               <div className="input-area">
-                                <input type="text" placeholder="Last Name" />
+                                <input type="text" placeholder={t("last_name")} />
                               </div>
                             </div>
                             <div className="col-lg-6">
                               <div className="input-area">
                                 <input
                                   type="number"
-                                  placeholder="Phone Number "
+                                  placeholder={t("phone_number")}
                                 />
                               </div>
                             </div>
@@ -801,14 +802,14 @@ export default function PropertyInner({
                               <div className="input-area">
                                 <input
                                   type="email"
-                                  placeholder="Email Address"
+                                  placeholder={t("email_address")}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-12">
                               <div className="input-area">
                                 <textarea
-                                  placeholder="Your Message"
+                                  placeholder={t("your_message")}
                                   defaultValue={""}
                                 />
                               </div>
@@ -817,7 +818,7 @@ export default function PropertyInner({
                               <div className="space4" />
                               <div className="input-area">
                                 <button type="submit" className="vl-btn1">
-                                  Submit Now
+                                  {t("submit_now")}
                                   <span className="arrow1 ms-2">
                                     <i className="fa-solid fa-arrow-right" />
                                   </span>
@@ -849,7 +850,7 @@ export default function PropertyInner({
                             </svg>
                           </span>
                           <div className="text">
-                            <p>Seller Email</p>
+                            <p>{t("seller_email")}</p>
                             <div className="space8" />
                             <Link href={`mailto:${seller.email}`}>
                               {seller.email}
@@ -876,7 +877,7 @@ export default function PropertyInner({
                               </svg>
                             </span>
                             <div className="text">
-                              <p>Call Seller</p>
+                              <p>{t("call_seller")}</p>
                               <div className="space8" />
                               <Link href={`tel:${seller.phone}`}>
                                 {seller.phone}
@@ -902,7 +903,7 @@ export default function PropertyInner({
                             </svg>
                           </span>
                           <div className="text">
-                            <p>Property Location</p>
+                            <p>{t("property_location")}</p>
                             <div className="space8" />
                             <Link href="#">
                               {property.basic.address}, {property.basic.city},{" "}
@@ -916,7 +917,7 @@ export default function PropertyInner({
                       <>
                         <div className="space30" />
                         <div className="bg1-property">
-                          <h3>Map Location</h3>
+                          <h3>{t("map_location")}</h3>
                           <div className="space32" />
                           <div className="map-section">
                             {property.location ? (
@@ -944,21 +945,21 @@ export default function PropertyInner({
                             <div className="list">
                               <ul>
                                 <li>
-                                  <span>Address:</span>
+                                  <span>{t("address")}:</span>
                                   <div>{property.basic.address}</div>
                                 </li>
                                 <li>
-                                  <span>City:</span>
+                                  <span>{t("city")}:</span>
                                   <div>{property.basic.city}</div>
                                 </li>
                               </ul>
                               <ul className="m-0 ">
                                 <li>
-                                  <span>Postal Code:</span>
+                                  <span>{t("postal_code")}:</span>
                                   <div>{property.basic.postalCode}</div>
                                 </li>
                                 <li>
-                                  <span>County:</span>
+                                  <span>{t("county")}:</span>
                                   <div>{property.basic.county}</div>
                                 </li>
                               </ul>

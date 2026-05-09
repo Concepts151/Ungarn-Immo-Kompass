@@ -30,7 +30,7 @@ export const createWelcomeEmail = (name: string) => ({
     <img
       alt=""
       style="height: 50px; width: auto"
-      src="https://ungarn-immo-kompass.vercel.app/assets/img/logo/Ungarn-Immo-Full.png"
+      src="https://wz0varc9o3.ufs.sh/f/TAzAL7HJ3lsfK70X9kqHwd2Lju7pmDaERYli0BA1yUZ9f3q4"
     />
   </div>
   <div class="" style="background: #e9ecef; padding: 20px">

@@ -1,6 +1,7 @@
 import React from "react";
-import { Video, Phone, LogOut } from "lucide-react";
+import { Video, Phone, LogOut, ChevronLeft } from "lucide-react";
 import "./css/roomheader.css";
+import LanguageSelector from "@/components/chat/LanguageSelector";
 
 interface RoomHeaderProps {
   room: any;
@@ -10,6 +11,7 @@ interface RoomHeaderProps {
   onVoiceCall?: () => void;
   getUserDisplayName?: (matrixUserId: string) => string;
   getUserAvatar?: (matrixUserId: string) => string | null;
+  onBack?: () => void;
 }
 
 const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -20,16 +22,18 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
   onVoiceCall,
   getUserDisplayName,
   getUserAvatar,
+  onBack,
 }) => {
   const roomName = room?.name || "Chat";
   
   // Get other participant's info for display (exclude admin)
   const getOtherParticipantInfo = (): { name: string; avatarUrl: string | null } | null => {
     if (!room) return null;
-    
+
     try {
       const members = room.getJoinedMembers?.() || [];
       const myUserId = room.myUserId;
+
       // Filter out: current user, and admin users (those with "admin" in their Matrix ID)
       const otherMember = members.find((m: any) => {
         const memberId = m.userId || "";
@@ -37,20 +41,21 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
         const isAdmin = memberId.toLowerCase().includes("admin");
         return !isMe && !isAdmin;
       });
-      
+
       if (!otherMember) return null;
-      
+
       // Use getUserDisplayName and getUserAvatar if available
-      const name = getUserDisplayName 
+      const name = getUserDisplayName
         ? getUserDisplayName(otherMember.userId)
         : otherMember?.name || otherMember?.userId?.split(":")[0]?.replace("@", "")?.replace("immo_", "");
-      
-      const avatarUrl = getUserAvatar 
+
+      const avatarUrl = getUserAvatar
         ? getUserAvatar(otherMember.userId)
         : null;
-      
+
       return { name, avatarUrl };
-    } catch {
+    } catch (error) {
+      console.error("[RoomHeader] Error getting other participant:", error);
       return null;
     }
   };
@@ -60,6 +65,15 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
   return (
     <div className="room-header">
       <div className="room-header-info">
+        {onBack && (
+          <button 
+            onClick={onBack} 
+            className="room-header-back-btn mobile-only"
+            aria-label="Back to conversations"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
         <div className="room-header-avatar">
           {otherParticipant?.avatarUrl ? (
             <img 
@@ -83,6 +97,9 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
       </div>
 
       <div className="room-header-actions">
+        {/* Language Selector */}
+        <LanguageSelector />
+
         {/* Voice Call Button */}
         {onVoiceCall && (
           <button

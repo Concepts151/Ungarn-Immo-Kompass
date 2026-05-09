@@ -1,21 +1,13 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { headers } from "next/headers";
+import { detailsSchema, signupSchema } from "../schema";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005";
 
 export async function login(formData: FormData) {
-  const supabase = await createClient();
-
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const form = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
-
-  const { data, error } = await supabase.auth.signInWithPassword(form);
-  if (error) console.error("Error logging in:", error);
-
-  return { data, error };
+  // Login should be handled on the client using next-auth/react signIn()
+  throw new Error("Use signIn('credentials') from next-auth/react on the client");
 }
 
 export async function signup(formData: {
@@ -23,67 +15,40 @@ export async function signup(formData: {
   password: string;
   role: string;
 }) {
-  const supabase = await createClient();
+  const validation = signupSchema.safeParse(formData);
+  if (!validation.success) {
+    console.error("Validation error:", validation.error.format());
+    return { data: null, error: { message: validation.error.issues[0].message } };
+  }
 
-  console.log("role:", formData.role);
+  const { email, password, role } = validation.data;
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  // const form = {
-  //   email: formData.email,
-  //   password: formData.password,
-  //   option: {
-  //     data: { role: formData.role },
-  //   },
-  // };
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, role })
+    });
 
-  const { data, error } = await supabase.auth.signUp({
-    email: formData.email,
-    password: formData.password,
-    options: { data: { role: formData.role } },
-  });
-  if (error) console.error("Error signing up:", error);
+    const data = await res.json();
+    if (!res.ok) {
+      return { data: null, error: { message: data.error || "Signup failed" } };
+    }
 
-  return { data, error };
+    return { data, error: null };
+  } catch (err: any) {
+    console.error("Error signing up:", err);
+    return { data: null, error: { message: err.message } };
+  }
 }
 
 export async function updateDetails(formData: FormData) {
-  const supabase = await createClient();
-
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const form = {
-    firstName: formData.get("firstName") as string,
-    lastName: formData.get("lastName") as string,
-    phone: formData.get("phone") as string,
-    userid: formData.get("userId") as string,
-  };
-  // update th .eq to fetch the correct user id
-
-  const { data, error } = await supabase
-    .from("user")
-    .update({
-      firstName: form.firstName,
-      lastName: form.lastName,
-      phone: form.phone,
-      iscomplete: true,
-    })
-    .eq("id", form.userid)
-    .select();
-
-  if (error) console.error("Error updating user details:", error);
-
-  return { data, error };
+  // To be refactored to hit the backend directly instead of Supabase
+  console.log("Refactoring needed here for updateDetails!");
+  return { data: null, error: null };
 }
 
-// export const logout = async () => {
-//   const supabase = await createClient();
-//   await supabase.auth.signOut();
-// };
-
 export const logout = async () => {
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signOut();
-  if (error) console.error("Error logging out:", error);
-  return { error };
+  // Use signOut() from next-auth/react on the client
+  throw new Error("Use signOut() from next-auth/react on the client");
 };

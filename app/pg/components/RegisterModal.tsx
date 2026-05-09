@@ -1,13 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import { signup, updateDetails } from "../action";
+import { signup } from "../action";
 import { AtSign, Eye, EyeOff, Lock, Phone, User } from "lucide-react";
 import { useSessionStore, useToggleModal } from "@/app/store";
 import { setOpenAvatarModal, switchToLoginModal } from "./gobalActions";
 import ProfileImageUpload from "./AvatarUpload";
 import { CustomSelect } from "@/components/custom-comp/micro/custom-select";
+import { signIn, useSession } from "next-auth/react";
 
 type RoleOptions = "BUYER" | "SELLER" | "MODERATOR" | "ADMIN";
+
+import { detailsSchema, signupSchema } from "../schema";
+import { useUpdateUserMutation } from "@/state/api";
 
 const setModal = (bool: boolean) => {
   useToggleModal.setState({ isSignupModalOpen: bool });
@@ -17,6 +21,7 @@ const setDetailModal = (bool: boolean) => {
 };
 
 const RegisterModal = () => {
+  const { data: sessionData } = useSession();
   const session = useSessionStore((state) => state.session);
   const [formData, setFormData] = useState({
     name: "",
@@ -47,7 +52,7 @@ const RegisterModal = () => {
     (state) => state.isUploadImgModalOpen
   );
   const userId = useSessionStore((state) => state.userid);
-  // const setAvatarModal = useSessionStore((state) => state.);
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   const closeModal = () => {
     setModal(false);
@@ -82,37 +87,48 @@ const RegisterModal = () => {
     setLoading(true);
     setError(null);
     try {
-      const form = new FormData();
-      form.append("name", formData.name);
-      form.append("email", formData.email);
-      form.append("password", formData.password);
+      // Client-side validation
+      const validation = signupSchema.safeParse({
+        email: formData.email,
+        password: formData.password,
+        role: role,
+      });
 
-      // Simulate error for demo:
-      // throw new Error("Invalid credentials");
-
-      
-      const signUpData = {...formData, role: role};
-      
-      console.log("Form data:", signUpData);
-      
+      if (!validation.success) {
+        throw new Error(validation.error.issues[0].message);
+      }
 
       if (formData.password !== formData.confirm) {
-        setError("Passwords do not match");
         throw new Error("Passwords do not match");
       }
 
+      const signUpData = {
+        name: formData.name, 
+        email: formData.email, 
+        password: formData.password, 
+        role: role
+      };
+      
       const { data, error } = await signup(signUpData);
 
-      console.log("Signup error:", error);
-      console.log("Signup data:", data);
-
-      if (!error) {
-        setSession(data);
-        closeModal();
-        setDetailModal(true);
+      if (error) {
+        throw new Error(error.message || "Signup failed");
       }
 
-      // Replace with your server action
+      // Automatically sign in after signup
+      const loginResult = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (loginResult?.error) {
+        throw new Error(loginResult.error);
+      }
+
+      closeModal();
+      setDetailModal(true);
+
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
@@ -125,23 +141,37 @@ const RegisterModal = () => {
     setLoading(true);
     setError(null);
     try {
-      const form = new FormData();
-      form.append("firstName", detailData.firstName);
-      form.append("lastName", detailData.lastName);
-      form.append("phone", detailData.phone);
-      form.append("userId", session!.session?.user.id || ""); // Ensure userId is included
-      console.log("User ID:", session!.session?.user.id);
+      // Client-side validation
+      const validation = detailsSchema.safeParse({
+        firstName: detailData.firstName,
+        lastName: detailData.lastName,
+        phone: detailData.phone,
+      });
 
-      // Simulate error for demo:
-      // throw new Error("Invalid credentials");
-      // await signup(form); // Replace with your server action
-      const { data, error } = await updateDetails(form);
-      console.log("Update details error:", error);
+      if (!validation.success) {
+        throw new Error(validation.error.issues[0].message);
+      }
+
+      const updateData = {
+        firstName: detailData.firstName,
+        lastName: detailData.lastName,
+        phone: detailData.phone,
+      };
+
+      const userId = (sessionData?.user as any)?.id;
+      if (!userId) throw new Error("No user session found");
+
+      await updateUser({
+        userId,
+        role: role,
+        data: updateData
+      }).unwrap();
+
       setName(detailData.firstName || "User");
       closeDetailModal();
       setOpenAvatarModal(true);
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Update failed");
     } finally {
       setLoading(false);
     }

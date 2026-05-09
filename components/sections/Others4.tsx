@@ -1,6 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { useCmsContent } from "@/hooks/useCmsContent";
+
+// Fallback messages for when CMS is unavailable
+const fallbackMessages: Record<string, string> = {
+    OurSupport_subtitle: "Our Support",
+    OurSupport_title: "A Technical Companion for Your Move",
+    TechMeetsHuman_title: "Technology Meets Human Experience",
+    TechMeetsHuman_p1: "By combining human experience with advanced technology, we ensure your move is safe. From AI-driven document preparation to a vetted network of partners, we are here to support you every step of the way.",
+    TechMeetsHuman_p2: "We are the \"helpful team from next door,\" using modern tools to bring people together fairly.",
+    UneditedTours_title: "Unedited Video Tours",
+    UneditedTours_description: "Every property includes authentic video tours showing the house and surrounding village exactly as they are.",
+    AITranslation_title: "Real-Time AI Translation",
+    AITranslation_description: "Our platform breaks down language barriers, connecting international buyers with local sellers seamlessly.",
+    VillageContext_title: "Complete Village Context",
+    VillageContext_description: "We provide insights into the social structure, infrastructure, and community feeling of each location.",
+    ContactUs_btn: "Contact Us",
+};
 
 export default function Others4() {
+    const { t } = useCmsContent({ pageKey: "AboutPage", fallbackMessages });
     return (
         <>
             {/*===== OTHERS AREA STARTS =======*/}
@@ -9,40 +29,42 @@ export default function Others4() {
                     <div className="row">
                         <div className="col-lg-5 m-auto">
                             <div className="heading1 text-center space-margin60">
-                                <h5>Why Choose Us</h5>
+                                <h5>{t("OurSupport_subtitle")}</h5>
                                 <div className="space16" />
-                                <h2>Why Choose Housa</h2>
+                                <h2>{t("OurSupport_title")}</h2>
                             </div>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col-lg-6">
                             <div className="choose-heading heading1">
-                                <h2>Why Housa Stands Out</h2>
+                                <h2>{t("TechMeetsHuman_title")}</h2>
                                 <div className="space16" />
-                                <p>Choosing Housa means partnering with a real estate company that puts your needs first. We combine industry expertise, innovative technology, and a client-centric approach to simplify property transactions.</p>
+                                <p>{t("TechMeetsHuman_p1")}</p>
+                                <div className="space16" />
+                                <p>{t("TechMeetsHuman_p2")}</p>
                                 <div className="space24" />
                                 <div className="choose-box">
-                                    <Link href="/our-service">Expert Guidance</Link>
+                                    <Link href="/search">{t("UneditedTours_title")}</Link>
                                     <div className="space16" />
-                                    <p>Our team of real estate professionals is dedicated to providing the best market insights and tailored advice.</p>
+                                    <p>{t("UneditedTours_description")}</p>
                                 </div>
                                 <div className="space24" />
                                 <div className="choose-box">
-                                    <Link href="/our-service">Wide Property Listings</Link>
+                                    <Link href="/search">{t("AITranslation_title")}</Link>
                                     <div className="space16" />
-                                    <p>From modern apartments to luxury villas, we offer diverse listings to match your preferences.</p>
+                                    <p>{t("AITranslation_description")}</p>
                                 </div>
                                 <div className="space24" />
                                 <div className="choose-box">
-                                    <Link href="/our-service">Clients-Centric Approach</Link>
+                                    <Link href="/search">{t("VillageContext_title")}</Link>
                                     <div className="space16" />
-                                    <p>Your needs come first, and we ensure a smooth, stress-free real estate experience.</p>
+                                    <p>{t("VillageContext_description")}</p>
                                 </div>
                                 <div className="space32" />
                                 <div className="btn-area1">
                                     <Link href="/contact" className="vl-btn1">
-                                        Contact Us
+                                        {t("ContactUs_btn")}
                                         <span className="arrow1 ms-2">
                                             <i className="fa-solid fa-arrow-right" />
                                         </span>

@@ -3,6 +3,7 @@ import { Image } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { setAvatarUrl, setOpenAvatarModal } from "./gobalActions";
+import { useSession } from "next-auth/react";
 
 export default function ProfileImageUpload() {
   const supabase = createClient();
@@ -21,53 +22,25 @@ export default function ProfileImageUpload() {
     }
   };
 
-  const handleUplaodImage = async () => {
-    const { data, error } = await supabase.from("user").select("*").single();
+  const { data: session } = useSession();
 
-    if (error) {
-      setError("Failed to fetch user data");
+  const handleUplaodImage = async () => {
+    if (!session?.user) {
+      setError("User not authenticated");
       return;
     }
 
-    console.log("User id:", data.id);
-    console.log("Preview:", preview);
-    console.log("img:", imageFile?.name);
-
-    const fileExt = imageFile?.name.split(".")[1];
-    const fileName = `${data.id}.${fileExt}`;
-
-    console.log("File name:", fileName);
-
-    // load the file path
-    // upload the file
     if (!imageFile) {
       setError("No image file selected");
       return;
     }
 
-    const { data: imageData, error: imageError } = await supabase.storage
-      .from("avatars")
-      .upload(`${fileName}`, imageFile);
+    // TODO: Implement backend avatar upload to Express API
+    // const formData = new FormData();
+    // formData.append("avatar", imageFile);
+    // await fetch("...", { method: "POST", body: formData })
 
-    if (imageError) {
-      setError("Failed to upload image");
-      console.error("Upload error:", imageError);
-      return;
-    }
-    // update user table with the image path
-    const { data: imgPathdata, error: imgPathError } = await supabase
-      .from("user")
-      .update({
-        avatarUrl: `/${fileName}`,
-      })
-      .eq("id", data.id)
-      .select();
-
-    // setAvatarUrl(`/${fileName}`);
-    console.log(imgPathdata![0].avatarUrl);
-
-    
-
+    console.log("Avatar upload pending backend implementation");
     setOpenAvatarModal(false);
   };
 
@@ -102,9 +75,9 @@ export default function ProfileImageUpload() {
         type="button"
         className="button-skip"
         disabled={loading}
-        onClick={() => setPreview(null)}
+        onClick={() => setOpenAvatarModal(false)}
       >
-        {loading ? "Setting up..." : "skip"}
+        {loading ? "Setting up..." : "Skip"}
       </button>
     </>
   );
