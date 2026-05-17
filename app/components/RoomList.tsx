@@ -271,7 +271,7 @@ const RoomList = ({
                     <div className="room-avatar">
                       {otherParticipantAvatar ? (
                         <img 
-                          src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${otherParticipantAvatar}`} 
+                          src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${otherParticipantAvatar}`} 
                           alt={otherParticipantName} 
                           className="room-avatar-img"
                         />

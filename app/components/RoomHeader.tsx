@@ -77,7 +77,7 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
         <div className="room-header-avatar">
           {otherParticipant?.avatarUrl ? (
             <img 
-              src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${otherParticipant.avatarUrl}`} 
+              src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${otherParticipant.avatarUrl}`} 
               alt={otherParticipant.name} 
               className="room-header-avatar-img"
             />

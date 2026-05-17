@@ -110,7 +110,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
                 <div className="video-placeholder">
                   <div className="avatar-wrapper">
                     {remoteAvatar ? (
-                      <img src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${remoteAvatar}`} alt={remoteName} className="avatar-img" />
+                      <img src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${remoteAvatar}`} alt={remoteName} className="avatar-img" />
                     ) : (
                       <div className="avatar-fallback">
                         {remoteName?.charAt(0)?.toUpperCase() || "?"}
@@ -173,7 +173,7 @@ const VideoCallModal: React.FC<VideoCallModalProps> = ({
             <div className="audio-main">
               <div className="avatar-wrapper large">
                 {remoteAvatar ? (
-                  <img src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${remoteAvatar}`} alt={remoteName} className="avatar-img" />
+                  <img src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${remoteAvatar}`} alt={remoteName} className="avatar-img" />
                 ) : (
                   <div className="avatar-fallback">
                     {remoteName?.charAt(0)?.toUpperCase() || "?"}

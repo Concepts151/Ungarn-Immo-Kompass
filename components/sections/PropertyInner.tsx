@@ -58,7 +58,7 @@ export default function PropertyInner({
   const basic = property.basic as any;
   const propertyTitle = `${basic.title ?? basic.address} in ${basic.city}`;
   const sellerMatrixId = property.seller.matrixUserId;
-  const sellerAvatarUrl = `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller.avatarUrl}`;
+  const sellerAvatarUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${seller.avatarUrl}`;
 
   // Filter media by type
   const photos = property.media.filter(

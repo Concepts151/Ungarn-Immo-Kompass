@@ -35,16 +35,37 @@ export default function ProfileImageUpload() {
       return;
     }
 
-    // TODO: Implement backend avatar upload to Express API
-    // const formData = new FormData();
-    // formData.append("avatar", imageFile);
-    // await fetch("...", { method: "POST", body: formData })
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("avatar", imageFile);
 
-    console.log("Avatar upload pending backend implementation");
-    setOpenAvatarModal(false);
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005";
+      const userRole = session.user.role === "SELLER" ? "seller" : "buyer";
+      const response = await fetch(`${baseUrl}/${userRole}/${session.user.id}/avatar`, {
+        method: "POST",
+        body: formData,
+        // Assuming we might need Authorization header if protected route
+        headers: {
+          "Authorization": `Bearer ${session.accessToken || session.user.id}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload avatar");
+      }
+
+      const data = await response.json();
+      setAvatarUrl(data.avatarUrl);
+      setOpenAvatarModal(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload avatar");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  //   https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars//572ccae5-4a48-41ba-b726-a78904f349fe.png
+  //   ${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads//572ccae5-4a48-41ba-b726-a78904f349fe.png
   return (
     <>
       <div className="profile-upload">

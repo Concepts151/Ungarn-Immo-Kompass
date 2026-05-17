@@ -291,7 +291,7 @@ const FavouritePropertyList = () => {
             ) || [];
             const seller = property.seller?.[0];
             const sellerAvatarUrl = seller?.avatarUrl
-              ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller.avatarUrl}`
+              ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${seller.avatarUrl}`
               : "/assets/img/icons/user-placeholder.png";
 
             return (

@@ -64,7 +64,7 @@ export default function UserAvatarDropdown() {
         {/* Avatar or profile pic */}
         {avatarUrl ? (
           <img
-            src={` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
+            src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`}
             alt="Avatar"
             className="avatar-circle"
             style={{ objectFit: "cover" }}
@@ -93,7 +93,7 @@ export default function UserAvatarDropdown() {
           <div className="user-header-content">
             {avatarUrl ? (
               <img
-                src={` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
+                src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`}
                 alt="Avatar"
                 className="user-header-avatar"
               />

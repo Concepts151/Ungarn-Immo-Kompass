@@ -102,7 +102,7 @@ const MessageList = ({
               <div className="message-avatar">
                 {avatarUrl ? (
                   <img
-                    src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
+                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`}
                     alt={displayName}
                     className="avatar-img"
                   />

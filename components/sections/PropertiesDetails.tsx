@@ -56,7 +56,7 @@ export default function PropertiesDetails({ property }: any) {
       property.seller.lastName || ""
     }`.trim() || "Property Owner";
 
-  const sellerAvatarUrl = ` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${property.seller.avatarUrl}`;
+  const sellerAvatarUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${property.seller.avatarUrl}`;
   //   const sellerData = fetchSellerDetails(property.seller.id);
   return (
     <>

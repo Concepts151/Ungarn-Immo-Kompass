@@ -284,7 +284,7 @@ export default function DashboardArea() {
                                       <div className="img">
                                         {user?.avatarUrl ? (
                                           <img
-                                            src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${
+                                            src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${
                                               user?.avatarUrl ||
                                               "default-avatar.png"
                                             }`}

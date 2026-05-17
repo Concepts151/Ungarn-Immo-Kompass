@@ -59,7 +59,7 @@ const ListingCard = ({
 
   console.log("Seller data in ListingCard:", seller);
   
-  const sellerAvatarUrl = `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
+  const sellerAvatarUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${seller[0].avatarUrl}`;
   const photos = media.filter(
     (mediaItem: any) => mediaItem.mediaType === "PHOTO"
   );

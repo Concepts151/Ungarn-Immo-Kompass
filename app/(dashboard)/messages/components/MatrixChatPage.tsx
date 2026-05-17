@@ -78,8 +78,13 @@ const MatrixChatPage = () => {
 
   // User cache - maps Matrix IDs to user details
   const [userCache, setUserCache] = useState<Record<string, MatrixUserInfo>>({});
+  const userCacheRef = useRef<Record<string, MatrixUserInfo>>({});
   const fetchedIdsRef = useRef<Set<string>>(new Set());
   const isFetchingRef = useRef(false);
+
+  useEffect(() => {
+    userCacheRef.current = userCache;
+  }, [userCache]);
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -324,7 +329,7 @@ const MatrixChatPage = () => {
 
   // Get user display name from cache
   const getUserDisplayName = useCallback((matrixId: string): string => {
-    const cached = userCache[matrixId];
+    const cached = userCacheRef.current[matrixId];
     if (cached?.fullName) return cached.fullName;
     
     // Fallback: extract name from Matrix ID (handle both @immo_ and @usert_ prefixes)
@@ -335,12 +340,12 @@ const MatrixChatPage = () => {
     if (usertMatch) return usertMatch[1].substring(0, 8) + "...";
     
     return matrixId.split(":")[0].replace("@", "");
-  }, [userCache]);
+  }, []);
 
   // Get user avatar from cache
   const getUserAvatar = useCallback((matrixId: string): string | null => {
-    return userCache[matrixId]?.avatarUrl || null;
-  }, [userCache]);
+    return userCacheRef.current[matrixId]?.avatarUrl || null;
+  }, []);
 
   // Fetch user details for Matrix IDs
   const fetchUserDetails = useCallback(async (matrixIds: string[]) => {
@@ -482,6 +487,11 @@ const MatrixChatPage = () => {
 
   // Get local media stream
   const getLocalStream = async (video: boolean) => {
+    // Cleanup any existing stream first to avoid memory leaks
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: video ? { width: 1280, height: 720 } : false,
@@ -847,6 +857,14 @@ const MatrixChatPage = () => {
             handleCallCandidates(event);
           } else if (event.getType() === "m.call.hangup") {
             handleCallHangup(event);
+          }
+        });
+
+        matrixClient.on("Session.logged_out", () => {
+          console.warn("Matrix session logged out.");
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setNeedsMatrixAccount(true);
           }
         });
 

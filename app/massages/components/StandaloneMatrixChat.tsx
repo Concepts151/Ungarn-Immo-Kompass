@@ -250,7 +250,7 @@ const StandaloneMatrixChat = () => {
   // Format avatar URL with Supabase storage path
   const getAvatarUrl = (avatarUrl: string | null | undefined) => {
     if (!avatarUrl) return null;
-    return `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`;
+    return `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`;
   };
 
   // Get avatar for a room (from the other participant)

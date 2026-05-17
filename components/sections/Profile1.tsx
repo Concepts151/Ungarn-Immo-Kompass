@@ -91,7 +91,7 @@ export default function Profile1() {
                         avatarUrl && avatarUrl.startsWith("blob:")
                           ? avatarUrl
                           : authData?.user?.avatarUrl
-                          ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${authData.user.avatarUrl}`
+                          ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${authData.user.avatarUrl}`
                           : "/assets/img/all-images/others/others-img1.png"
                       }
                       className="img-fluid"

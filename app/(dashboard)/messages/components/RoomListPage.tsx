@@ -170,7 +170,7 @@ const formatTime = (timestamp: number): string => {
 };
 
 // Supabase storage URL for avatars
-const AVATAR_BASE_URL = "https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/";
+const AVATAR_BASE_URL = "${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/";
 
 // Helper to get full avatar URL
 const getFullAvatarUrl = (avatarUrl: string | null): string | null => {
