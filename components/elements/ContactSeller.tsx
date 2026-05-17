@@ -11,6 +11,7 @@ import {
 import { useToggleModal } from "@/app/store";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { User } from "lucide-react";
 
 interface ContactSellerProps {
   sellerName: string;
@@ -33,6 +34,7 @@ export default function ContactSeller({
   propertyTitle,
   sellerId,
 }: ContactSellerProps) {
+  const [imgError, setImgError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -183,8 +185,17 @@ export default function ContactSeller({
           gap: "10px",
         }}
       >
-        <div className="img1">
-          <img src={sellerImage} alt={sellerName} />
+        <div className="img1" style={{ display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f3f4f6", borderRadius: "50%", width: "80px", height: "80px", overflow: "hidden" }}>
+          {!imgError && sellerImage && sellerImage !== "/assets/img/all-images/others/others-img7.png" && sellerImage !== "/assets/img/all-images/user.png" ? (
+            <img 
+              src={sellerImage} 
+              alt={sellerName} 
+              onError={() => setImgError(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <User size={40} color="#9ca3af" />
+          )}
         </div>
         <div className="content" style={{ textAlign: "center" }}>
           <Link href="#">{sellerName}</Link>

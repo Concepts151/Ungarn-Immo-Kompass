@@ -9,6 +9,10 @@ export const setOpenSignupModal = (bool: boolean) => {
 export const setOpenSignupDetailModal = (bool: boolean) => {
   useToggleModal.setState({ isSignupDetailModalOpen: bool });
 };
+
+export const setOpenOtpModal = (bool: boolean) => {
+  useToggleModal.setState({ isSignupOtpModalOpen: bool });
+};
 export const setOpenAvatarModal = (bool: boolean) => {
   useToggleModal.setState({ isUploadImgModalOpen: bool });
 };

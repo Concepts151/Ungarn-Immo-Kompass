@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
               role: data.user.role,
               avatarUrl: data.user.avatarUrl,
               token: data.token, // Our custom JWT from Express
+              isEmailVerified: data.user.isEmailVerified,
             };
           } else {
             throw new Error(data.error || "Invalid login credentials");
@@ -75,12 +76,20 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      console.log("[NextAuth JWT] trigger:", trigger, "session update data:", session);
+      if (trigger === "update" && session) {
+        if (session.isEmailVerified !== undefined) {
+          token.isEmailVerified = session.isEmailVerified;
+          console.log("[NextAuth JWT] Updated token.isEmailVerified to:", token.isEmailVerified);
+        }
+      }
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
         token.avatarUrl = (user as any).avatarUrl;
         token.accessToken = (user as any).token; // Express JWT Token
+        token.isEmailVerified = (user as any).isEmailVerified;
       }
       return token;
     },
@@ -90,6 +99,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = token.role;
         (session.user as any).avatarUrl = token.avatarUrl;
         (session as any).accessToken = token.accessToken;
+        (session.user as any).isEmailVerified = token.isEmailVerified;
       }
       return session;
     }

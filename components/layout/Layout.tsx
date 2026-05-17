@@ -17,6 +17,7 @@ import Footer4 from "./footer/Footer4";
 import MatrixChat from "@/app/components/MatrixChat";
 import LoginModal from "@/app/pg/components/LoginModal";
 import RegisterModal from "@/app/pg/components/RegisterModal";
+import UnverifiedBanner from "./UnverifiedBanner";
 
 const BootstrapComponents = dynamic(
   () => import("../elements/BootstrapComponents"),
@@ -39,6 +40,7 @@ export default function Layout({
 
   return (
     <div>
+      <UnverifiedBanner />
       <div id="top" />
       <AddClassBody />
       <AnimatedText />

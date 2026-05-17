@@ -772,9 +772,24 @@ const MatrixChat = () => {
       });
 
       setCallState("calling");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error starting call:", error);
-      setError("Failed to start call");
+
+      // Handle specific permission errors
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+        setError("Camera/microphone access denied. Please allow access in your browser settings and try again.");
+      } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+        setError("No camera or microphone found. Please connect a device and try again.");
+      } else if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+        setError("Your camera or microphone is already in use by another application.");
+      } else {
+        setError("Failed to start call. Please try again.");
+      }
+
+      // Reset call UI state
+      setShowVideoCall(false);
+      setCallState("idle");
+      setIsOutgoingCall(false);
       handleHangup();
     }
   };

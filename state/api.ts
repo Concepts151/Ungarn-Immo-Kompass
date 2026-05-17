@@ -237,7 +237,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 export const api = createApi({
   baseQuery: baseQueryWithReauth,
   reducerPath: "api",
-  tagTypes: ["Properties", "Favorites", "MatrixRooms"],
+  tagTypes: ["Properties", "Favorites", "MatrixRooms", "AuthUser"],
   endpoints: (build) => ({
     // ==================== AUTH ENDPOINTS ====================
     getAuthUser: build.query<any, void>({
@@ -400,6 +400,23 @@ export const api = createApi({
       invalidatesTags: (result, error, { userId }) => [
         { type: "Properties", id: userId }, // Invalidate properties related to user
       ],
+    }),
+
+    uploadAvatar: build.mutation<any, { userId: string; data: FormData; role: string }>({
+      query: ({ userId, data, role }) => ({
+        url: role === "SELLER" ? `seller/${userId}/avatar` : `buyer/${userId}/avatar`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["AuthUser"], // Force refetch to update UI avatar
+    }),
+
+    removeAvatar: build.mutation<any, { userId: string; role: string }>({
+      query: ({ userId, role }) => ({
+        url: role === "SELLER" ? `seller/${userId}/avatar` : `buyer/${userId}/avatar`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["AuthUser"],
     }),
 
     extractDocument: build.mutation<any, File>({
@@ -809,6 +826,8 @@ export const {
   // Auth
   useGetAuthUserQuery,
   useUpdateUserMutation,
+  useUploadAvatarMutation,
+  useRemoveAvatarMutation,
 
   // Properties
   useGetPropertiesQuery,

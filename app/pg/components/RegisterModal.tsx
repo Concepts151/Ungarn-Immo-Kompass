@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { signup } from "../action";
-import { AtSign, Eye, EyeOff, Lock, Phone, User } from "lucide-react";
+import { signup, verifyOtp, resendOtp } from "../action";
+import { AtSign, Eye, EyeOff, Lock, Phone, User, KeyRound, CheckCircle2 } from "lucide-react";
 import { useSessionStore, useToggleModal } from "@/app/store";
-import { setOpenAvatarModal, switchToLoginModal } from "./gobalActions";
+import { setOpenAvatarModal, switchToLoginModal, setOpenOtpModal } from "./gobalActions";
 import ProfileImageUpload from "./AvatarUpload";
 import { CustomSelect } from "@/components/custom-comp/micro/custom-select";
 import { signIn, useSession } from "next-auth/react";
@@ -21,7 +21,7 @@ const setDetailModal = (bool: boolean) => {
 };
 
 const RegisterModal = () => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, update } = useSession();
   const session = useSessionStore((state) => state.session);
   const [formData, setFormData] = useState({
     name: "",
@@ -38,6 +38,12 @@ const RegisterModal = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<RoleOptions>("BUYER");
+  
+  const registeredEmail = useSessionStore((state) => state.unverifiedEmail) || "";
+  const setRegisteredEmail = useSessionStore((state) => state.setUnverifiedEmail);
+  const [otp, setOtp] = useState("");
+  const [resending, setResending] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   const setSession = useSessionStore((state) => state.setSession);
   const setName = useSessionStore((state) => state.setName);
@@ -47,6 +53,9 @@ const RegisterModal = () => {
   );
   const isSignupDetailModalOpen = useToggleModal(
     (state) => state.isSignupDetailModalOpen
+  );
+  const isSignupOtpModalOpen = useToggleModal(
+    (state) => state.isSignupOtpModalOpen
   );
   const isUploadImgModalOpen = useToggleModal(
     (state) => state.isUploadImgModalOpen
@@ -60,6 +69,7 @@ const RegisterModal = () => {
     setRole("BUYER");
     setError(null);
     setShowPassword(false);
+    setOtp("");
   };
   const closeDetailModal = () => {
     setDetailModal(false);
@@ -115,24 +125,68 @@ const RegisterModal = () => {
         throw new Error(error.message || "Signup failed");
       }
 
-      // Automatically sign in after signup
-      const loginResult = await signIn("credentials", {
-        redirect: false,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (loginResult?.error) {
-        throw new Error(loginResult.error);
-      }
-
-      closeModal();
-      setDetailModal(true);
+      setRegisteredEmail(formData.email);
+      setModal(false);
+      setOpenOtpModal(true);
 
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Signup failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      if (!otp) throw new Error("Please enter the verification code");
+
+      const { error } = await verifyOtp({ email: registeredEmail, otp });
+
+      if (error) {
+        throw new Error(error.message || "Verification failed");
+      }
+
+      const { getSession } = await import("next-auth/react");
+      const currentSession = await getSession();
+
+      if (!currentSession?.user && formData.password) {
+        // Automatically sign in after OTP verification only if not already signed in
+        const loginResult = await signIn("credentials", {
+          redirect: false,
+          email: registeredEmail,
+          password: formData.password,
+        });
+
+        if (loginResult?.error) {
+          throw new Error(loginResult.error);
+        }
+      }
+
+      setIsVerified(true);
+      if (currentSession?.user) {
+        await update({ isEmailVerified: true });
+      }
+    } catch (err: any) {
+      setError(err.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setResending(true);
+    setError(null);
+    try {
+      const { error } = await resendOtp({ email: registeredEmail });
+      if (error) throw new Error(error.message || "Failed to resend code");
+      // Could show a toast here instead of clearing error
+    } catch (err: any) {
+      setError(err.message || "Failed to resend code");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -188,10 +242,7 @@ const RegisterModal = () => {
             <form className="reg-form" onSubmit={handleSubmit}>
               <h2 className="login-modal-title">Welcome </h2>
               {error && (
-                <div
-                  className="alert-error"
-                  style={{ color: "#e63946", marginBottom: 8 }}
-                >
+                <div className="alert-error">
                   {error}
                 </div>
               )}
@@ -355,6 +406,95 @@ const RegisterModal = () => {
           </div>
         </div>
       )}
+      {isSignupOtpModalOpen && (
+        <div className="login-modal-overlay" onClick={() => setOpenOtpModal(false)}>
+          <div
+            className="login-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isVerified ? (
+              <div className="form" style={{ textAlign: "center", padding: "20px 0" }}>
+                <div className="success-checkmark">
+                  <CheckCircle2 size={80} strokeWidth={1.5} />
+                </div>
+                <h2 className="login-modal-title" style={{ textAlign: "center" }}>Verified!</h2>
+                <p className="text-secondary" style={{ marginBottom: "30px", textAlign: "center" }}>
+                  Your email has been successfully verified.
+                </p>
+                <button
+                  type="button"
+                  className="button-submit"
+                  onClick={() => {
+                    setOpenOtpModal(false);
+                    setIsVerified(false);
+                    setOtp("");
+                    if (formData.password) {
+                      setDetailModal(true);
+                    } else {
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  Continue
+                </button>
+              </div>
+            ) : (
+              <form className="reg-form" onSubmit={handleVerifyOtp}>
+                <h2 className="login-modal-title">Verify Email</h2>
+                <p className="text-secondary text-xs" style={{ marginBottom: "20px" }}>
+                  We've sent a 6-digit code to <strong>{registeredEmail}</strong>. Please enter it below.
+                </p>
+                {error && (
+                  <div className="alert-error">
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex-column">
+                  <label>Verification Code</label>
+                </div>
+                <div className="inputForm">
+                  <KeyRound size={18} />
+                  <input
+                    className="input otp-input"
+                    type="text"
+                    name="otp"
+                    required
+                    maxLength={6}
+                    placeholder="000000"
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    value={otp}
+                    disabled={loading}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="button-submit"
+                  disabled={loading || otp.length !== 6}
+                  style={{ marginTop: "20px" }}
+                >
+                  {loading ? "Verifying..." : "Verify & Continue"}
+                </button>
+                
+                <div style={{ textAlign: "center", marginTop: "15px" }}>
+                  <p className="p">
+                    Didn't receive the code?{" "}
+                    <button 
+                      type="button" 
+                      className="btn-resend" 
+                      onClick={handleResendOtp}
+                      disabled={resending}
+                    >
+                      {resending ? "Sending..." : "Resend"}
+                    </button>
+                  </p>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
       {isSignupDetailModalOpen && (
         // user details modal
         <div className="login-modal-overlay" onClick={closeModal}>
@@ -368,10 +508,7 @@ const RegisterModal = () => {
                 Let's get to know you better, fill in the details
               </p>
               {error && (
-                <div
-                  className="alert-error"
-                  style={{ color: "#e63946", marginBottom: 8 }}
-                >
+                <div className="alert-error">
                   {error}
                 </div>
               )}
@@ -447,10 +584,7 @@ const RegisterModal = () => {
                 Upload a profile picture to complete your registration
               </p>
               {error && (
-                <div
-                  className="alert-error"
-                  style={{ color: "#e63946", marginBottom: 8 }}
-                >
+                <div className="alert-error">
                   {error}
                 </div>
               )}

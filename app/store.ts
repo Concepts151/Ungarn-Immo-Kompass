@@ -3,6 +3,7 @@ import { create } from "zustand";
 type State = {
   isLoginModalOpen: boolean;
   isSignupModalOpen: boolean;
+  isSignupOtpModalOpen: boolean;
   isSignupDetailModalOpen: boolean;
   isUploadImgModalOpen: boolean;
 };
@@ -17,11 +18,14 @@ interface SessionState {
   setName: (name: string) => void;
   setAvatarUrl: (url: string | null) => void;
   clearSession: () => void; // Add clearSession to the interface
+  unverifiedEmail: string | null;
+  setUnverifiedEmail: (email: string | null) => void;
 }
 
 export const useToggleModal = create<State>((set) => ({
   isLoginModalOpen: false,
   isSignupModalOpen: false,
+  isSignupOtpModalOpen: false,
   isSignupDetailModalOpen: false,
   isUploadImgModalOpen: false,
 }));
@@ -35,11 +39,14 @@ export const useSessionStore = create<SessionState>((set) => ({
   setSession: (session) => set({ session }),
   setName: (name) => set({ name }),
   setAvatarUrl: (url) => set({ avatarUrl: url }),
+  unverifiedEmail: null,
+  setUnverifiedEmail: (email) => set({ unverifiedEmail: email }),
   clearSession: () =>
     set({
       userid: null,
       session: null,
       name: "User",
       avatarUrl: null,
+      unverifiedEmail: null,
     }), // Reset session-related state
 }));

@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import { User } from "lucide-react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
@@ -38,6 +39,20 @@ function formatCurrency(value: number): string {
     return value.toLocaleString();
   }
 }
+
+// Small helper for seller avatar with broken-image fallback
+const FavSellerAvatar = ({ url, name }: { url: string | null; name: string }) => {
+  const [err, setErr] = useState(false);
+  return (
+    <div className="img" style={{ display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f3f4f6", borderRadius: "50%", width: "40px", height: "40px", overflow: "hidden" }}>
+      {!err && url ? (
+        <img src={url} alt={name} onError={() => setErr(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        <User size={20} color="#9ca3af" />
+      )}
+    </div>
+  );
+};
 
 const FavouritePropertyList = () => {
   // Get authenticated user
@@ -291,8 +306,10 @@ const FavouritePropertyList = () => {
             ) || [];
             const seller = property.seller?.[0];
             const sellerAvatarUrl = seller?.avatarUrl
-              ? `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller.avatarUrl}`
-              : "/assets/img/icons/user-placeholder.png";
+              ? (seller.avatarUrl.startsWith("http") || seller.avatarUrl.startsWith("blob:")
+                  ? seller.avatarUrl
+                  : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${seller.avatarUrl}`)
+              : null;
 
             return (
               <div key={property.id} className="col-lg-4 col-md-6 mb-4">
@@ -314,6 +331,7 @@ const FavouritePropertyList = () => {
                                   width: "100%",
                                   objectFit: "cover",
                                 }}
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "40px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                               />
                             </div>
                           </Link>
@@ -483,18 +501,8 @@ const FavouritePropertyList = () => {
                       <div className="name-area">
                         {seller && (
                           <>
-                            <div className="img">
-                              <img
-                                src={sellerAvatarUrl}
-                                alt="seller"
-                                style={{
-                                  width: "40px",
-                                  height: "40px",
-                                  borderRadius: "50%",
-                                  objectFit: "cover",
-                                }}
-                              />
-                            </div>
+                            <FavSellerAvatar url={sellerAvatarUrl} name={`${seller.firstName} ${seller.lastName}`} />
+
                             <div className="text">
                               <Link href="#">
                                 {seller.firstName} {seller.lastName}

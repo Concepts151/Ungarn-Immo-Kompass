@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { User } from "lucide-react";
 import "./css/messagelist.css";
 import TranslatableMessage from "@/components/chat/TranslatableMessage";
 
@@ -18,6 +19,25 @@ interface MessageListProps {
   getUserDisplayName?: (matrixUserId: string) => string;
   getUserAvatar?: (matrixUserId: string) => string | null;
 }
+
+// Helper component for avatar with broken-image fallback
+const MessageAvatar = ({ avatarUrl, displayName }: { avatarUrl: string | null; displayName: string }) => {
+  const [err, setErr] = useState(false);
+  const resolvedUrl = avatarUrl
+    ? (avatarUrl.startsWith("http") || avatarUrl.startsWith("blob:")
+        ? avatarUrl
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`)
+    : null;
+
+  if (!err && resolvedUrl) {
+    return <img src={resolvedUrl} alt={displayName} className="avatar-img" onError={() => setErr(true)} />;
+  }
+  return (
+    <div className="avatar-placeholder" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <User size={16} color="#9ca3af" />
+    </div>
+  );
+};
 
 const MessageList = ({
   messages,
@@ -100,17 +120,7 @@ const MessageList = ({
             {/* Avatar for other users' messages */}
             {!isOwnMessage && showSender && (
               <div className="message-avatar">
-                {avatarUrl ? (
-                  <img
-                    src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${avatarUrl}`}
-                    alt={displayName}
-                    className="avatar-img"
-                  />
-                ) : (
-                  <div className="avatar-placeholder">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <MessageAvatar avatarUrl={avatarUrl} displayName={displayName} />
               </div>
             )}
 

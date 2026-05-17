@@ -335,3 +335,53 @@ Container styling
     background-color: #ededed;
     /* color: #fff; */
   }
+
+  .alert-error {
+    color: var(--ztc-text-text-4);
+    background-color: rgba(206, 40, 63, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: var(--ztc-font-size-font-s14);
+    font-weight: var(--ztc-weight-medium);
+  }
+
+  .otp-input {
+    letter-spacing: 8px;
+    font-size: var(--ztc-font-size-font-s20);
+    text-align: center;
+    font-weight: var(--ztc-weight-bold);
+  }
+
+  .btn-resend {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--ztc-text-text-4);
+    font-weight: var(--ztc-weight-semibold);
+    transition: all 0.3s ease;
+  }
+
+  .btn-resend:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  .btn-resend:disabled {
+    color: var(--ztc-text-text-3);
+    cursor: not-allowed;
+  }
+
+  @keyframes checkmark-bounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .success-checkmark {
+    color: var(--ztc-text-text-2);
+    animation: checkmark-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: center;
+  }

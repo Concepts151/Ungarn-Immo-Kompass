@@ -1,5 +1,6 @@
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { User } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import {
@@ -47,7 +48,13 @@ const LandingPropertyCard = ({
   media: PropertyMedia[];
   seller: SellerDatails[];
 }) => {
-  const sellerAvatarUrl = ` https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller[0].avatarUrl}`;
+  const [imgError, setImgError] = useState(false);
+  const sellerAvatar = seller[0]?.avatarUrl;
+  const sellerAvatarUrl = sellerAvatar
+    ? (sellerAvatar.startsWith("http") || sellerAvatar.startsWith("blob:")
+        ? sellerAvatar
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${sellerAvatar}`)
+    : "/assets/img/all-images/user.png";
   const photos = media.filter(
     (mediaItem: any) => mediaItem.mediaType === "PHOTO"
   );
@@ -66,7 +73,7 @@ const LandingPropertyCard = ({
               <SwiperSlide key={m.id}>
                 <Link href="/property-details-v1">
                   <div className="img1 image-anime">
-                    <img src={m.url} alt="housa" style={{ height: "300px" }} />
+                    <img src={m.url} alt="housa" style={{ height: "300px" }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "40px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }} />
                   </div>
                 </Link>
               </SwiperSlide>
@@ -216,11 +223,17 @@ const LandingPropertyCard = ({
           <div className="space24" />
           <div className="btn-area">
             <div className="name-area">
-              <div className="img">
-                <img
-                  src={sellerAvatarUrl}
-                  alt="housa"
-                />
+              <div className="img" style={{ display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f3f4f6", borderRadius: "50%", width: "40px", height: "40px", overflow: "hidden" }}>
+                {!imgError && sellerAvatarUrl && sellerAvatarUrl !== "/assets/img/all-images/user.png" ? (
+                  <img
+                    src={sellerAvatarUrl}
+                    alt="seller avatar"
+                    onError={() => setImgError(true)}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <User size={20} color="#9ca3af" />
+                )}
               </div>
               <div className="text">
                 <Link href="#">{seller[0].firstName + " " + seller[0].lastName}</Link>

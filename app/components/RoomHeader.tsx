@@ -1,5 +1,5 @@
-import React from "react";
-import { Video, Phone, LogOut, ChevronLeft } from "lucide-react";
+import React, { useState } from "react";
+import { Video, Phone, LogOut, ChevronLeft, User } from "lucide-react";
 import "./css/roomheader.css";
 import LanguageSelector from "@/components/chat/LanguageSelector";
 
@@ -13,6 +13,21 @@ interface RoomHeaderProps {
   getUserAvatar?: (matrixUserId: string) => string | null;
   onBack?: () => void;
 }
+
+// Helper component for avatar with broken-image fallback
+const RoomHeaderAvatar = ({ avatarUrl, name }: { avatarUrl: string | null; name: string }) => {
+  const [err, setErr] = useState(false);
+  const resolvedUrl = avatarUrl
+    ? (avatarUrl.startsWith("http") || avatarUrl.startsWith("blob:")
+        ? avatarUrl
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`)
+    : null;
+  
+  if (!err && resolvedUrl) {
+    return <img src={resolvedUrl} alt={name} className="room-header-avatar-img" onError={() => setErr(true)} />;
+  }
+  return <User size={20} color="#9ca3af" />;
+};
 
 const RoomHeader: React.FC<RoomHeaderProps> = ({
   room,
@@ -75,15 +90,7 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({
           </button>
         )}
         <div className="room-header-avatar">
-          {otherParticipant?.avatarUrl ? (
-            <img 
-              src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${otherParticipant.avatarUrl}`} 
-              alt={otherParticipant.name} 
-              className="room-header-avatar-img"
-            />
-          ) : (
-            <span>{(otherParticipant?.name || roomName).charAt(0).toUpperCase()}</span>
-          )}
+          <RoomHeaderAvatar avatarUrl={otherParticipant?.avatarUrl || null} name={otherParticipant?.name || roomName} />
         </div>
         <div className="room-header-details">
           <h4 className="room-header-name">{roomName}</h4>

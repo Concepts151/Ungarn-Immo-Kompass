@@ -22,11 +22,13 @@ export default function LoginModal() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   const isLoginModalOpen = useToggleModal((state) => state.isLoginModalOpen);
   const setName = useSessionStore((state) => state.setName);
   const setSession = useSessionStore((state) => state.setSession);
   const setAvatarUrl = useSessionStore((state) => state.setAvatarUrl);
+  const setUnverifiedEmail = useSessionStore((state) => state.setUnverifiedEmail);
   const setMatrixCredentials = useMatrixStore((state) => state.setMatrixCredentials);
 
   // Get auth user query to fetch Matrix credentials
@@ -37,6 +39,7 @@ export default function LoginModal() {
     setFormData({ email: "", password: "" });
     setError(null);
     setShowPassword(false);
+    setNeedsVerification(false);
   };
 
 
@@ -49,7 +52,7 @@ export default function LoginModal() {
     setLoading(true);
     setError(null);
     try {
-      const { signIn } = await import("next-auth/react");
+      const { signIn, getSession } = await import("next-auth/react");
       const result = await signIn("credentials", {
         redirect: false,
         email: formData.email,
@@ -59,6 +62,14 @@ export default function LoginModal() {
       if (result?.error) {
         setError(result.error);
         return;
+      }
+      
+      const currentSession = await getSession();
+      if (currentSession?.user && !(currentSession.user as any).isEmailVerified) {
+         setNeedsVerification(true);
+         setUnverifiedEmail(formData.email);
+         setLoading(false);
+         return; // wait here, do not close modal!
       }
       
       toast.success('Login Successful!');
@@ -104,13 +115,42 @@ export default function LoginModal() {
   return (
     <div className="login-modal-container">
       <Toaster position="top-center" reverseOrder={false} />
-      {session == null && (
+      {(session == null || needsVerification) && isLoginModalOpen && (
         <div className="login-modal-overlay" onClick={closeModal}>
           <div
             className="login-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <form className="form" onSubmit={handleSubmit}>
+            {needsVerification ? (
+              <div className="form">
+                <h2 className="login-modal-title">Email Not Verified</h2>
+                <p className="text-secondary text-xs" style={{ marginBottom: "20px" }}>
+                  Your account has been created, but your email address hasn't been verified yet. Please verify your email to continue.
+                </p>
+                <button
+                  type="button"
+                  className="button-submit"
+                  disabled={loading}
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const { resendOtp } = await import("../action");
+                      await resendOtp({ email: formData.email });
+                      closeModal();
+                      const { setOpenOtpModal } = await import("./gobalActions");
+                      setOpenOtpModal(true);
+                    } catch (err:any) {
+                      setError(err.message || "Failed to send code");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  {loading ? "Sending Code..." : "Verify Email"}
+                </button>
+              </div>
+            ) : (
+              <form className="form" onSubmit={handleSubmit}>
               <h2 className="login-modal-title">Welcome Back</h2>
               {error && (
                 <div
@@ -221,6 +261,7 @@ export default function LoginModal() {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

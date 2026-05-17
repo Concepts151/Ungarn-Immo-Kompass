@@ -58,7 +58,12 @@ export default function PropertyInner({
   const basic = property.basic as any;
   const propertyTitle = `${basic.title ?? basic.address} in ${basic.city}`;
   const sellerMatrixId = property.seller.matrixUserId;
-  const sellerAvatarUrl = `https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${seller.avatarUrl}`;
+  const sellerAvatar = seller?.avatarUrl;
+  const sellerAvatarUrl = sellerAvatar
+    ? (sellerAvatar.startsWith("http") || sellerAvatar.startsWith("blob:")
+        ? sellerAvatar
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${sellerAvatar}`)
+    : "/assets/img/all-images/user.png";
 
   // Filter media by type
   const photos = property.media.filter(
@@ -552,6 +557,7 @@ export default function PropertyInner({
                                   objectFit: "cover",
                                   borderRadius: "8px",
                                 }}
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "40px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                               />
                               <div className="plus">
                                 <Link href="#">
@@ -584,6 +590,7 @@ export default function PropertyInner({
                                         borderRadius: "8px",
                                         marginTop: "16px",
                                       }}
+                                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "20px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                                     />
                                     <div className="plus">
                                       <Link href="#">

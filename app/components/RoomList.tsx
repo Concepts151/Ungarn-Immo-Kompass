@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./css/matrixchat.css";
-import { Hash, Trash2 } from "lucide-react";
+import { Hash, Trash2, User } from "lucide-react";
 import RoomInvites from "./RoomInvites";
 
 interface RoomListProps {
@@ -159,6 +159,21 @@ const formatTime = (timestamp: number): string => {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
+// Helper component for avatar with broken-image fallback
+const RoomListAvatar = ({ avatarUrl, name }: { avatarUrl: string | null; name: string }) => {
+  const [err, setErr] = useState(false);
+  const resolvedUrl = avatarUrl
+    ? (avatarUrl.startsWith("http") || avatarUrl.startsWith("blob:")
+        ? avatarUrl
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005"}/uploads/${avatarUrl}`)
+    : null;
+
+  if (!err && resolvedUrl) {
+    return <img src={resolvedUrl} alt={name} className="room-avatar-img" onError={() => setErr(true)} />;
+  }
+  return <User size={18} color="#9ca3af" />;
+};
+
 const RoomList = ({
   rooms,
   invites,
@@ -269,15 +284,7 @@ const RoomList = ({
                   >
                     {/* Room Avatar */}
                     <div className="room-avatar">
-                      {otherParticipantAvatar ? (
-                        <img 
-                          src={`https://jzhlioxxjwqwvwybtcfl.supabase.co/storage/v1/object/public/avatars/${otherParticipantAvatar}`} 
-                          alt={otherParticipantName} 
-                          className="room-avatar-img"
-                        />
-                      ) : (
-                        <span>{otherParticipantName.charAt(0).toUpperCase()}</span>
-                      )}
+                      <RoomListAvatar avatarUrl={otherParticipantAvatar} name={otherParticipantName} />
                     </div>
                     
                     <div className="room-info">

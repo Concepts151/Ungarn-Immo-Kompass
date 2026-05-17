@@ -2,6 +2,8 @@ import { Expose } from "@/app/(nondashboard)/property/[id]/page";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { User } from "lucide-react";
 
 interface PropertiesDetailsProps {
   property: Expose;
@@ -10,6 +12,7 @@ interface PropertiesDetailsProps {
 const supabase = createClient();
 
 export default function PropertiesDetails({ property }: any) {
+  const [imgError, setImgError] = useState(false);
   const t = useTranslations("PropertyDetails");
   const tCommon = useTranslations("Common");
 
@@ -73,6 +76,7 @@ export default function PropertiesDetails({ property }: any) {
                   }
                   alt="housa"
                   style={{ height: "530px", objectFit: "cover", width: "100%" }}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "40px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                 />
               </div>
             </div>
@@ -128,6 +132,7 @@ export default function PropertiesDetails({ property }: any) {
                           objectFit: "cover",
                           width: "100%",
                         }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "20px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                       />
                     </div>
                   </div>
@@ -147,6 +152,7 @@ export default function PropertiesDetails({ property }: any) {
                           objectFit: "cover",
                           width: "100%",
                         }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "20px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                       />
                     </div>
                   </div>
@@ -166,6 +172,7 @@ export default function PropertiesDetails({ property }: any) {
                           objectFit: "cover",
                           width: "100%",
                         }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "20px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                       />
                     </div>
                   </div>
@@ -185,6 +192,7 @@ export default function PropertiesDetails({ property }: any) {
                           objectFit: "cover",
                           width: "100%",
                         }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "20px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                       />
                     </div>
                   </div>
@@ -204,6 +212,7 @@ export default function PropertiesDetails({ property }: any) {
                           objectFit: "cover",
                           width: "100%",
                         }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/img/logo/Ungarn-Immo-Full.png"; e.currentTarget.style.objectFit = "contain"; e.currentTarget.style.padding = "20px"; e.currentTarget.style.backgroundColor = "#f3f4f6"; }}
                       />
                     </div>
                   </div>
@@ -377,10 +386,18 @@ export default function PropertiesDetails({ property }: any) {
               <div className="space24" />
               <div className="btn-area">
                 <div className="name-area">
-                  <div className="img">
+                  <div className="img" style={{ display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f3f4f6", borderRadius: "50%", width: "40px", height: "40px", overflow: "hidden" }}>
                     {/* Seller Image Placeholder */}
-                    {}
-                    <img src={sellerAvatarUrl} alt="housa" />
+                    {!imgError && sellerAvatarUrl && sellerAvatarUrl !== "/assets/img/all-images/user.png" ? (
+                      <img 
+                        src={sellerAvatarUrl} 
+                        alt="housa" 
+                        onError={() => setImgError(true)}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <User size={20} color="#9ca3af" />
+                    )}
                   </div>
                   <div className="text">
                     <Link href="#">{sellerName}</Link>
